@@ -1,4 +1,3 @@
-# 2. DB.PHP
 <?php
 // Core Infrastructure Database Connector Config Node
 $host = "sql207.infinityfree.com";
