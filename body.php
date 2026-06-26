@@ -193,18 +193,14 @@
 <div class="container">
 
 
-<!-- 1. HERO BANNER -->
-<div class="hero">
+<!-- 1. HERO BANNER - CORRECTED PATH -->
+<div class="hero" style="background: linear-gradient(rgba(18,18,18,0.65), rgba(18,18,18,0.75)), url('assets/images/hero-main.jpg') center/cover no-repeat;">
     <div class="hero-content">
         <h1>Live Music. Live Moments.</h1>
         <p>Buy verified tickets to the hottest concerts, tours &amp; festivals.</p>
         <a href="#" class="btn-find">Find Tickets</a>
     </div>
 </div>
-
-<!-- Update this line in .hero -->
-background: linear-gradient(rgba(18,18,18,0.65), rgba(18,18,18,0.75)), 
-            url('assets/images/hero-main.jpg') center/cover no-repeat;
 
 
     <!-- 2. UPCOMING EVENTS - 4 Grid -->
