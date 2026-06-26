@@ -88,6 +88,9 @@
     
     
 <link rel="stylesheet" href="assets/css/styles.css">
+
+<?php include "inc/script.php"; ?>
+    
 </head>
 <body>
  <div id="__next">
