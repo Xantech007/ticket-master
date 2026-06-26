@@ -1,273 +1,94 @@
-<?php
-$current_page = basename($_SERVER['PHP_SELF']);
-?>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-<style>
-.navbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 20px;
-    background: #024cdf;
-    border-bottom: 1px solid #eaeaea;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-/* LEFT SIDE */
-.nav-left {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-/* Logo */
-.nav-left img {
-    height: 38px;
-}
-
-/* Earnings UI */
-.nav-earnings {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* Balance */
-.balance {
-    background: #eaf6ff;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 14px;
-    color: #0077aa;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-/* Claim Button */
-.claim-btn {
-    background: #00aaff;
-    color: #fff;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 13px;
-    cursor: pointer;
-    display: none; /* hidden by default */
-}
-
-.claim-btn.active {
-    display: inline-block;
-}
-
-.claim-btn:hover {
-    background: #0088cc;
-}
-
-/* RIGHT SIDE */
-.nav-right {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-}
-
-.nav-right a {
-    text-decoration: none;
-    color: #fff;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-/* Hamburger */
-.menu-toggle {
-    display: none;
-    font-size: 24px;
-    cursor: pointer;
-}
-
-/* ================= MOBILE ================= */
-@media (max-width: 768px) {
-
-    .navbar {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
-    }
-
-    .nav-left {
-        width: 100%;
-        justify-content: center;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .nav-earnings {
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .menu-toggle {
-        display: block;
-        position: absolute;
-        right: 20px;
-        top: 18px;
-    }
-
-    .nav-right {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: #fff;
-        flex-direction: column;
-        padding: 20px;
-        gap: 16px;
-    }
-
-    .nav-right.show {
-        display: flex;
-    }
-
-    .nav-right a {
-        justify-content: center;
-    }
-}
-</style>
-
-<div class="navbar">
-
-    <!-- LEFT: Logo + Earnings -->
-    <div class="nav-left">
-
-        <a href="/index.php">
-            <img src="assets/images/logo.png" alt="<?php echo htmlspecialchars($site_name ?? 'PlayEarn'); ?>">
-        </a>
-
-        <?php if (isset($_SESSION['user_id'])): ?>
-        <div class="nav-earnings">
-
-            <!-- Balance -->
-            <div class="balance">
-                <i class="fa-solid fa-wallet"></i>
-                <span id="navBalance">
-                    <?php
-                    $user_balance = $_SESSION['balance'] ?? 0.00;
-
-                    if (isset($_SESSION['user_id'])) {
-                        $stmt = $conn->prepare("SELECT balance FROM users WHERE id = ?");
-                        $stmt->execute([$_SESSION['user_id']]);
-                        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                        if ($row) {
-                            $user_balance = $row['balance'];
-                            $_SESSION['balance'] = $user_balance;
-                        }
-                    }
-
-                    echo ($currency ?? '$') . number_format($user_balance, 4);
-                    ?>
-                </span>
-            </div>
-
-            <!-- Claim Button -->
-            <button id="claimBtn" onclick="claimEarnings()" class="claim-btn">
-                💰 Claim
-            </button>
-
-        </div>
-        <?php endif; ?>
-
+<div class="top-bar">
+    <div class="top-bar-left">
+        <span><i class="fa-solid fa-flag" style="color:#2e7d32;"></i> MX</span>
+        <span><i class="fa-regular fa-comment-dots"></i> EN</span>
+        <span><i class="fa-solid fa-location-arrow" style="font-size: 9px;"></i> All of Mexico</span>
     </div>
-
-    <!-- Hamburger -->
-    <div class="menu-toggle" onclick="toggleMenu()">
-        <i class="fa-solid fa-bars"></i>
-    </div>
-
-    <!-- RIGHT MENU -->
-    <div class="nav-right" id="navMenu">
-
-        <?php if ($current_page !== 'index.php'): ?>
-            <a href="/index.php"><i class="fa-solid fa-house"></i> Home</a>
-        <?php endif; ?>
-
-        <?php if (isset($_SESSION['user_id'])): ?>
-
-            <a href="/dashboard.php"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
-            <a href="/profile.php"><i class="fa-solid fa-user"></i> Profile</a>
-            <a href="/logout.php"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-
-        <?php else: ?>
-
-            <a href="/login.php"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
-            <a href="/register.php"><i class="fa-solid fa-user-plus"></i> Register</a>
-
-        <?php endif; ?>
-
+    <div class="top-bar-right">
+        <a href="#">Help</a>
     </div>
 </div>
 
-<script>
-function toggleMenu() {
-    document.getElementById("navMenu").classList.toggle("show");
-}
+<header class="main-header">
+    <div class="logo">ticketmaster®</div>
+    <nav class="nav-links">
+        <a href="#">Concerts & Festivals</a>
+        <a href="#">Theater & Culture</a>
+        <a href="#">Sports</a>
+        <a href="#">Family</a>
+        <a href="#">Special Events</a>
+        <a href="#">Cities</a>
+    </nav>
+    <div class="header-actions">
+        <div class="search-container">
+            <div class="search-texts">
+                <span class="search-label">SEARCH</span>
+                <input type="text" placeholder="Artist, event, or venue" spellcheck="false">
+            </div>
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+        <button class="btn-ingresa">
+            <i class="fa-regular fa-user" style="font-size: 18px;"></i>
+            Sign In
+        </button>
+    </div>
+</header>
 
-// CLAIM SYSTEM
-function claimEarnings() {
-    fetch('/claim.php')
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === 'success') {
-            alert("Claimed $" + parseFloat(data.amount).toFixed(4));
+<section class="hero">
+    <div class="hero-content breadcrumbs">
+        Home / Concerts / K-Pop / <span>BTS Tickets</span>
+    </div>
 
-            const el = document.getElementById('navBalance');
-            let current = parseFloat(el.innerText.replace(/[^0-9.]/g, ''));
-            el.innerText = "$" + (current + parseFloat(data.amount)).toFixed(4);
+    <div class="hero-bottom">
+        <span class="tag-kpop">K-Pop</span>
+        <h1>BTS Tickets</h1>
+        <div class="hero-interactions">
+            <button class="btn-fav"><i class="fa-regular fa-heart"></i></button>
+            <div class="rating-badge">
+                <i class="fa-solid fa-star"></i>
+                <span>5.0</span>
+            </div>
+        </div>
+    </div>
+</section>
 
-            // hide button after claim
-            document.getElementById('claimBtn').classList.remove('active');
-        } else {
-            alert("No earnings to claim");
-        }
-    });
-}
+<nav class="sub-nav">
+    <ul class="sub-nav-list">
+        <li><a href="#" class="active">CONCERTS</a></li>
+        <li><a href="#">GALLERY</a></li>
+        <li><a href="#">ABOUT</a></li>
+        <li><a href="#">SETLIST</a></li>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">REVIEWS</a></li>
+        <li><a href="#">FANS ALSO VIEWED</a></li>
+    </ul>
+</nav>
 
-// SHOW CLAIM BUTTON ONLY WHEN PLAYING
-// You already set sessionId when game starts → we reuse that idea
-function setPlayingState(isPlaying) {
-    const btn = document.getElementById('claimBtn');
-    if (!btn) return;
+<main class="main-container">
+    <div class="section-title-row">
+        <div class="title-left">
+            <h2>CONCERTS</h2>
+            <span class="bullet">•</span>
+            <span class="results-count">48 RESULTS</span>
+        </div>
 
-    if (isPlaying) {
-        btn.classList.add('active');
-        localStorage.setItem('isPlaying', '1');
-    } else {
-        btn.classList.remove('active');
-        localStorage.removeItem('isPlaying');
-    }
-}
+        <div class="view-switcher">
+            <button class="active"><i class="fa-solid fa-list-ul"></i></button>
+            <button><i class="fa-regular fa-calendar"></i></button>
+        </div>
+    </div>
 
-// restore state on refresh
-document.addEventListener('DOMContentLoaded', () => {
-    if (localStorage.getItem('isPlaying')) {
-        setPlayingState(true);
-    }
-});
+    <div class="filter-wrapper">
+        <div class="filter-group">
+            <label>Dates</label>
+            <div class="dropdown">
+                <i class="fa-regular fa-calendar-days"></i>
+                <span>All dates</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+        </div>
+    </div>
+</main>
 
-// Close menu when clicking outside
-document.addEventListener('click', function(e) {
-    const menu = document.getElementById("navMenu");
-    const toggle = document.querySelector(".menu-toggle");
-    if (!menu.contains(e.target) && !toggle.contains(e.target)) {
-        menu.classList.remove("show");
-    }
-});
-</script>
+</body>
+</html>
