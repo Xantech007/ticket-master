@@ -1063,89 +1063,9 @@ data-styled.g1986[id="sc-ca936b87-3"]{content:"cAhEBY,"}/*!sc*/
 
         
 
-    </div>
-    <div class="sc-c6cabe26-3 gmLHmo">
-     <div class="sc-61be951b-0 cqtqCj">
-      <div class="sc-61be951b-1 eUnOeC">
-       <div>
-        <div class="sc-61be951b-3 kpqOmi" id="ad-slot-522">
-        </div>
-        <div class="sc-61be951b-2 eCyHap">
-         Advertisement
-        </div>
-       </div>
-      </div>
-     </div>
-     <div class="sc-9f32a93a-0 jntbwI" id="ad-slot-525">
-     </div>
-     <section class="sc-b3c4dfdf-0 gWTgoD" data-testid="featured">
-      <h2 class="sc-d7c83cb1-0 gyFPyN sc-b3c4dfdf-1 ieiYmy">
-       Featured
-      </h2>
-      <ul class="sc-c392956a-0 dSBLkH">
-       <li class="sc-c392956a-1 kXmfNG">
-        <a class="Link__StyledLink-sc-pudy0l-0 eYZQRC sc-63fbbec1-0 hPlHSW" href="https://travel.ticketmaster.xo.je/?_uid=0f1bec08-8892-4a87-8834-8e73f805ef33&amp;utm_source=TM_Homepage_AdLaunch_TTravel_adV2&amp;utm_medium=TMUS_adunit_small_CombineYourTicketWithAHotel&amp;utm_campaign=Awareness_TM_Homepage&amp;utm_id=TTravel_TM_Homepage_Ad_Sm">
-         <div class="sc-63fbbec1-1 krkhtU">
-          <div class="sc-8e2511ba-0 fLFLQz" style="--placeholder-bg:url(https://prismic-images.tmol.io/ticketmaster-tm-global/adfwkp1ZCF7ETDNs_TMTravel_AdUnit_300x168.75_EN_9Apr2026%402x.png?auto=format%2Ccompress&amp;rect=0%2C0%2C600%2C338&amp;w=2&amp;h=1)">
-           <img alt="" class="sc-8e2511ba-2 dYYGfg"/>
-          </div>
-         </div>
-         <div class="sc-63fbbec1-2 hISILN">
-          <h3 class="sc-63fbbec1-4 jOfNyZ">
-           Hotels
-          </h3>
-         </div>
-        </a>
-       </li>
-       <li class="sc-c392956a-1 kXmfNG">
-        <a class="Link__StyledLink-sc-pudy0l-0 eYZQRC sc-63fbbec1-0 hPlHSW" href="/ticketdeals?ac_link=hpguide">
-         <div class="sc-63fbbec1-1 krkhtU">
-          <div class="sc-8e2511ba-0 fLFLQz" style="--placeholder-bg:url(https://prismic-images.tmol.io/ticketmaster-tm-global/f0113677-a22e-4487-8d62-72fd2c95d97c_Discovery-Ticket-Deals-Tile.jpg?auto=format%2Ccompress&amp;rect=2%2C0%2C2045%2C1152&amp;w=2&amp;h=1)">
-           <img alt="" class="sc-8e2511ba-2 dYYGfg"/>
-          </div>
-         </div>
-         <div class="sc-63fbbec1-2 hISILN">
-          <h3 class="sc-63fbbec1-4 jOfNyZ">
-           Ticket Deals
-          </h3>
-         </div>
-        </a>
-       </li>
-       <li class="sc-c392956a-1 kXmfNG">
-        <a class="Link__StyledLink-sc-pudy0l-0 eYZQRC sc-63fbbec1-0 hPlHSW" href="/vip?landing=c&amp;awtrc=true&amp;ac_link=ntm_vipguide_featured_launch">
-         <div class="sc-63fbbec1-1 krkhtU">
-          <div class="sc-8e2511ba-0 fLFLQz" style="--placeholder-bg:url(https://prismic-images.tmol.io/ticketmaster-tm-global/aEihoLNJEFaPX2D2_VIPHomepage.jpg?auto=format%2Ccompress&amp;rect=1%2C0%2C343%2C193&amp;w=2&amp;h=1)">
-           <img alt="" class="sc-8e2511ba-2 dYYGfg"/>
-          </div>
-         </div>
-         <div class="sc-63fbbec1-2 hISILN">
-          <h3 class="sc-63fbbec1-4 jOfNyZ">
-           VIP Packages
-          </h3>
-         </div>
-        </a>
-       </li>
-       <li class="sc-c392956a-1 kXmfNG">
-        <a class="Link__StyledLink-sc-pudy0l-0 eYZQRC sc-63fbbec1-0 hPlHSW" href="/sell?ac_link=hpguide">
-         <div class="sc-63fbbec1-1 krkhtU">
-          <div class="sc-8e2511ba-0 fLFLQz" style="--placeholder-bg:url(https://prismic-images.tmol.io/ticketmaster-tm-global/aNLahZ5xUNkB1CCO_SellFeatureTitle.jpg?auto=format%2Ccompress&amp;rect=1%2C0%2C719%2C405&amp;w=2&amp;h=1)">
-           <img alt="" class="sc-8e2511ba-2 dYYGfg"/>
-          </div>
-         </div>
-         <div class="sc-63fbbec1-2 hISILN">
-          <h3 class="sc-63fbbec1-4 jOfNyZ">
-           Sell on Ticketmaster
-          </h3>
-         </div>
-        </a>
-       </li>
-      </ul>
-     </section>
-     <div class="sc-a2ed4ed0-1 bsDGXY" id="ad-slot-590">
-     </div>
-     <div class="sc-a2ed4ed0-0 ldjtLA">
-      Advertisement
-     </div>
+
+
+
     </div>
    </div>
   </main>
