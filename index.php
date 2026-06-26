@@ -389,7 +389,7 @@
 
 
 
-
+<?php include "body.php"; ?>
 
      
 <?php include "inc/footer.php"; ?>
