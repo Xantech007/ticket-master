@@ -95,13 +95,42 @@ $currency = $settings['currency'];
 
         /* --- 2. MAIN HEADER (Azul Ticketmaster) --- */
         .main-header {
-            background-color: var(--tm-blue);
-            height: 84px;
+            background: var(--tm-blue);
+            color: white;
+            padding: 16px 40px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-left {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 40px;
-            color: white;
+            gap: 35px;
+        }
+        
+        .logo-link img {
+            height: 54px;      /* adjust to fit your 680×108 logo */
+            width: auto;
+            display: block;
+        }
+        
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        
+        .header-search {
+            display: flex;
+            justify-content: center;
+            width: 100%;
         }
 
         /* Logo emulation with pure CSS */
@@ -139,15 +168,19 @@ $currency = $settings['currency'];
 
         /* The double-line search trick */
         .search-container {
-            background-color: rgba(0, 0, 0, 0.16);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            border-radius: 4px;
+            width: 100%;
+            max-width: 1200px;
+            height: 56px;
+        
             display: flex;
             align-items: center;
-            width: 290px;
-            height: 46px;
-            padding: 6px 14px;
-            transition: all 0.2s;
+        
+            background: rgba(0,0,0,.16);
+            border: 1px solid rgba(255,255,255,.25);
+            border-radius: 6px;
+        
+            padding: 10px 18px;
+            transition: .2s;
         }
 
         .search-container:focus-within {
