@@ -1,0 +1,48 @@
+<style>
+      
+      
+  @font-face {
+    font-weight: 900;
+    font-family: 'Averta';
+    font-style: normal;
+    font-display: fallback;
+    src: url(\/\/uk\.tmconst\.com\/rc-b3c71b5a\/fonts\/averta-black\.woff2) format('woff2'),
+         url(\/\/uk\.tmconst\.com\/rc-b3c71b5a\/fonts\/averta-black\.woff) format('woff');
+  }
+
+  @font-face {
+    font-weight: 800;
+    font-family: 'Averta';
+    font-style: normal;
+    font-display: fallback;
+    src: url(\/\/uk\.tmconst\.com\/rc-b3c71b5a\/fonts\/averta-extrabold\.woff2) format('woff2'),
+         url(\/\/uk\.tmconst\.com\/rc-b3c71b5a\/fonts\/averta-extrabold\.woff) format('woff');
+  }
+
+  @font-face {
+    font-weight: 700;
+    font-family: 'Averta';
+    font-style: normal;
+    font-display: fallback;
+    src: url(\/\/uk\.tmconst\.com\/rc-b3c71b5a\/fonts\/averta-bold\.woff2) format('woff2'),
+         url(\/\/uk\.tmconst\.com\/rc-b3c71b5a\/fonts\/averta-bold\.woff) format('woff');
+  }
+
+  @font-face {
+    font-weight: 600;
+    font-family: 'Averta';
+    font-style: normal;
+    font-display: fallback;
+    src: url(\/\/uk\.tmconst\.com\/rc-b3c71b5a\/fonts\/averta-semibold\.woff2) format('woff2'),
+         url(\/\/uk\.tmconst\.com\/rc-b3c71b5a\/fonts\/averta-semibold\.woff) format('woff');
+  }
+
+  @font-face {
+    font-weight: 400;
+    font-family: 'Averta';
+    font-style: normal;
+    font-display: fallback;
+    src: url(\/\/uk\.tmconst\.com\/rc-b3c71b5a\/fonts\/averta-regular\.woff2) format('woff2'),
+         url(\/\/uk\.tmconst\.com\/rc-b3c71b5a\/fonts\/averta-regular\.woff) format('woff');
+  }
+</style>
