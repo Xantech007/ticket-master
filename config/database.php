@@ -1,9 +1,9 @@
 <?php
 class Database {
-    private $host = "sql106.infinityfree.com";
-    private $dbname = "if0_41489345_event";
-    private $username = "if0_41489345";
-    private $password = "1V1DyYiXWU4yVzp";
+    private $host = "sql207.infinityfree.com";
+    private $dbname = "if0_42273705_ticket";
+    private $username = "if0_42273705";
+    private $password = "MWJvmCfpNDKo";
 
     public function connect(){
         try {
