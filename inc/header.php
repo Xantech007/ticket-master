@@ -48,7 +48,7 @@
         </div>
   
         <!-- Center Categories -->
-        <ul class="hidden md:flex items-center gap-8 lg:gap-5 text-base lg:text-1xl font-bold">
+        <ul class="hidden md:flex items-center gap-8 lg:gap-5 text-base lg:text-1.5xl font-bold">
           <li><a href="#" class="nav-link">Concerts</a></li>
           <li><a href="#" class="nav-link">Sports</a></li>
           <li><a href="#" class="nav-link">Arts, Theater &amp; Comedy</a></li>
@@ -61,7 +61,7 @@
           <a href="register.php"
              class="flex items-center gap-2 lg:gap-3 text-white hover:text-[#024DDF] transition-colors duration-200">
             <i class="fa-regular fa-user text-1xl lg:text-2xl"></i>
-            <span class="hidden md:inline font-bold text-sm lg:text-xl">
+            <span class="hidden md:inline font-bold text-sm lg:text-1xl">
               Sign In / Register
             </span>
           </a>
