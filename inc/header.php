@@ -29,7 +29,7 @@
           <!-- Hamburger (Mobile Only) -->
           <button class="block lg:hidden p-1 hover:bg-[#013ba8] rounded-md transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg"
-                 class="w-8 h-8"
+                 class="w-6 h-6"
                  fill="none"
                  viewBox="0 0 24 24"
                  stroke="currentColor"
