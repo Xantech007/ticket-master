@@ -87,7 +87,7 @@
           <div class="flex md:flex-row flex-row w-full">
   
             <!-- Location -->
-            <div class="flex items-center gap-3 px-4 md:px-5 py-2.5 flex-1 border-r border-gray-200">
+            <div class="flex items-center gap-3 px-4 md:px-5 py-1.5 flex-1 border-r border-gray-200">
               <i class="fas fa-map-marker-alt text-[#024DDF] text-xl"></i>
               <div>
                 <label class="text-xs text-gray-500">Location</label>
@@ -109,7 +109,7 @@
           </div>
   
           <!-- SEARCH ROW -->
-          <div class="flex items-center gap-3 px-4 md:px-5 py-2.5 flex-1 md:flex-[1.5] border-t md:border-t-0 border-gray-200">
+          <div class="flex items-center gap-3 px-4 md:px-5 py-2.5 flex-1 md:flex-[1.5]">
             <i class="fas fa-search text-[#024DDF] text-xl"></i>
             <input type="text"
                    placeholder="Artist, Event or Venue"
