@@ -1,7 +1,7 @@
 <?php
 
-include "inc/head.php" 
-include "inc/header1.php" 
+include "inc/head.php";
+include "inc/header1.php"; 
 
 ?>
        
@@ -219,10 +219,12 @@ include "inc/header1.php"
 
 
 
-<?php include "body.php"; ?>
+<?php
 
-     
-<?php include "inc/footer.php"; ?>
+include "body.php";
+include "inc/footer.php";
+
+?>
 
  <div data-testid="modals" id="modals">
  </div>
