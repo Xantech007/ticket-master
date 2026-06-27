@@ -17,10 +17,10 @@
     }
   </style>
 </head>
-<body class="bg-white">
+<body>
 
-  <!-- Main Navigation - Blue Background -->
-  <nav class="bg-[#0a2540] border-b border-blue-900 sticky top-0 z-50">
+  <!-- Main Navigation -->
+  <nav class="bg-[#00AEEF] border-b border-blue-600 sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6">
       <div class="flex items-center justify-between h-16">
 
@@ -28,7 +28,7 @@
         <div class="flex items-center gap-4">
           <!-- Hamburger Menu -->
           <button onclick="alert('Mobile menu would open here')" 
-                  class="p-2 hover:bg-blue-900 rounded-md transition-colors text-white">
+                  class="p-2 hover:bg-[#0099d1] rounded-md transition-colors text-white">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7" />
             </svg>
@@ -54,7 +54,7 @@
         <!-- Right Side: Sign In / Register -->
         <div class="flex items-center">
           <button onclick="alert('Sign in modal would open here')"
-                  class="flex items-center gap-2 px-6 py-2 border border-white text-white rounded-lg hover:bg-white hover:text-[#0a2540] transition-all font-medium text-sm">
+                  class="flex items-center gap-2 px-6 py-2 border-2 border-white text-white rounded-lg hover:bg-white hover:text-[#00AEEF] transition-all font-medium text-sm">
             <i class="fas fa-user"></i>
             <span>Sign In / Register</span>
           </button>
