@@ -22,10 +22,10 @@
   <!-- Top Navbar - Increased Size -->
   <nav class="bg-[#024DDF] text-white border-b border-blue-800">
     <div class="max-w-7xl mx-auto px-6">
-      <div class="flex items-center justify-between h-10"> <!-- Increased height -->
-        
+      <div class="flex items-center justify-between h-10 lg:h-[88px]">
+  
         <!-- Left: Hamburger + Logo -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 lg:gap-4">
           <!-- Hamburger (Mobile Only) -->
           <button class="block lg:hidden hover:bg-[#013ba8] rounded-md transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg"
@@ -38,34 +38,35 @@
                     d="M4 6h16M4 12h16M4 18h7" />
             </svg>
           </button>
-        
+  
           <!-- Logo -->
           <a href="#" class="flex items-center">
             <img src="assets/images/logo.png"
                  alt="Ticketmaster"
-                 class="h-6 w-auto">
+                 class="h-6 lg:h-[52px] w-auto">
           </a>
         </div>
-
+  
         <!-- Center Categories -->
-        <ul class="hidden md:flex items-center gap-8 text-base font-medium">
+        <ul class="hidden md:flex items-center gap-8 lg:gap-12 text-base lg:text-2xl font-bold">
           <li><a href="#" class="nav-link">Concerts</a></li>
           <li><a href="#" class="nav-link">Sports</a></li>
           <li><a href="#" class="nav-link">Arts, Theater &amp; Comedy</a></li>
           <li><a href="#" class="nav-link">Family</a></li>
           <li><a href="#" class="nav-link">Cities</a></li>
         </ul>
-
+  
         <!-- Right: Sign In -->
         <div class="flex items-center">
-            <a href="register.php"
-               class="flex items-center gap-2 text-white hover:text-[#024DDF] transition-colors duration-200">
-                <i class="fa-regular fa-user text-1xl text-2xl"></i>
-                <span class="hidden md:inline font-bold text-sm">
-                    Sign In / Register
-                </span>
-            </a>
+          <a href="register.php"
+             class="flex items-center gap-2 lg:gap-3 text-white hover:text-[#024DDF] transition-colors duration-200">
+            <i class="fa-regular fa-user text-2xl lg:text-5xl"></i>
+            <span class="hidden md:inline font-bold text-sm lg:text-xl">
+              Sign In / Register
+            </span>
+          </a>
         </div>
+  
       </div>
     </div>
   </nav>
