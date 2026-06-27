@@ -43,7 +43,7 @@
         <a href="#" target="_blank" class="flex items-start h-full">
           <img src="assets/paypal_small.svg"
                alt="PayPal"
-               class="h-8 w-auto object-contain">
+               class="h-full w-auto object-contain">
         </a>
   
         <!-- Navigation Links (Desktop Only) -->
