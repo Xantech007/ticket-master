@@ -7,9 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
-    .footer-logo path {
-      fill: #fff;
-    }
     footer {
       background-color: #1a1a1a;
       color: #d1d5db;
@@ -34,13 +31,11 @@
         
         <!-- Logo -->
         <div class="flex items-center gap-3">
-          <div class="w-40">
-            <!-- Simplified Ticketmaster-style logo SVG -->
-            <svg class="footer-logo" width="180" height="32" viewBox="0 0 135 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M41.57 6.27c-4.02 0-6.97 3.63-6.97 7.4 0 3.62 2.38 5.32 5.9 5.32 1.3 0 2.66-.3 3.9-.68l.4-2.5a8.98 8.98 0 0 1-3.75.86c-2.04 0-3.23-.71-3.39-2.62l-.02-.34v-.1a6.46 6.46 0 0 1 .52-2.41c.61-1.55 1.48-2.62 3.36-2.62 1.33 0 2.02.73 2.02 2.03 0 .28-.02.54-.07.83H39.1a7.57 7.57 0 0 0-.34 2.17h7.5c.2-.9.32-1.8.32-2.72 0-3.09-2-4.62-5.02-4.62z" fill="#fff"/>
-              <!-- Note: Full SVG path would be too long. Using partial for demo. In production use full logo. -->
-            </svg>
-          </div>
+          <a href="#" class="block">
+            <img src="assets/images/logo.png" 
+                 alt="Ticketmaster" 
+                 class="h-10 w-auto">
+          </a>
         </div>
 
         <!-- Let's Connect -->
@@ -121,7 +116,6 @@
             <li><a href="#" class="footer-link">Affiliates</a></li>
           </ul>
         </div>
-
       </div>
     </div>
   </div>
