@@ -1,13 +1,16 @@
-<script>
-const toggle = document.getElementById("menuToggle");
-const menu = document.getElementById("mobileMenu");
+document.addEventListener("DOMContentLoaded", () => {
+    const menuToggle = document.getElementById("menuToggle");
+    const mobileMenu = document.getElementById("mobileMenu");
 
-toggle.addEventListener("click", () => {
+    if (!menuToggle || !mobileMenu) {
+        console.log("Menu elements not found");
+        return;
+    }
 
-    menu.classList.toggle("show");
+    menuToggle.addEventListener("click", () => {
+        mobileMenu.classList.toggle("active");
 
-    const expanded = menu.classList.contains("show");
-
-    toggle.setAttribute("aria-expanded", expanded);
+        const expanded = menuToggle.getAttribute("aria-expanded") === "true";
+        menuToggle.setAttribute("aria-expanded", !expanded);
+    });
 });
-</script>
