@@ -326,4 +326,5 @@
 
  <div data-testid="modals" id="modals">
  </div>
+<script src="assets/js/navbar.js"></script>
 </body>
