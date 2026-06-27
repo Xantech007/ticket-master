@@ -42,7 +42,7 @@
     </div>
   
     <!-- PayPal pinned to top-right edge -->
-    <div class="hidden md:flex absolute top-0 right-0 h-full items-center border-l border-gray-700 pl-2">
+    <div class="hidden md:flex absolute top-0 right-0 h-full items-center pl-2">
 
       <nav class="flex items-center gap-7 font-medium">
         <a href="#" class="nav-link flex items-center gap-1.5">
