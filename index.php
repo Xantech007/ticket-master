@@ -89,7 +89,7 @@
     
 <link rel="stylesheet" href="assets/css/styles.css">
 
-
+<?php include "inc/script.php"; ?>
     
 </head>
 <body>
@@ -390,16 +390,11 @@
 
 
 
-<?php include "body.php"; ?>
+
 
      
 <?php include "inc/footer.php"; ?>
 
-<?php include "script.php"; ?>
-
  <div data-testid="modals" id="modals">
  </div>
 </body>
-
-
-
