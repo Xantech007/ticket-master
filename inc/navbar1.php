@@ -68,8 +68,12 @@
         <div class="flex items-center gap-3 pl-6 border-l border-gray-300">
           <span class="text-xs text-gray-500 whitespace-nowrap">Preferred Payments Partner</span>
           <a href="https://www.paypal.com" target="_blank">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Paypal_2014_logo.svg" 
-                 alt="PayPal" class="h-7">
+            <!-- Relative to current file -->
+<img src="assets/images/Paypalnavbar1.png" alt="PayPal" class="h-7">
+
+<!-- Or root-relative (works from any folder on the site) -->
+<img src="/assets/images/Paypalnavbar1.png" alt="PayPal" class="h-7">
+
           </a>
         </div>
 
