@@ -67,7 +67,7 @@
     </div>
   
     <!-- PayPal pinned to top-right edge -->
-    <div class="h-5 border-l border-gray-700 mr-3"></div>
+    <div class="hidden md:flex absolute top-0 right-0 h-full items-center border-l border-gray-700 pl-2">
       <a href="#" class="h-full flex items-center">
         <img
           src="assets/paypal_small.svg"
