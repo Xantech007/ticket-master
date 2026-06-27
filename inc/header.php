@@ -47,11 +47,15 @@
         </ul>
 
         <!-- Right: Sign In -->
-        <button onclick="alert('Sign in would open here')"
-                class="flex items-center gap-2 px-6 py-3 border border-white rounded-xl hover:bg-white hover:text-[#024DDF] transition-all font-medium text-sm">
-          <i class="fas fa-user"></i>
-          <span>Sign In / Register</span>
-        </button>
+        <div class="flex items-center">
+            <a href="register.php"
+               class="flex items-center gap-2 text-white hover:text-[#024DDF] transition-colors duration-200">
+                <i class="fas fa-user text-4xl"></i>
+                <span class="hidden md:inline font-medium text-sm">
+                    Sign In / Register
+                </span>
+            </a>
+        </div>
       </div>
     </div>
   </nav>
