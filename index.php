@@ -85,7 +85,7 @@
     
 <link rel="stylesheet" href="assets/css/styles.css">
 
-<script src="assets/js/script.js"></script>
+
     
 </head>
 <body>
@@ -401,5 +401,5 @@
 
  <div data-testid="modals" id="modals">
  </div>
-
+<script src="assets/js/script.js"></script>
 </body>
