@@ -1,27 +1,3 @@
-<div class="sc-d727d306-0 llCpYZ">
- Your browser is not supported. For the best experience, use any of these supported browsers:
- <a class="Link__StyledLink-sc-pudy0l-0 bfasNL" href="https://www.google.com/chrome/">
-  Chrome
- </a>
- ,
- <a class="Link__StyledLink-sc-pudy0l-0 bfasNL" href="https://www.mozilla.org/firefox/new/">
-  Firefox
- </a>
- ,
- <a class="Link__StyledLink-sc-pudy0l-0 bfasNL" href="https://support.apple.com/downloads/safari">
-  Safari
- </a>
- ,
- <a class="Link__StyledLink-sc-pudy0l-0 bfasNL" href="https://www.microsoft.com/edge">
-  Edge
- </a>
- .
-</div>
-<section class="sc-7f6df46b-0 frSDhw">
- <a class="Link__StyledLink-sc-pudy0l-0 eYZQRC sc-7f6df46b-1 firzHb" href="#main-content">
-  Skip to main content
- </a>
-</section>
 <div class="sc-c6cabe26-0 bZmixf">
  <header class="sc-9c727161-0 lgQjZq">
   <div class="sc-a618d3b1-0 gFMDrF">
@@ -45,43 +21,9 @@
      </span>
     </button>
    </div>
-   <nav aria-label="Additional Links" class="sc-a618d3b1-2 gLPCaG">
-    <ul class="UnstyledList-sc-ix96mm-0 sc-a618d3b1-3 hFFFXm cCqgoW" role="list">
-     <li role="listitem">
-      <a class="sc-a618d3b1-4 ibHGSp" href="https://travel.ticketmaster.xo.je/?_uid=889e276a-3cb8-4acf-a535-a4c4c098cbbc&amp;utm_source=TM_Homepage_Homepage_NAV_Icon_TTravel&amp;utm_medium=TMUS_header_icon&amp;utm_campaign=Nav_TM_Homepage&amp;utm_id=TTravel_TM_Homepage_Nav_Icon">
-       <svg aria-hidden="true" class="BaseSvg-sc-yh8lnd-0 EventHotelsIcon___StyledBaseSvg-sc-mxpuhn-0 ibzDQZ sc-a618d3b1-7 eOiYfI" focusable="false" height="1em" viewbox="0 0 24 24" width="1em">
-        <path d="M18.5 10H17V7.22L16.1 6H7.9L7 7.22V10H5.5V4.58L6.24 3.5H17.76L18.5 4.58zM17 11.5H20.38L21.5 12.62V17.5H2.5V12.62L3.62 11.5zM15.5 10H8.5V7.72L8.66 7.5H15.34L15.5 7.72zM4 4.11V10H3L1 12V22H2.5V19H21.5V22H23V12L21 10H20V4.11L18.55 2H5.45z">
-        </path>
-       </svg>
-       Hotels
-      </a>
-     </li>
-     <li role="listitem">
-      <a class="sc-a618d3b1-4 ibHGSp" href="https://www.ticketmaster.xo.je/sell">
-       Sell
-      </a>
-     </li>
-     <li role="listitem">
-      <a class="sc-a618d3b1-4 ibHGSp" href="https://www.ticketmaster.xo.je/giftcards">
-       <svg aria-hidden="true" class="BaseSvg-sc-yh8lnd-0 PaymentGiftCardIcon___StyledBaseSvg-sc-1y41zf9-0 ibzDQZ sc-a618d3b1-5 dlkGxy" focusable="false" height="1em" viewbox="0 0 24 24" width="1em">
-        <path d="M1 3.25H23V17.57L19.92 20.75H1zM2.5 4.75V9.39H4V7.09L5.56 6.07 7.75 7.96V4.74zM7.12 9.39 5.5 7.99V9.4zM9.25 4.75V8.35L11.95 6.06 13.5 7.1V9.39H21.5V4.75zM12 9.39V7.99L10.34 9.38zM6.87 10.89H2.5V19.25H7.75V12.43L5.66 16.35 4.34 15.65zM9.25 19.25H19.28L21.5 16.95V10.9H10.13L12.66 15.65 11.34 16.35 9.25 12.43z">
-        </path>
-       </svg>
-       Gift Cards
-      </a>
-     </li>
-     <li role="listitem">
-      <a class="sc-a618d3b1-4 ibHGSp" href="https://help.ticketmaster.xo.je">
-       Help
-      </a>
-     </li>
-     <li role="listitem">
-      <a class="sc-a618d3b1-4 ibHGSp" href="https://www.ticketmaster.xo.je/vip?landing=c&amp;awtrc=true&amp;ac_link=ntm_vipguide_header_launch">
-       VIP
-      </a>
-     </li>
-    </ul>
-   </nav>
+   
+   <?php include "navbar1.php"; ?>
+
    <div class="sc-a618d3b1-1 bbMoWu">
     <a class="sc-1947e591-0 fbRQkm" href="https://www.paypal.com">
      <img alt="PayPal Preferred Payments Partner" class="sc-1947e591-1 MkPJj" src="//uk.tmconst.com/rc-b3c71b5a/images/ads/paypal_small.svg"/>
