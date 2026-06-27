@@ -15,7 +15,7 @@
 <body>
 
   <!-- Top Navbar -->
-  <nav class="bg-[#0099dd] text-white border-b border-blue-700">
+  <nav class="bg-[#024DDF] text-white border-b border-blue-700">
     <div class="max-w-7xl mx-auto px-6">
       <div class="flex items-center justify-between h-16">
 
