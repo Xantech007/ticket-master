@@ -184,7 +184,7 @@
      </div>
     </div>
 
-
+    <?php include "inc/navbar.php"; ?>
        
     <div class="sc-f807a500-0 jvpGDI">
      <div class="sc-f807a500-1 fwjQFI">
