@@ -59,20 +59,16 @@
           <a href="#" class="nav-link">Help</a>
           <a href="#" class="nav-link">VIP</a>
         </nav>
-  
-        <!-- PayPal -->
-        <div class="flex items-center h-full border-l border-gray-700 ml-0 pl-3">
-          <span class="text-xs text-gray-400 whitespace-nowrap mr-3">
-            Preferred Payments Partner
-          </span>
-  
-          <a href="#" class="h-full flex items-center">
-            <img src="assets/paypal_small.svg"
-                 alt="PayPal"
-                 class="h-full w-auto">
-          </a>
-        </div>
-  
+      </div>
+
+              <!-- PayPal -->
+      <div class="flex items-center h-full border-l border-gray-700 ml-0 pl-3">
+
+        <a href="#" class="h-full flex items-center">
+          <img src="assets/paypal_small.svg"
+               alt="PayPal"
+               class="h-full w-auto">
+        </a>
       </div>
   
     </div>
