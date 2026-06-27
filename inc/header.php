@@ -74,55 +74,61 @@
     </div>
   </nav>
 
-  <!-- Compact Search Bar -->
-  <div class="bg-white md:bg-[#024DDF] pb-5 pt-2">
+  <!-- Compact Search Bar - Reduced Size -->
+  <div class="bg-[#024DDF] pb-5 pt-2 md:bg-[#024DDF] bg-white">
     <div class="max-w-4xl mx-auto px-6">
   
-      <!-- Location + Dates (OUTSIDE white container on mobile) -->
-      <div class="flex md:hidden gap-3 mb-3">
-        
-        <!-- Location -->
-        <div class="flex items-center gap-2 bg-white flex-1 px-3 py-2 rounded-xl shadow">
-          <i class="fas fa-map-marker-alt text-[#024DDF]"></i>
-          <input type="text" placeholder="Location"
-                 class="bg-transparent outline-none w-full text-sm">
-        </div>
+      <!-- Container -->
+      <div class="bg-white text-gray-900 rounded-2xl shadow-lg p-1 max-w-full mx-auto relative">
   
-        <!-- Dates -->
-        <div class="flex items-center gap-2 bg-white flex-1 px-3 py-2 rounded-xl shadow">
-          <i class="fas fa-calendar-alt text-[#024DDF]"></i>
-          <span class="text-sm text-gray-600">Dates</span>
-          <i class="fas fa-chevron-down text-gray-400 ml-auto"></i>
-        </div>
+        <form action="/search" class="flex flex-col md:flex-row items-stretch md:items-center">
   
-      </div>
+          <!-- LOCATION + DATES ROW (mobile only separated layout) -->
+          <div class="flex md:flex-row flex-row w-full md:w-auto">
   
-      <!-- White Container -->
-      <div class="bg-white text-gray-900 rounded-2xl shadow-lg p-1 max-w-full mx-auto">
+            <!-- Location -->
+            <div class="flex items-center gap-3 px-5 py-2.5 flex-1 border-r border-gray-200">
+              <i class="fas fa-map-marker-alt text-[#024DDF] text-xl"></i>
+              <div>
+                <label class="text-xs text-gray-500">Location</label>
+                <input type="text" placeholder="City or Zip Code"
+                       class="bg-transparent outline-none w-full text-sm">
+              </div>
+            </div>
   
-        <form action="/search" class="flex flex-col md:flex-row items-stretch">
+            <!-- Dates -->
+            <div class="flex items-center gap-3 px-5 py-2.5 flex-1 border-r border-gray-200">
+              <i class="fas fa-calendar-alt text-[#024DDF] text-xl"></i>
+              <div>
+                <label class="text-xs text-gray-500">Dates</label>
+                <span class="text-sm">All Dates</span>
+              </div>
+              <i class="fas fa-chevron-down text-gray-400 ml-auto"></i>
+            </div>
+          </div>
   
-          <!-- Search (full width on mobile) -->
-          <div class="flex items-center gap-3 px-5 py-2.5 flex-1">
-            <i class="fas fa-search text-[#024DDF] text-xl md:hidden"></i>
-  
+          <!-- SEARCH ROW (mobile separate row) -->
+          <div class="flex items-center gap-3 px-5 py-2.5 flex-1 md:flex-[1.5] border-t md:border-t-0 border-gray-200">
+            <i class="fas fa-search text-[#024DDF] text-xl"></i>
             <input type="text"
                    placeholder="Artist, Event or Venue"
                    class="bg-transparent outline-none flex-1 text-sm">
-  
-            <!-- Search icon on mobile (right side) -->
-            <i class="fas fa-search text-[#024DDF] text-xl hidden md:block"></i>
           </div>
   
-          <!-- Search Button (hidden on mobile) -->
+          <!-- DESKTOP SEARCH BUTTON -->
           <button type="submit"
                   class="hidden md:flex bg-[#024DDF] hover:bg-[#013ba8] text-white px-7 py-3 rounded-xl font-semibold items-center gap-2 transition-colors text-sm">
             Search
           </button>
   
+          <!-- MOBILE SEARCH ICON BUTTON -->
+          <button type="submit"
+                  class="md:hidden absolute right-3 top-3 bg-[#024DDF] text-white p-3 rounded-full shadow-md">
+            <i class="fas fa-search text-sm"></i>
+          </button>
+  
         </form>
       </div>
-  
     </div>
   </div>
 
