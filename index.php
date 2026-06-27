@@ -81,10 +81,7 @@
         href="//uk.tmconst.com/rc-b3c71b5a/images/favicon.ico"
         type="image/x-icon"
     />
-
-
-  
-<?php include "script.php"; ?>    
+    
     
 <link rel="stylesheet" href="assets/css/styles.css">
 
