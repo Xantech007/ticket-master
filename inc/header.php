@@ -25,21 +25,22 @@
       <div class="flex items-center justify-between h-20"> <!-- Increased height -->
         
         <!-- Left: Hamburger + Logo -->
-        <div class="flex items-start gap-2">
+        <div class="flex items-center gap-2">
           <!-- Hamburger (Mobile Only) -->
-          <button class="block lg:hidden p-1 hover:bg-[#013ba8] rounded-md transition-colors">
+          <button class="block lg:hidden hover:bg-[#013ba8] rounded-md transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg"
-                 class="w-6 h-6"
+                 class="w-8 h-8"
                  fill="none"
                  viewBox="0 0 24 24"
                  stroke="currentColor"
-                 stroke-width="1">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7" />
+                 stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M4 6h16M4 12h16M4 18h7" />
             </svg>
           </button>
         
           <!-- Logo -->
-          <a href="#" class="flex items-start">
+          <a href="#" class="flex items-center">
             <img src="assets/images/logo.png"
                  alt="Ticketmaster"
                  class="h-6 w-auto">
