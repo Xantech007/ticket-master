@@ -1,35 +1,6 @@
 <div class="sc-c6cabe26-0 bZmixf">
  <header class="sc-9c727161-0 lgQjZq">
-  <div class="sc-a618d3b1-0 gFMDrF">
-   <div class="sc-39b36d9a-0 jbRPoP">
-    <button aria-expanded="false" class="sc-39b36d9a-2 Sajtl" title="United States">
-     <svg aria-hidden="true" class="sc-39b36d9a-5 GMtQO" fill="none" height="1.5em" viewbox="0 0 512 512" width="1.5em">
-      <path d="M503.2 322.8c5.7-21.3 8.8-43.7 8.8-66.8l-8.8-66.8a254.6 254.6 0 0 0-28.8-66.8l-59-66.7A255 255 0 0 0 256 0h-.2A255 255 0 0 0 96.6 55.7l-59 66.7a254.6 254.6 0 0 0-28.8 66.8L0 256v.1c0 23 3 45.4 8.8 66.7l28.8 66.8a257.3 257.3 0 0 0 59 66.7L256 512l159.4-55.7a257.3 257.3 0 0 0 59-66.7z" fill="#FFF">
-      </path>
-      <path d="M503.2 189.2c5.7 21.3 8.8 43.7 8.8 66.8H0c0-23.1 3-45.5 8.8-66.8zM415.4 55.7a257.3 257.3 0 0 1 59 66.7H37.6a257.3 257.3 0 0 1 59-66.7zm59 333.9c12.6-20.6 22.4-43 28.8-66.8H8.8a254.6 254.6 0 0 0 28.8 66.8zm-59 66.7H96.6A255 255 0 0 0 255.8 512h.4a255 255 0 0 0 159.2-55.7" fill="#D80027">
-      </path>
-      <path d="M0 245.6A256 256 0 0 1 256 0v256H0z" fill="#0052B4">
-      </path>
-      <path clip-rule="evenodd" d="M109.5 46a256 256 0 0 1 26.2-16l1 3h27.8L142 49.2l8.7 26.6L128 59.5l-22.6 16.4 8.6-26.6zm-80 90.4c6-11.1 12.7-21.8 20.1-32l3.8 11.7h28l-22.7 16.4 8.7 26.6-22.6-16.4L22.2 159l7.4-22.7Zm181.7-130 8.6 26.5h28L225 49.3l8.7 26.6-22.6-16.4-22.6 16.4 8.7-26.6L174.7 33h27.9l8.6-26.5ZM128 89.6l8.6 26.5h28l-22.7 16.4 8.7 26.6-22.6-16.4-22.6 16.4 8.6-26.6-22.5-16.4h27.9zm91.8 26.5-8.6-26.5-8.6 26.5h-28l22.7 16.4-8.7 26.6 22.6-16.4 22.6 16.4-8.7-26.6 22.6-16.4zm-175 56.7 8.6 26.5h28l-22.7 16.4 8.7 26.6-22.6-16.4-22.6 16.4 8.7-26.6-22.6-16.4h27.9zm91.8 26.5-8.6-26.5-8.6 26.5h-28l22.6 16.4-8.6 26.6 22.6-16.4 22.6 16.4-8.7-26.6 22.6-16.4zm74.6-26.5 8.6 26.5h28L225 215.7l8.7 26.6-22.6-16.4-22.6 16.4 8.7-26.6-22.6-16.4h27.9l8.6-26.5Z" fill="#FFF" fill-rule="evenodd">
-      </path>
-     </svg>
-     <span aria-hidden="true">
-      US
-     </span>
-     <span class="VisuallyHidden-sc-8buqks-0 jZNwtS">
-      United States selected, change country
-     </span>
-    </button>
-   </div>
-   
-   <?php include "navbar1.php"; ?>
-
-   <div class="sc-a618d3b1-1 bbMoWu">
-    <a class="sc-1947e591-0 fbRQkm" href="https://www.paypal.com">
-     <img alt="PayPal Preferred Payments Partner" class="sc-1947e591-1 MkPJj" src="//uk.tmconst.com/rc-b3c71b5a/images/ads/paypal_small.svg"/>
-    </a>
-   </div>
-  </div>
+  <?php include "navbar1.php"; ?>
   <nav aria-label="Main Navigation" class="sc-9c727161-1 eDZLXk" data-testid="stickyHeader">
    <div class="sc-9c727161-2 gxRBRI">
     <div class="sc-b49c9602-1 kCDysV">
