@@ -22,7 +22,7 @@
   <!-- Top Navbar - Increased Size -->
   <nav class="bg-[#024DDF] text-white border-b border-blue-800">
     <div class="max-w-7xl mx-auto px-6">
-      <div class="flex items-center justify-between h-20"> <!-- Increased height -->
+      <div class="flex items-center justify-between h-10"> <!-- Increased height -->
         
         <!-- Left: Hamburger + Logo -->
         <div class="flex items-center gap-2">
