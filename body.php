@@ -327,27 +327,27 @@
     <div class="grid-4" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
         <div class="event-card">
             <div style="position:relative;">
-                <img src="https://picsum.photos/id/201/600/400" alt="Sabrina Carpenter">
-                <div class="date-badge">JUL<br><strong>18</strong></div>
+                <img src="assets/images/Gracie-Abrams.jpg" alt="Sabrina Carpenter">
+                <div class="date-badge">DEC<br><strong>02</strong></div>
             </div>
             <div class="event-info">
-                <h3>Sabrina Carpenter - Short n' Sweet Tour</h3>
-                <p>Madison Square Garden • New York, NY</p>
-                <p>Fri, Jul 18 • 7:30 PM</p>
-                <p class="price">Presale from $49</p>
+                <h3>Gracie Abrams - The Look At My Life Tour</h3>
+                <p>Ball Arena • DENVER, CO</p>
+                <p>Wed, Dec 02 • 6:30 PM</p>
+                <p class="price">Presale from $90</p>
                 <a href="#" class="btn btn-primary" style="margin-top:12px; width:100%; text-align:center;">Get Presale Tickets</a>
             </div>
         </div>
 
         <div class="event-card">
             <div style="position:relative;">
-                <img src="https://picsum.photos/id/870/600/400" alt="The Weeknd">
+                <img src="assets/images/Weeknd.jpg" alt="The Weeknd">
                 <div class="date-badge">AUG<br><strong>08</strong></div>
             </div>
             <div class="event-info">
                 <h3>The Weeknd - After Hours Til Dawn</h3>
-                <p>Levi's Stadium • Santa Clara, CA</p>
-                <p>Fri, Aug 8 • 8:00 PM</p>
+                <p>STADE DE FRANCE • St Denis, 93, France</p>
+                <p>Wed, JUL 8 • 7:00 PM</p>
                 <p class="price">From $69 • Limited Offer</p>
                 <a href="#" class="btn btn-primary" style="margin-top:12px; width:100%; text-align:center;">Get Tickets</a>
             </div>
@@ -355,14 +355,14 @@
 
         <div class="event-card">
             <div style="position:relative;">
-                <img src="https://picsum.photos/id/133/600/400" alt="Post Malone">
+                <img src="assets/images/PostMalone.jpg" alt="Post Malone">
                 <div class="date-badge">AUG<br><strong>20</strong></div>
             </div>
             <div class="event-info">
-                <h3>Post Malone - F-1 Trillion Tour</h3>
-                <p>Allegiant Stadium • Las Vegas, NV</p>
-                <p>Wed, Aug 20 • 7:00 PM</p>
-                <p class="price">Early Bird from $59</p>
+                <h3>Post Malone -  The BIG ASS Stadium Tour</h3>
+                <p>Raymond James Stadium • Tampa, FL</p>
+                <p>Wed, Jul 08 • 7:00 PM</p>
+                <p class="price">Early Bird from $45</p>
                 <a href="#" class="btn btn-primary" style="margin-top:12px; width:100%; text-align:center;">Get Tickets</a>
             </div>
         </div>
