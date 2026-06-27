@@ -89,7 +89,7 @@
     
 <link rel="stylesheet" href="assets/css/styles.css">
 
-<?php include "script.php"; ?>
+
     
 </head>
 <body>
@@ -398,4 +398,6 @@
  <div data-testid="modals" id="modals">
  </div>
 </body>
+
+<?php include "script.php"; ?>
 
