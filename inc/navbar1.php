@@ -39,7 +39,7 @@
       </div>
   
       <!-- Desktop Navigation -->
-      <div class="hidden md:flex items-center h-full pr-26">
+      <div class="hidden md:flex items-center h-full pr-16">
         <nav class="flex items-center gap-7 font-medium">
           <a href="#" class="nav-link flex items-center gap-1.5">
 
