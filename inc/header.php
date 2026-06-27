@@ -121,12 +121,6 @@
             Search
           </button>
   
-          <!-- MOBILE SEARCH ICON BUTTON -->
-          <button type="submit"
-                  class="md:hidden absolute right-3 top-3 bg-[#024DDF] text-white p-3 rounded-full shadow-md">
-            <i class="fas fa-search text-sm"></i>
-          </button>
-  
         </form>
       </div>
     </div>
