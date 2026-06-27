@@ -115,56 +115,6 @@
   </section>
   <div class="sc-c6cabe26-0 bZmixf">
    <header class="sc-9c727161-0 lgQjZq">
-    <!-- Overlay -->
-    <div class="sidebar-overlay"></div>
-    
-    <!-- Sidebar -->
-    <aside class="sidebar">
-    
-        <div class="sidebar-header">
-    
-            <!-- Ticketmaster Logo -->
-            <a class="sidebar-logo" href="/">
-                <!-- Paste your existing SVG logo here -->
-            </a>
-    
-            <!-- Close Button -->
-            <button class="sidebar-close">
-                ✕
-            </button>
-    
-        </div>
-    
-        <nav class="sidebar-menu">
-    
-            <a href="/discover/concerts">
-                <span>CONCERTS</span>
-                <span>&gt;</span>
-            </a>
-    
-            <a href="/discover/sports">
-                <span>SPORTS</span>
-                <span>&gt;</span>
-            </a>
-    
-            <a href="/discover/arts-theater">
-                <span>ARTS, THEATER &amp; COMEDY</span>
-                <span>&gt;</span>
-            </a>
-    
-            <a href="/discover/family">
-                <span>FAMILY</span>
-                <span>&gt;</span>
-            </a>
-    
-            <a href="/discover/cities">
-                <span>CITIES</span>
-                <span>&gt;</span>
-            </a>
-    
-        </nav>
-    
-    </aside>
     <div class="sc-a618d3b1-0 gFMDrF">
      <div class="sc-39b36d9a-0 jbRPoP">
       <button aria-expanded="false" class="sc-39b36d9a-2 Sajtl" title="United States">
@@ -232,7 +182,12 @@
     <nav aria-label="Main Navigation" class="sc-9c727161-1 eDZLXk" data-testid="stickyHeader">
      <div class="sc-9c727161-2 gxRBRI">
       <div class="sc-b49c9602-1 kCDysV">
-       <button aria-expanded="false" aria-label="Open site navigation menu" class="IconButton__Button-sc-19baojp-0 jgJQcZ sc-509a78dc-0 bQhINN sc-b49c9602-2 dROoME" type="button">
+       <button
+           id="menuToggle"
+           aria-expanded="false"
+           aria-label="Open site navigation menu"
+           class="IconButton__Button-sc-19baojp-0 jgJQcZ sc-509a78dc-0 bQhINN sc-b49c9602-2 dROoME"
+           type="button">
         <svg aria-hidden="true" class="BaseSvg-sc-yh8lnd-0 NavigationMenuHamburgerIcon___StyledBaseSvg-sc-gmmn25-0 ibzDQZ" focusable="false" height="1.5em" viewbox="0 0 24 24" width="1.5em">
          <path d="M23 5.75H1V4.25H23zM1 11.25H17V12.75H1zM13 18.25H1V19.75H13z">
          </path>
@@ -249,7 +204,10 @@
        </a>
       </div>
      </div>
-     <ul aria-label="Categories" class="UnstyledList-sc-ix96mm-0 sc-1fc5460d-0 hFFFXm bJqmFx" role="list">
+     <ul id="mobileMenu"
+         aria-label="Categories"
+         class="UnstyledList-sc-ix96mm-0 sc-1fc5460d-0 hFFFXm bJqmFx"
+         role="list">
       <li class="sc-1fbd0e2a-1 iWLNiF" role="listitem">
        <a aria-controls="" aria-expanded="false" class="sc-1fbd0e2a-0 ceNYbE" data-testid="Concerts" href="/discover/concerts" role="button" tabindex="0">
         Concerts
@@ -442,5 +400,4 @@
 
  <div data-testid="modals" id="modals">
  </div>
-<script src="assets/js/script.js"></script>
 </body>
