@@ -1,3 +1,4 @@
+console.log("SCRIPT RUNNING");
 const menuToggle = document.getElementById("menuToggle");
 const mobileMenu = document.getElementById("mobileMenu");
 
