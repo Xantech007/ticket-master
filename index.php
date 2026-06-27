@@ -115,6 +115,56 @@
   </section>
   <div class="sc-c6cabe26-0 bZmixf">
    <header class="sc-9c727161-0 lgQjZq">
+    <!-- Overlay -->
+    <div class="sidebar-overlay"></div>
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+    
+        <div class="sidebar-header">
+    
+            <!-- Ticketmaster Logo -->
+            <a class="sidebar-logo" href="/">
+                <!-- Paste your existing SVG logo here -->
+            </a>
+    
+            <!-- Close Button -->
+            <button class="sidebar-close">
+                ✕
+            </button>
+    
+        </div>
+    
+        <nav class="sidebar-menu">
+    
+            <a href="/discover/concerts">
+                <span>CONCERTS</span>
+                <span>&gt;</span>
+            </a>
+    
+            <a href="/discover/sports">
+                <span>SPORTS</span>
+                <span>&gt;</span>
+            </a>
+    
+            <a href="/discover/arts-theater">
+                <span>ARTS, THEATER &amp; COMEDY</span>
+                <span>&gt;</span>
+            </a>
+    
+            <a href="/discover/family">
+                <span>FAMILY</span>
+                <span>&gt;</span>
+            </a>
+    
+            <a href="/discover/cities">
+                <span>CITIES</span>
+                <span>&gt;</span>
+            </a>
+    
+        </nav>
+    
+    </aside>
     <div class="sc-a618d3b1-0 gFMDrF">
      <div class="sc-39b36d9a-0 jbRPoP">
       <button aria-expanded="false" class="sc-39b36d9a-2 Sajtl" title="United States">
@@ -392,4 +442,5 @@
 
  <div data-testid="modals" id="modals">
  </div>
+<script src="assets/js/script.js"></script>
 </body>
