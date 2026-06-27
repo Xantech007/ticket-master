@@ -97,7 +97,7 @@
             </div>
   
             <!-- Dates -->
-            <div class="flex items-center gap-3 px-5 py-2.5 flex-1 border-r border-gray-200">
+            <div class="flex items-center gap-3 px-5 py-2.5 flex-1">
               <i class="fas fa-calendar-alt text-[#024DDF] text-xl"></i>
               <div>
                 <label class="text-xs text-gray-500">Dates</label>
