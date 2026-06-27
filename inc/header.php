@@ -14,13 +14,11 @@
 </head>
 <body>
 
-  <!-- Main Header with Search Bar -->
-  <header class="bg-[#0099dd] text-white sticky top-0 z-50 shadow-md">
+  <!-- Top Navbar -->
+  <nav class="bg-[#0099dd] text-white border-b border-blue-700">
     <div class="max-w-7xl mx-auto px-6">
+      <div class="flex items-center justify-between h-16">
 
-      <!-- Top Navigation Bar -->
-      <div class="flex items-center justify-between h-16 border-b border-blue-600">
-        
         <!-- Left: Hamburger + Logo -->
         <div class="flex items-center gap-4">
           <button class="p-2 hover:bg-blue-700 rounded-md transition-colors">
@@ -34,69 +32,67 @@
           </a>
         </div>
 
-        <!-- Main Categories -->
-        <nav class="hidden md:flex items-center gap-7 text-sm font-medium">
-          <a href="#" class="nav-link">Concerts</a>
-          <a href="#" class="nav-link">Sports</a>
-          <a href="#" class="nav-link">Arts, Theater &amp; Comedy</a>
-          <a href="#" class="nav-link">Family</a>
-          <a href="#" class="nav-link">Cities</a>
-        </nav>
+        <!-- Center Categories -->
+        <ul class="hidden md:flex items-center gap-7 text-sm font-medium">
+          <li><a href="#" class="nav-link">Concerts</a></li>
+          <li><a href="#" class="nav-link">Sports</a></li>
+          <li><a href="#" class="nav-link">Arts, Theater &amp; Comedy</a></li>
+          <li><a href="#" class="nav-link">Family</a></li>
+          <li><a href="#" class="nav-link">Cities</a></li>
+        </ul>
 
         <!-- Right: Sign In -->
         <button onclick="alert('Sign in would open here')"
-                class="flex items-center gap-2 px-5 py-2 border border-white rounded-lg hover:bg-white hover:text-[#0099dd] transition-all font-medium">
+                class="flex items-center gap-2 px-5 py-2 border border-white rounded-lg hover:bg-white hover:text-[#0099dd] transition-all font-medium text-sm">
           <i class="fas fa-user"></i>
           <span>Sign In / Register</span>
         </button>
       </div>
-
-      <!-- Search Bar Section -->
-      <div class="py-5">
-        <div class="bg-white text-gray-900 rounded-2xl shadow-lg p-2">
-          <form action="/search" class="flex items-center gap-2">
-            
-            <!-- Location -->
-            <div class="flex-1 flex items-center gap-3 px-5 py-3 border-r border-gray-200">
-              <i class="fas fa-map-marker-alt text-[#0099dd] text-2xl"></i>
-              <div class="flex-1">
-                <label class="text-xs text-gray-500 block">Location</label>
-                <input type="text" 
-                       placeholder="City or Zip Code" 
-                       class="w-full bg-transparent outline-none text-base placeholder-gray-400">
-              </div>
-            </div>
-
-            <!-- Dates -->
-            <div class="flex-1 flex items-center gap-3 px-5 py-3 border-r border-gray-200">
-              <i class="fas fa-calendar-alt text-[#0099dd] text-2xl"></i>
-              <div class="flex-1">
-                <label class="text-xs text-gray-500 block">Dates</label>
-                <span class="text-base">All Dates</span>
-              </div>
-              <i class="fas fa-chevron-down text-gray-400"></i>
-            </div>
-
-            <!-- Search Input -->
-            <div class="flex-[2] flex items-center gap-3 px-5 py-3">
-              <i class="fas fa-search text-[#0099dd] text-2xl"></i>
-              <input type="text" 
-                     placeholder="Artist, Event or Venue" 
-                     class="flex-1 bg-transparent outline-none text-base placeholder-gray-400">
-            </div>
-
-            <!-- Search Button -->
-            <button type="submit"
-                    class="bg-[#0099dd] hover:bg-[#0088c2] text-white px-10 py-4 rounded-xl font-semibold transition-colors flex items-center gap-2">
-              <span>Search</span>
-              <i class="fas fa-search"></i>
-            </button>
-          </form>
-        </div>
-      </div>
-
     </div>
-  </header>
+  </nav>
+
+  <!-- Compact Search Bar -->
+  <div class="bg-[#0099dd] pb-6 pt-3">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="bg-white text-gray-900 rounded-2xl shadow-lg p-2 max-w-5xl mx-auto"> <!-- Reduced width -->
+        <form action="/search" class="flex items-center">
+          
+          <!-- Location -->
+          <div class="flex items-center gap-3 px-6 py-3 flex-1 border-r border-gray-200">
+            <i class="fas fa-map-marker-alt text-[#0099dd] text-2xl"></i>
+            <div>
+              <label class="text-xs text-gray-500">Location</label>
+              <input type="text" placeholder="City or Zip Code" 
+                     class="bg-transparent outline-none w-full text-sm">
+            </div>
+          </div>
+
+          <!-- Dates -->
+          <div class="flex items-center gap-3 px-6 py-3 flex-1 border-r border-gray-200">
+            <i class="fas fa-calendar-alt text-[#0099dd] text-2xl"></i>
+            <div>
+              <label class="text-xs text-gray-500">Dates</label>
+              <span class="text-sm">All Dates</span>
+            </div>
+            <i class="fas fa-chevron-down text-gray-400 ml-auto"></i>
+          </div>
+
+          <!-- Search -->
+          <div class="flex items-center gap-3 px-6 py-3 flex-[1.8]">
+            <i class="fas fa-search text-[#0099dd] text-2xl"></i>
+            <input type="text" placeholder="Artist, Event or Venue" 
+                   class="bg-transparent outline-none flex-1 text-sm">
+          </div>
+
+          <!-- Search Button -->
+          <button type="submit" 
+                  class="bg-[#0099dd] hover:bg-[#0088c2] text-white px-8 py-4 rounded-xl font-semibold flex items-center gap-2 transition-colors">
+            Search
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>
