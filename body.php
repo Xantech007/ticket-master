@@ -50,7 +50,7 @@
 }
 
 .hero-content {
-    z-index: 1;
+    z-index: 3;
 }
 .btn-find {
     background: var(--tm-blue);
@@ -222,11 +222,12 @@
     <div class="grid-4">
         <div style="position:relative;">
             <img src="assets/images/bts.jpg" alt="Taylor Swift">
+            <div class="event-info">
+                <p>MetLife Stadium • East Rutherford, NJ</p>
+                <h3>BTS - The ARIRANG WORLD TOUR</h3>
+            </div>
         </div>
-        <div class="event-info">
-            <p>MetLife Stadium • East Rutherford, NJ</p>
-            <h3>BTS - The ARIRANG WORLD TOUR</h3>
-        </div>
+
 
 
         <div class="event-card">
