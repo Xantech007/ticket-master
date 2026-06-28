@@ -35,13 +35,12 @@
 .hero-content {
     position: absolute;
     top: 50%;
-    left: 60px;
+    left: 55px; /* moved 5px left */
     transform: translateY(-50%);
     max-width: 580px;
     color: #fff;
-    z-index: 2;
+    z-index: 3;
 }
-
 .hero::after {
     content: "";
     position: absolute;
@@ -49,10 +48,6 @@
     background: linear-gradient(rgba(18,18,18,.45), rgba(18,18,18,.65));
 }
 
-.hero-content {
-    z-index: 3;
-    margin-left: -5px;
-}
 .btn-find {
     background: var(--tm-blue);
     color: white;
@@ -99,9 +94,12 @@
 }
 .event-info {
     padding: 16px;
+}
+
+.event-info h3,
+.event-info p {
     margin-left: 0;
     padding-left: 0;
-
 }
 .event-info h3 {
     font-size: 17.5px;
