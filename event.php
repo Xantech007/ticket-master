@@ -13,7 +13,7 @@ $artist_image = "https://picsum.photos/id/64/400/400"; // Fallback circular arti
 if (isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     try {
-        // Checking if $pdo variable exists before executing query to prevent crash
+        // Checking if your connection variable exists before executing query to prevent crash
         if (isset($pdo)) {
             $stmt = $pdo->prepare("SELECT e.*, a.name AS artist_name, a.artist_image AS artist_img FROM events e JOIN artists a ON e.artist_id = a.id WHERE e.id = ?");
             $stmt->execute([$id]);
@@ -21,7 +21,8 @@ if (isset($_GET['id'])) {
             if ($event_data) {
                 $artist_name = $event_data['artist_name'];
                 $event_title_overlay = $event_data['title'];
-                // If database contains an uploaded graphic path, assign them cleanly
+                
+                // Assigning uploaded graphic assets using column definitions from phpMyAdmin
                 if (!empty($event_data['stadium_image'])) {
                     $event_banner_image = "uploads/" . $event_data['stadium_image'];
                 }
@@ -64,8 +65,8 @@ $total_concerts_count = count($concerts_results);
 <!DOCTYPE html>
 <html lang="en">
 
-<?php include "head.php"; ?>
-<?php include "navbar1.php"; ?> 
+<?php include "inc/head.php"; ?>
+<?php include "inc/navbar1.php"; ?> 
  
 <body class="bg-white text-gray-900 font-sans antialiased">
     <div id="__next">
@@ -82,7 +83,7 @@ $total_concerts_count = count($concerts_results);
          </a>
         </section>    
         
-        <?php include "header.php"; ?>
+        <?php include "inc/header.php"; ?>
 
         <div class="relative w-full h-[360px] md:h-[480px] bg-black overflow-hidden select-none">
             <img src="<?php echo htmlspecialchars($event_banner_image); ?>" 
@@ -226,7 +227,7 @@ $total_concerts_count = count($concerts_results);
 
         </main>
 
-        <?php include "footer.php"; ?>
+        <?php include "inc/footer.php"; ?>
     </div>
 
     <div id="modals" data-testid="modals"></div>
