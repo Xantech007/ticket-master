@@ -218,14 +218,13 @@
 
 
     <!-- 2. UPCOMING EVENTS - 4 Grid -->
-    <h2 class="section-title"><i class="fa-solid fa-calendar icon-red"></i> Upcoming Events</h2>
     <div class="grid-4">
         <div style="position:relative;">
             <img src="assets/images/bts.jpg" alt="Taylor Swift">
-            <div class="event-info">
-                <p>MetLife Stadium • East Rutherford, NJ</p>
-                <h3>BTS - The ARIRANG WORLD TOUR</h3>
-            </div>
+        </div>
+        <div class="event-info">
+            <p>MetLife Stadium • East Rutherford, NJ</p>
+            <h3>BTS - The ARIRANG WORLD TOUR</h3>
         </div>
 
 
