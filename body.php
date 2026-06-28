@@ -202,19 +202,17 @@
 }
 </style>
 
-<div class="container">
+<!-- HERO (Outside .container) -->
+<div class="hero">
+    <img src="assets/images/hero-main.jpg" alt="Hero Banner">
 
-
-    <!-- HERO (Outside .container) -->
-    <div class="hero">
-        <img src="assets/images/hero-main.jpg" alt="Hero Banner">
-    
-        <div class="hero-content">
-            <h1>Live Music. Live Moments.</h1>
-            <p>Buy verified tickets to the hottest concerts, tours & festivals.</p>
-            <a href="#" class="btn-find">Find Tickets</a>
-        </div>
+    <div class="hero-content">
+        <h1>Live Music. Live Moments.</h1>
+        <p>Buy verified tickets to the hottest concerts, tours & festivals.</p>
+        <a href="#" class="btn-find">Find Tickets</a>
     </div>
+</div>
+
 
 <div class="container">
 
