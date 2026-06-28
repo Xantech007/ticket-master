@@ -50,7 +50,7 @@
 }
 
 .hero-content {
-    z-index: 3;
+    z-index: 1;
 }
 .btn-find {
     background: var(--tm-blue);
