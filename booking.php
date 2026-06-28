@@ -1,4 +1,10 @@
 <?php
+// event.php - Top of Page Data Layer
+// Enable error displaying so we can pinpoint issues if database structural details are missing
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // booking.php - Selection & Seat Reservation Pipeline
 require_once 'config/db.php';
 
