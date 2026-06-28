@@ -58,7 +58,7 @@
     padding: 16px 40px;
     font-size: 18px;
     font-weight: 700;
-    border-radius: 50px;
+    border-radius: 5px;
     text-decoration: none;
     display: inline-block;
     transition: all 0.3s;
