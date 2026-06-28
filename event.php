@@ -13,15 +13,22 @@ $artist_image = "https://picsum.photos/id/64/400/400"; // Fallback circular arti
 if (isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     try {
-        $stmt = $pdo->prepare("SELECT e.*, a.name AS artist_name, a.image AS artist_image FROM events e JOIN artists a ON e.artist_id = a.id WHERE e.id = ?");
-        $stmt->execute([$id]);
-        $event_data = $stmt->fetch();
-        if ($event_data) {
-            $artist_name = $event_data['artist_name'];
-            $event_title_overlay = $event_data['title'];
-            // If database contains an uploaded graphic path, assign them cleanly
-            $event_banner_image = "uploads/" . $event_data['artist_image'];
-            $artist_image = "uploads/" . $event_data['artist_image'];
+        // Checking if $pdo variable exists before executing query to prevent crash
+        if (isset($pdo)) {
+            $stmt = $pdo->prepare("SELECT e.*, a.name AS artist_name, a.artist_image AS artist_img FROM events e JOIN artists a ON e.artist_id = a.id WHERE e.id = ?");
+            $stmt->execute([$id]);
+            $event_data = $stmt->fetch();
+            if ($event_data) {
+                $artist_name = $event_data['artist_name'];
+                $event_title_overlay = $event_data['title'];
+                // If database contains an uploaded graphic path, assign them cleanly
+                if (!empty($event_data['stadium_image'])) {
+                    $event_banner_image = "uploads/" . $event_data['stadium_image'];
+                }
+                if (!empty($event_data['artist_img'])) {
+                    $artist_image = "uploads/" . $event_data['artist_img'];
+                }
+            }
         }
     } catch (Exception $e) {
         // Safe silence mode to preserve page layout continuity
@@ -57,8 +64,8 @@ $total_concerts_count = count($concerts_results);
 <!DOCTYPE html>
 <html lang="en">
 
-<?php include "inc/head.php"; ?>
-<?php include "inc/navbar1.php"; ?> 
+<?php include "head.php"; ?>
+<?php include "navbar1.php"; ?> 
  
 <body class="bg-white text-gray-900 font-sans antialiased">
     <div id="__next">
@@ -75,7 +82,7 @@ $total_concerts_count = count($concerts_results);
          </a>
         </section>    
         
-        <?php include "inc/header.php"; ?>
+        <?php include "header.php"; ?>
 
         <div class="relative w-full h-[360px] md:h-[480px] bg-black overflow-hidden select-none">
             <img src="<?php echo htmlspecialchars($event_banner_image); ?>" 
@@ -219,16 +226,14 @@ $total_concerts_count = count($concerts_results);
 
         </main>
 
-        <?php include "inc/footer.php"; ?>
+        <?php include "footer.php"; ?>
     </div>
 
     <div id="modals" data-testid="modals"></div>
     
     <style>
         html { scroll-behavior: smooth; }
-        /* Prevent layout horizontal scrollbars inside the main view */
         body { overflow-x: hidden; }
-        /* Hide default scrollbar tracks for clean aesthetic on tab menu */
         .sticky::-webkit-scrollbar { display: none; }
     </style>
 </body>
