@@ -9,7 +9,7 @@
 
 /* Colors */
 :root {
-    --tm-red: #e4002b;
+    --tm-blue: #024ddf;
     --tm-dark: #121212;
 }
 
@@ -53,7 +53,7 @@
     z-index: 3;
 }
 .btn-find {
-    background: var(--tm-red);
+    background: var(--tm-blue);
     color: white;
     padding: 16px 40px;
     font-size: 18px;
@@ -114,7 +114,7 @@
     top: 12px;
     left: 12px;
     background: white;
-    color: var(--tm-red);
+    color: var(--tm-blue);
     padding: 6px 10px;
     border-radius: 8px;
     font-weight: 700;
@@ -123,7 +123,7 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 .price {
-    color: var(--tm-red);
+    color: var(--tm-blue);
     font-weight: 700;
     font-size: 15px;
 }
@@ -184,12 +184,12 @@
     transition: all 0.3s;
 }
 .btn-primary {
-    background: var(--tm-red);
+    background: var(--tm-blue);
     color: white;
 }
 .btn-outline {
-    border: 2px solid var(--tm-red);
-    color: var(--tm-red);
+    border: 2px solid var(--tm-blue);
+    color: var(--tm-blue);
 }
 .btn-primary:hover { background: #024DDF; }
 
