@@ -238,8 +238,8 @@
     <img src="assets/images/image.png" alt="Hero Banner">
 
     <div class="hero-content">
-        <h1>Live Music. Live Moments.</h1>
-        <p>Buy verified tickets to the hottest concerts, tours & festivals.</p>
+        <h1>WICKED The Musical</h1>
+        <p>Text</p>
         <a href="#" class="btn-find">Find Tickets</a>
     </div>
 </div>
