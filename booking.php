@@ -1,12 +1,23 @@
 <?php
-// event.php - Top of Page Data Layer
+// booking.php - Selection & Seat Reservation Pipeline
 // Enable error displaying so we can pinpoint issues if database structural details are missing
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// booking.php - Selection & Seat Reservation Pipeline
+// 1. Load the connection file from the 'config' folder
 require_once 'config/db.php';
+
+// 2. Instantiate your "Database" class and invoke connect() to expose $pdo safely
+$pdo = null;
+try {
+    if (class_exists('Database')) {
+        $dbInstance = new Database();
+        $pdo = $dbInstance->connect(); 
+    }
+} catch (Exception $e) {
+    // Safe fallback handling if connection breaks down
+}
 
 // Default mock parameters matching your structural tree if database variables aren't initialized yet
 $artist_name = "BTS";
@@ -18,15 +29,17 @@ $stadium_map_image = "https://images.unsplash.com/photo-1508098682722-e99c43a406
 if (isset($_GET['event_id'])) {
     $event_id = (int)$_GET['event_id'];
     try {
-        // Query to match your structure: looks up individual event node along with parent metadata and stadium data
-        $stmt = $pdo->prepare("SELECT e.*, a.name AS artist_name, a.image AS artist_image FROM events e JOIN artists a ON e.artist_id = a.id WHERE e.id = ?");
-        $stmt->execute([$event_id]);
-        $data = $stmt->fetch();
-        if ($data) {
-            $artist_name = $data['artist_name'];
-            $concert_title = $data['title'];
-            // Dynamic check for stadium layout paths or fallback to generic event graphics if absent
-            $stadium_map_image = !empty($data['stadium_image']) ? "uploads/" . $data['stadium_image'] : "uploads/" . $data['artist_image'];
+        if (isset($pdo) && $pdo !== null) {
+            // Query to match your structure: looks up individual event node along with parent metadata and stadium data
+            $stmt = $pdo->prepare("SELECT e.*, a.name AS artist_name, a.artist_image AS artist_image FROM events e JOIN artists a ON e.artist_id = a.id WHERE e.id = ?");
+            $stmt->execute([$event_id]);
+            $data = $stmt->fetch();
+            if ($data) {
+                $artist_name = $data['artist_name'];
+                $concert_title = $data['title'];
+                // Dynamic check for stadium layout paths or fallback to generic event graphics if absent
+                $stadium_map_image = !empty($data['stadium_image']) ? "uploads/" . $data['stadium_image'] : "uploads/" . $data['artist_image'];
+            }
         }
     } catch (Exception $e) {
         // Structural validation protection
@@ -281,7 +294,6 @@ $ticket_sections = [
     <style>
         .rotate-180 { transform: rotate(180deg); }
         .seat-btn { transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
-        /* Prevent scroll track clipping visual blocks */
         body { overflow-x: hidden; }
     </style>
 </body>
