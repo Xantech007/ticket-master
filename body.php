@@ -18,7 +18,7 @@
     height: 380px;
     background: linear-gradient(rgba(18,18,18,0.65), rgba(18,18,18,0.75)), 
                 url('https://picsum.photos/id/1015/2000/1200') center/cover no-repeat;
-    border-radius: 16px;
+    border-radius: 0px;
     display: flex;
     align-items: center;
     color: white;
@@ -27,7 +27,7 @@
 }
 .hero-content {
     max-width: 580px;
-    padding-left: 50px;
+    padding-left: 0px;
 }
 .hero h1 {
     font-size: 42px;
