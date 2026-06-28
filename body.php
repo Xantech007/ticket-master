@@ -201,7 +201,7 @@
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
-    .hero { height: 320px; }
+    .hero { height: auto; }
     .hero h1 { font-size: 34px; }
     .section-title { font-size: 24px; margin: 35px 0 18px; }
     .carousel-btn { display: none; }
