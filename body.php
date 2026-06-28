@@ -77,7 +77,7 @@
     background: var(--tm-blue);
     color: white;
     padding: 11px 28px;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     border-radius: 5px;
     text-decoration: none;
@@ -219,7 +219,7 @@
 /* RESPONSIVE */
 @media (max-width: 768px) {
     .hero h1 {
-        font-size: 34px;
+        font-size: 24px;
     }
 
     .section-title {
