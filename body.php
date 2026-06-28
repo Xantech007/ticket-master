@@ -13,19 +13,18 @@
     --tm-dark: #121212;
 }
 
-/* FULL WIDTH HERO */
+/* HERO */
 .hero {
     width: 100vw;
     margin: 0;
     padding: 0;
     position: relative;
     left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
+    transform: translateX(-50%);
     overflow: hidden;
 }
 
+/* Mobile: image decides the height */
 .hero img {
     width: 100%;
     height: auto;
@@ -35,11 +34,11 @@
 .hero-content {
     position: absolute;
     top: 50%;
-    left: 60px;
+    left: 15px;
     transform: translateY(-50%);
     max-width: 580px;
     color: #fff;
-    z-index: 2;
+    z-index: 3;
 }
 
 .hero::after {
@@ -47,16 +46,38 @@
     position: absolute;
     inset: 0;
     background: linear-gradient(rgba(18,18,18,.45), rgba(18,18,18,.65));
+    z-index: 1;
 }
 
 .hero-content {
-    z-index: 3;
+    z-index: 2;
 }
+
+/* Desktop */
+@media (min-width: 992px) {
+
+    /* Show only the top 60% of the image */
+    .hero {
+        height: 60vh;      /* adjust if you want a taller/shorter hero */
+    }
+
+    .hero img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top; /* crop from the bottom, keep the top */
+    }
+
+    .hero-content {
+        left: 60px;
+    }
+}
+
 .btn-find {
     background: var(--tm-blue);
     color: white;
-    padding: 16px 40px;
-    font-size: 18px;
+    padding: 11px 28px;
+    font-size: 16px;
     font-weight: 700;
     border-radius: 5px;
     text-decoration: none;
@@ -98,6 +119,8 @@
 }
 .event-info {
     padding: 16px;
+    margin-left: 0;
+    padding-left: 0;
 }
 .event-info h3 {
     font-size: 17.5px;
@@ -195,16 +218,24 @@
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
-    .hero { height: 320px; }
-    .hero h1 { font-size: 34px; }
-    .section-title { font-size: 24px; margin: 35px 0 18px; }
-    .carousel-btn { display: none; }
+    .hero h1 {
+        font-size: 24px;
+    }
+
+    .section-title {
+        font-size: 24px;
+        margin: 35px 0 18px;
+    }
+
+    .carousel-btn {
+        display: none;
+    }
 }
 </style>
 
 <!-- HERO (Outside .container) -->
 <div class="hero">
-    <img src="assets/images/hero-main.jpg" alt="Hero Banner">
+    <img src="assets/images/image.png" alt="Hero Banner">
 
     <div class="hero-content">
         <h1>Live Music. Live Moments.</h1>
