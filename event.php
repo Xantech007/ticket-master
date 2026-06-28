@@ -8,9 +8,16 @@ error_reporting(E_ALL);
 // 1. Load the renamed connection file
 require_once 'db.php';
 
-// 2. Instantiate your "Database" class and invoke the connect() function to expose $pdo
-$dbInstance = new Database();
-$pdo = $dbInstance->connect(); 
+// 2. Instantiate your "Database" class and invoke the connect() function to expose $pdo safely
+$pdo = null;
+try {
+    if (class_exists('Database')) {
+        $dbInstance = new Database();
+        $pdo = $dbInstance->connect(); 
+    }
+} catch (Exception $e) {
+    // Catch initial structural connection issues down below gracefully
+}
 
 // Safe URL Parameter Fetching (Fallback definitions if no ID is passed yet)
 $artist_name = "BTS";
