@@ -1,7 +1,7 @@
 <?php
 // event.php - Top of Page Data Layer
 // Connect to database to dynamically extract artist information based on the request URL context
-require_once 'db.php';
+require_once 'database.php';
 
 // Safe URL Parameter Fetching (Fallback definitions if no ID is passed yet)
 $artist_name = "BTS";
