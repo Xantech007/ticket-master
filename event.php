@@ -3,6 +3,10 @@
 // Connect to database to dynamically extract artist information based on the request URL context
 require_once 'database.php';
 
+// Instantiate the Database class and establish the connection handler
+$dbInstance = new Database();
+$pdo = $dbInstance->connect(); // This extracts the $pdo variable globally for this page
+
 // Safe URL Parameter Fetching (Fallback definitions if no ID is passed yet)
 $artist_name = "BTS";
 $event_title_overlay = "WORLD TOUR 'ARIRANG'";
@@ -13,8 +17,7 @@ $artist_image = "https://picsum.photos/id/64/400/400"; // Fallback circular arti
 if (isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     try {
-        // Checking if your connection variable exists before executing query to prevent crash
-        if (isset($pdo)) {
+        if (isset($pdo) && $pdo !== null) {
             $stmt = $pdo->prepare("SELECT e.*, a.name AS artist_name, a.artist_image AS artist_img FROM events e JOIN artists a ON e.artist_id = a.id WHERE e.id = ?");
             $stmt->execute([$id]);
             $event_data = $stmt->fetch();
