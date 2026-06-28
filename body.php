@@ -275,7 +275,7 @@
                 <p>Wed, Jul 29 • 6:00 PM</p>
                 <p>Sat, AUG 01 • 5:00 PM</p>
                 <p class="price">From $75</p>
-                <a href="#" class="btn btn-primary" style="margin-top:12px; width:100%; text-align:center;">Get Tickets</a>
+                <a href="event.php" class="btn btn-primary" style="margin-top:12px; width:100%; text-align:center;">Get Tickets</a>
             </div>
         </div>
 
