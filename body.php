@@ -35,7 +35,7 @@
 .hero-content {
     position: absolute;
     top: 50%;
-    left: 55px; /* moved 5px left */
+    left: 30px;
     transform: translateY(-50%);
     max-width: 580px;
     color: #fff;
@@ -94,10 +94,6 @@
 }
 .event-info {
     padding: 16px;
-}
-
-.event-info h3,
-.event-info p {
     margin-left: 0;
     padding-left: 0;
 }
