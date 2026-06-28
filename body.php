@@ -1,8 +1,5 @@
-<?php
-// body.php
-// Note: This script execution environment inherits the global database state from index.php safely.
-?>
 <style>
+/* Mobile-First + Ticketmaster Inspired styling safely embedded */
 * { box-sizing: border-box; }
 .container {
     max-width: 1280px;
@@ -104,17 +101,16 @@
 .carousel-btn.right { right: -15px; }
 </style>
 
-<div class="container">
+<div class="container" id="main-content">
     <div class="hero">
         <div class="hero-content">
             <h1>Experience Live Entertainment</h1>
-            <p>Onboard and discover premium ticketing packages for your favorite acts globally.</p>
+            <p>Discover and book tickets for your favorite global performers instantly.</p>
         </div>
     </div>
 
     <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-black tracking-tight text-gray-900">Trending Dynamic Events</h2>
-        <span class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full">Live Connection</span>
+        <h2 class="text-2xl font-black tracking-tight text-gray-900">Trending Events</h2>
     </div>
 
     <div class="carousel-wrapper">
@@ -122,23 +118,22 @@
         <div class="carousel">
             <?php if (empty($dynamic_events)): ?>
                 <div class="w-full text-center py-12 text-gray-400 font-medium border-2 border-dashed border-gray-200 rounded-2xl">
-                    No records actively provisioned inside system inventory tables yet. Log into admin.php to add records.
+                    No active events found. Access the administration terminal panel to add records.
                 </div>
             <?php else: ?>
                 <?php foreach ($dynamic_events as $event): 
                     $timestamp = strtotime($event['event_date']);
                     $badgeDate = strtoupper(date('M d', $timestamp));
                 ?>
-                    <div class="event-card" onclick="window.location.href='section_selection.php?event_id=<?= $event['id']; ?>'">
+                    <div class="event-card" onclick="window.location.href='section_selection.php?event_id=<?php echo (int)$event['id']; ?>'">
                         <div style="position:relative;">
-                            <img src="uploads/<?= htmlspecialchars($event['artist_image']); ?>" onerror="this.src='https://picsum.photos/id/625/600/400';" alt="Artist Profile">
-                            <div class="date-badge"><?= $badgeDate; ?></div>
+                            <img src="uploads/<?php echo htmlspecialchars($event['artist_image']); ?>" onerror="this.src='https://picsum.photos/id/625/600/400';" alt="Artist Image">
+                            <div class="date-badge"><?php echo htmlspecialchars($badgeDate); ?></div>
                         </div>
                         <div class="event-info">
-                            <h3><?= htmlspecialchars($event['artist_name']); ?></h3>
-                            <p class="truncate font-semibold text-gray-800"><?= htmlspecialchars($event['title']); ?></p>
-                            <p class="truncate text-gray-500"><i class="fas fa-map-marker-alt text-xs"></i> <?= htmlspecialchars($event['venue']); ?></p>
-                            <p class="price">Book Live Session</p>
+                            <h3><?php echo htmlspecialchars($event['artist_name']); ?></h3>
+                            <p><?php echo htmlspecialchars($event['title']); ?> • <?php echo htmlspecialchars($event['venue']); ?></p>
+                            <p class="price">View Seats</p>
                         </div>
                     </div>
                 <?php endforeach; ?>
