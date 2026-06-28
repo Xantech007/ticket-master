@@ -76,8 +76,8 @@
 .btn-find {
     background: var(--tm-blue);
     color: white;
-    padding: 16px 40px;
-    font-size: 18px;
+    padding: 11px 28px;
+    font-size: 13px;
     font-weight: 700;
     border-radius: 5px;
     text-decoration: none;
