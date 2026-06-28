@@ -1,0 +1,282 @@
+<?php
+// booking.php - Selection & Seat Reservation Pipeline
+require_once 'db.php';
+
+// Default mock parameters matching your structural tree if database variables aren't initialized yet
+$artist_name = "BTS";
+$concert_title = "BTS WORLD TOUR 'ARIRANG' IN EAST RUTHERFORD";
+$concert_details = "Sat • Aug 01, 2026 • 8:00 PM • MetLife Stadium — East Rutherford, NJ";
+$stadium_map_image = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80"; // Default bold fallback image
+
+// Try extracting specific database content map based on incoming Find Tickets event click context
+if (isset($_GET['event_id'])) {
+    $event_id = (int)$_GET['event_id'];
+    try {
+        // Query to match your structure: looks up individual event node along with parent metadata and stadium data
+        $stmt = $pdo->prepare("SELECT e.*, a.name AS artist_name, a.image AS artist_image FROM events e JOIN artists a ON e.artist_id = a.id WHERE e.id = ?");
+        $stmt->execute([$event_id]);
+        $data = $stmt->fetch();
+        if ($data) {
+            $artist_name = $data['artist_name'];
+            $concert_title = $data['title'];
+            // Dynamic check for stadium layout paths or fallback to generic event graphics if absent
+            $stadium_map_image = !empty($data['stadium_image']) ? "uploads/" . $data['stadium_image'] : "uploads/" . $data['artist_image'];
+        }
+    } catch (Exception $e) {
+        // Structural validation protection
+    }
+}
+
+// Complete mock configuration matrix matching your entry specification requirements exactly
+$ticket_sections = [
+    [
+        'id' => 'sec_519_r20',
+        'section' => 'Sec 519',
+        'row' => 'Row 20',
+        'type' => 'Resale Ticket',
+        'price' => 229.90,
+        'entry' => 'Mobile Entry',
+        'seats' => ['Seat 1', 'Seat 2', 'Seat 3', 'Seat 4', 'Seat 5', 'Seat 6']
+    ],
+    [
+        'id' => 'sec_507_r20',
+        'section' => 'Sec 507',
+        'row' => 'Row 20',
+        'type' => 'Resale Ticket',
+        'price' => 232.32,
+        'entry' => 'Mobile Entry',
+        'seats' => ['Seat 11', 'Seat 12', 'Seat 13', 'Seat 14']
+    ]
+];
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<?php include "inc/head.php"; ?>
+<?php include "inc/navbar1.php"; ?> 
+
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+    <div id="__next">
+        <?php include "inc/header.php"; ?>
+
+        <div class="bg-white border-b border-gray-200 py-6 px-4 md:px-8 shadow-sm">
+            <div class="max-w-7xl mx-auto">
+                <span class="text-xs font-black uppercase tracking-wider text-[#024DDF] bg-blue-50 px-2.5 py-1 rounded">Selected Concert Node</span>
+                <h1 class="text-2xl md:text-4xl font-black text-gray-900 tracking-tight mt-2">
+                    <?php echo htmlspecialchars($artist_name); ?> — <span class="font-bold text-gray-700"><?php echo htmlspecialchars($concert_title); ?></span>
+                </h1>
+                <p class="text-sm md:text-base font-medium text-gray-500 mt-1 flex items-center gap-2">
+                    <i class="far fa-calendar-check text-blue-600"></i> <?php echo htmlspecialchars($concert_details); ?>
+                </p>
+            </div>
+        </div>
+
+        <div class="w-full bg-black relative h-[260px] md:h-[420px] overflow-hidden select-none shadow-inner">
+            <img src="<?php echo htmlspecialchars($stadium_map_image); ?>" 
+                 onerror="this.src='https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1600&q=80';" 
+                 alt="Stadium Grid Mapping Layout" 
+                 class="w-full h-full object-cover opacity-90 object-center">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+            <div class="absolute bottom-4 left-4 md:left-8 bg-black/70 backdrop-blur-md border border-gray-700 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest">
+                <i class="fas fa-map-marked-alt mr-1.5 text-blue-400"></i> Stadium Map Reference Vector
+            </div>
+        </div>
+
+        <main class="max-w-7xl mx-auto px-4 md:px-8 py-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <div class="lg:col-span-7 space-y-4">
+                    <h2 class="text-lg font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-list-ol text-[#024DDF]"></i> Available Seating Entries
+                    </h2>
+                    
+                    <?php foreach ($ticket_sections as $sec): ?>
+                        <div class="bg-white border-2 border-gray-200 rounded-xl transition-all shadow-sm overflow-hidden" id="card-<?php echo $sec['id']; ?>">
+                            
+                            <div onclick="toggleSectionDisplay('<?php echo $sec['id']; ?>')" 
+                                 class="p-4 md:p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50/80 transition-colors select-none">
+                                <div>
+                                    <h3 class="text-base md:text-lg font-black text-gray-900 tracking-tight">
+                                        <?php echo htmlspecialchars($sec['section']); ?> • <?php echo htmlspecialchars($sec['row']); ?>
+                                    </h3>
+                                    <p class="text-xs font-bold text-gray-400 uppercase mt-0.5 tracking-wide">
+                                        Total available seats: <span class="text-gray-700 font-extrabold"><?php echo count($sec['seats']); ?> entries</span>
+                                    </p>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <span class="text-[10px] font-black uppercase bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded">
+                                            <?php echo htmlspecialchars($sec['type']); ?>
+                                        </span>
+                                        <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded flex items-center gap-1">
+                                            <i class="fas fa-mobile-alt"></i> <?php echo htmlspecialchars($sec['entry']); ?>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="text-right flex items-center gap-4">
+                                    <div>
+                                        <span class="block text-xl font-black text-[#024DDF] tracking-tight">
+                                            $<?php echo number_format($sec['price'], 2); ?>
+                                        </span>
+                                        <span class="text-[10px] text-gray-400 block font-medium">ea + transaction fees</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 transform" id="icon-<?php echo $sec['id']; ?>"></i>
+                                </div>
+                            </div>
+
+                            <div id="drawer-<?php echo $sec['id']; ?>" class="hidden border-t border-gray-100 bg-gray-50/50 p-4">
+                                <p class="text-xs font-bold text-gray-500 uppercase tracking-tight mb-3">
+                                    Select desired seat positions from the manifest layout below:
+                                </p>
+                                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                                    <?php foreach ($sec['seats'] as $seat): ?>
+                                        <button type="button"
+                                                onclick="toggleSeatSelection(this, '<?php echo $sec['id']; ?>', '<?php echo htmlspecialchars($seat); ?>', <?php echo $sec['price']; ?>)"
+                                                class="seat-btn bg-white border border-gray-300 rounded-lg py-2.5 px-2 text-xs font-bold text-gray-700 hover:border-[#024DDF] hover:bg-blue-50/50 transition-all text-center focus:outline-none select-none">
+                                            <i class="fas fa-chair text-[10px] opacity-40 mr-1"></i>
+                                            <?php echo htmlspecialchars($seat); ?>
+                                        </button>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="lg:col-span-5 sticky top-4">
+                    <div id="checkout-sidebar-panel" class="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-md transition-all opacity-40 pointer-events-none select-none">
+                        <h3 class="text-base font-black uppercase tracking-wider text-gray-800 border-b border-gray-100 pb-3 mb-4 flex items-center gap-2">
+                            <i class="fas fa-shopping-basket text-[#024DDF]"></i> Order Review Summary
+                        </h3>
+                        
+                        <div id="selected-seats-container" class="space-y-2 max-h-[180px] overflow-y-auto mb-4 pr-1">
+                            <p class="text-xs font-bold text-gray-400 italic py-2">No active seat nodes locked yet.</p>
+                        </div>
+
+                        <div class="border-t border-gray-100 pt-4 space-y-2">
+                            <div class="flex justify-between text-xs font-bold text-gray-500">
+                                <span>Selected Count:</span>
+                                <span id="summary-count">0 seats</span>
+                            </div>
+                            <div class="flex justify-between items-baseline pt-2 border-t border-dashed border-gray-100">
+                                <span class="text-sm font-black text-gray-900">Estimated Total:</span>
+                                <span class="text-2xl font-black text-[#024DDF] tracking-tight" id="summary-total-price">$0.00</span>
+                            </div>
+                        </div>
+
+                        <form action="checkout.php" method="POST" class="mt-6">
+                            <input type="hidden" name="serialized_seat_payload" id="serialized-seat-payload" value="">
+                            <button type="submit" 
+                                    class="w-full bg-[#024DDF] hover:bg-blue-800 text-white font-black text-sm uppercase tracking-widest py-4 px-6 rounded-xl transition-all shadow focus:outline-none flex items-center justify-center gap-2">
+                                Proceed to Checkout <i class="fas fa-arrow-right text-xs"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <?php include "inc/footer.php"; ?>
+    </div>
+
+    <script>
+        // Track globally selected seat nodes data matrix array
+        let pickedSeatsRegister = [];
+
+        // Dynamic interface controller to slide open corresponding seat drawers
+        function toggleSectionDisplay(sectionId) {
+            const drawer = document.getElementById('drawer-' + sectionId);
+            const icon = document.getElementById('icon-' + sectionId);
+            const card = document.getElementById('card-' + sectionId);
+            
+            if (drawer.classList.contains('hidden')) {
+                drawer.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+                card.classList.remove('border-gray-200');
+                card.classList.add('border-blue-200', 'shadow-md');
+            } else {
+                drawer.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+                card.classList.remove('border-blue-200', 'shadow-md');
+                card.classList.add('border-gray-200');
+            }
+        }
+
+        // Handles multi-seat picking state management logic loop
+        function toggleSeatSelection(buttonElement, sectionId, seatName, priceMetric) {
+            const compositeKeyId = `${sectionId}_${seatName}`;
+            const searchIndex = pickedSeatsRegister.findIndex(item => item.id === compositeKeyId);
+
+            if (searchIndex > -1) {
+                // If already selected, delete the registration lock structure (unhighlight state)
+                pickedSeatsRegister.splice(searchIndex, 1);
+                buttonElement.classList.remove('bg-[#024DDF]', 'text-white', 'border-[#024DDF]', 'shadow-inner');
+                buttonElement.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+            } else {
+                // If completely new allocation, append and inject to tracking ledger array (highlight state)
+                pickedSeatsRegister.push({
+                    id: compositeKeyId,
+                    section: sectionId.replace('_r20', '').replace('sec_', 'Section ').toUpperCase(),
+                    seat: seatName,
+                    price: parseFloat(priceMetric)
+                });
+                buttonElement.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                buttonElement.classList.add('bg-[#024DDF]', 'text-white', 'border-[#024DDF]', 'shadow-inner');
+            }
+
+            refreshSidebarStateView();
+        }
+
+        // Synchronization routine updating calculations and conditional sidebar checkout visibility 
+        function refreshSidebarStateView() {
+            const sidebarPanel = document.getElementById('checkout-sidebar-panel');
+            const container = document.getElementById('selected-seats-container');
+            const countLabel = document.getElementById('summary-count');
+            const priceLabel = document.getElementById('summary-total-price');
+            const hiddenPayloadInput = document.getElementById('serialized-seat-payload');
+
+            if (pickedSeatsRegister.length === 0) {
+                // If no seats selected, disable visibility configuration states completely
+                sidebarPanel.classList.add('opacity-40', 'pointer-events-none', 'select-none');
+                container.innerHTML = `<p class="text-xs font-bold text-gray-400 italic py-2">No active seat nodes locked yet.</p>`;
+                countLabel.innerText = "0 seats";
+                priceLabel.innerText = "$0.00";
+                hiddenPayloadInput.value = "";
+            } else {
+                // Remove disabling overlay configurations, enable immediate side panel execution triggers
+                sidebarPanel.classList.remove('opacity-40', 'pointer-events-none', 'select-none');
+                
+                let cumulativeTotalSum = 0;
+                let injectionHtmlBuffer = "";
+
+                pickedSeatsRegister.forEach(seatNode => {
+                    cumulativeTotalSum += seatNode.price;
+                    injectionHtmlBuffer += `
+                        <div class="flex items-center justify-between bg-blue-50/60 border border-blue-100 rounded-lg p-2.5 text-xs animate-fade-in">
+                            <div>
+                                <span class="font-black text-gray-900 block">${seatNode.section}</span>
+                                <span class="font-bold text-gray-500">${seatNode.seat}</span>
+                            </div>
+                            <span class="font-extrabold text-[#024DDF]">$${seatNode.price.toFixed(2)}</span>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = injectionHtmlBuffer;
+                countLabel.innerText = `${pickedSeatsRegister.length} position(s) locked`;
+                priceLabel.innerText = `$${cumulativeTotalSum.toFixed(2)}`;
+                
+                // Pack chosen attributes sequence payload data safely into form structure field
+                hiddenPayloadInput.value = JSON.stringify(pickedSeatsRegister);
+            }
+        }
+    </script>
+
+    <style>
+        .rotate-180 { transform: rotate(180deg); }
+        .seat-btn { transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* Prevent scroll track clipping visual blocks */
+        body { overflow-x: hidden; }
+    </style>
+</body>
+</html>
