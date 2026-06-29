@@ -8,7 +8,7 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     exit();
 }
 
-require_once __DIR__ . '/../../config/database.php'; // adjust path if needed
+require_once __DIR__ . '/../../config/db.php'; // adjust path if needed
 
 // Determine current page (simple basename check)
 $current_page = basename($_SERVER['PHP_SELF']);
