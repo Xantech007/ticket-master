@@ -104,7 +104,7 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
                 $day_time,
                 $venue,
                 $location,
-                $title
+                $title,
                 $index_type
             ]);
 
