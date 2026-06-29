@@ -12,10 +12,6 @@ error_reporting(E_ALL);
  */
 require_once 'config/db.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 $pdo = null;
 
 try {
