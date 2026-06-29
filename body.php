@@ -33,17 +33,26 @@ function e($value) {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
-function image_url($filename, $fallback = 'assets/images/image.png') {
-    $filename = trim((string) $filename);
+function image_url($filename, $fallback = 'assets/images/bts.jpg')
+{
+    $filename = trim((string)$filename);
+
     if ($filename === '') {
         return $fallback;
     }
 
+    // Already a full URL
     if (preg_match('/^https?:\/\//i', $filename)) {
         return $filename;
     }
 
-    return 'assets/images/' . ltrim($filename, '/');
+    // If the database already contains uploads/artists/filename.png
+    if (str_starts_with($filename, 'uploads/')) {
+        return $filename;
+    }
+
+    // Otherwise prepend the upload folder
+    return 'uploads/artists/' . ltrim($filename, '/');
 }
 
 function fetch_all_rows(PDO $pdo, string $sql, array $params = [])
