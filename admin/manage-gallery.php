@@ -59,8 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* ---------------- UPLOAD ---------------- */
         if ($action === 'upload') {
 
-            if (empty($_FILES['images']['name'][0])) {
-                throw new Exception("Please select at least one image.");
+            if (empty($_FILES['files']['name'][0])) {
+                throw new Exception("Please select at least one file.");
             }
 
             $uploadDir = __DIR__ . "/../uploads/gallery/";
@@ -69,22 +69,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 mkdir($uploadDir, 0777, true);
             }
 
-            foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
+            foreach ($_FILES['files']['tmp_name'] as $key => $tmpName) {
 
-                $fileName = time() . '_' . basename($_FILES['images']['name'][$key]);
+                $originalName = $_FILES['files']['name'][$key];
+                $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+
+                $fileName = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
                 $target = $uploadDir . $fileName;
 
                 move_uploaded_file($tmpName, $target);
 
+                /* detect type */
+                $mediaType = in_array($ext, ['mp4', 'webm', 'ogg']) ? 'video' : 'image';
+
                 $stmt = $pdo->prepare("
-                    INSERT INTO gallery (artist_id, image)
-                    VALUES (?, ?)
+                    INSERT INTO gallery (artist_id, media, media_type)
+                    VALUES (?, ?, ?)
                 ");
 
-                $stmt->execute([$artist_id, $fileName]);
+                $stmt->execute([$artist_id, $fileName, $mediaType]);
             }
 
-            $_SESSION['success'] = "Images uploaded successfully.";
+            $_SESSION['success'] = "Media uploaded successfully.";
             header("Location: manage-gallery.php?artist_id=" . $artist_id);
             exit;
         }
@@ -95,13 +101,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int)($_POST['id'] ?? 0);
 
             if ($id <= 0) {
-                throw new Exception("Invalid image ID.");
+                throw new Exception("Invalid media ID.");
             }
 
             $stmt = $pdo->prepare("DELETE FROM gallery WHERE gallery_id = ?");
             $stmt->execute([$id]);
 
-            $_SESSION['success'] = "Image deleted.";
+            $_SESSION['success'] = "Media deleted.";
             header("Location: manage-gallery.php?artist_id=" . $artist_id);
             exit;
         }
@@ -138,11 +144,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <input type="hidden" name="action" value="upload">
 
-    <label style="display:block;margin-bottom:10px;">Upload Images</label>
+    <label style="display:block;margin-bottom:10px;">Upload Images / Videos</label>
 
     <input type="file"
-           name="images[]"
+           name="files[]"
            multiple
+           accept="image/*,video/*"
            style="margin-bottom:10px;width:100%;">
 
     <button class="btn" style="width:100%;">Upload</button>
@@ -153,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!-- GALLERY GRID -->
 <?php if (empty($gallery)): ?>
-<p style="text-align:center;color:#888;">No images found.</p>
+<p style="text-align:center;color:#888;">No media found.</p>
 <?php endif; ?>
 
 <div style="
@@ -162,16 +169,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     gap:15px;
 ">
 
-<?php foreach ($gallery as $img): ?>
+<?php foreach ($gallery as $media): ?>
 
 <div style="background:#111827;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
 
-    <img src="../uploads/gallery/<?= htmlspecialchars($img['image']) ?>"
-         style="width:100%;height:160px;object-fit:cover;">
+    <?php if ($media['media_type'] === 'video'): ?>
 
-    <form method="POST" onsubmit="return confirm('Delete this image?');" style="padding:10px;">
+        <video controls style="width:100%;height:160px;object-fit:cover;">
+            <source src="../uploads/gallery/<?= htmlspecialchars($media['media']) ?>">
+        </video>
+
+    <?php else: ?>
+
+        <img src="../uploads/gallery/<?= htmlspecialchars($media['media']) ?>"
+             style="width:100%;height:160px;object-fit:cover;">
+
+    <?php endif; ?>
+
+    <form method="POST"
+          onsubmit="return confirm('Delete this media?');"
+          style="padding:10px;">
+
         <input type="hidden" name="action" value="delete">
-        <input type="hidden" name="id" value="<?= $img['gallery_id'] ?>">
+        <input type="hidden" name="id" value="<?= $media['gallery_id'] ?>">
 
         <button class="btn red" style="width:100%;">Delete</button>
     </form>
