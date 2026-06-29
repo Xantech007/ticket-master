@@ -67,6 +67,7 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
             $venue=trim($_POST['venue']);
             $location=trim($_POST['location']);
             $title=trim($_POST['title']);
+            $index_type = $_POST['index_type'] ?? '';
 
             if(
                 empty($date) ||
@@ -77,6 +78,10 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
             ){
                 throw new Exception("All fields are required.");
             }
+            
+            if(!in_array($index_type, ['upcoming','trending','sponsored'])){
+                throw new Exception("Invalid event type.");
+            }
 
             $stmt=$pdo->prepare("
             INSERT INTO concerts
@@ -86,10 +91,11 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
                 day_time,
                 venue,
                 location,
-                title
+                title,
+                index_type
             )
             VALUES
-            (?,?,?,?,?,?)
+            (?,?,?,?,?,?,?)
             ");
 
             $stmt->execute([
@@ -99,6 +105,7 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
                 $venue,
                 $location,
                 $title
+                $index_type
             ]);
 
             $_SESSION['success']="Concert added.";
@@ -267,6 +274,7 @@ Add Concert
 <th>Venue</th>
 <th>Location</th>
 <th>Title</th>
+<th>Section</th>
 <th>Action</th>
 
 </tr>
@@ -279,7 +287,7 @@ Add Concert
 
 <tr>
 
-<td colspan="6" style="padding:20px;text-align:center;">
+<td colspan="7" style="padding:20px;text-align:center;">
 
 No concerts found.
 
@@ -311,6 +319,14 @@ No concerts found.
 
 <td style="padding:12px;">
 <?= htmlspecialchars($concert['title']) ?>
+</td>
+
+<td style="padding:12px;">
+    <?=
+        htmlspecialchars(
+            ucfirst($concert['index_type'])
+        )
+    ?>
 </td>
 
 <td style="padding:12px;">
@@ -371,6 +387,21 @@ Delete
 
 <label>Title</label>
 <input type="text" name="title" required style="width:100%;padding:10px;margin:10px 0 20px;">
+
+<label>Display Section</label>
+
+<select
+name="index_type"
+required
+style="width:100%;padding:10px;margin:10px 0 20px;">
+
+    <option value="upcoming">Upcoming</option>
+
+    <option value="trending">Trending Searches</option>
+
+    <option value="sponsored">Sponsored Presales & Offers</option>
+
+</select>
 
 <button class="btn" style="width:100%;">
 
