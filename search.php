@@ -5,6 +5,9 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require_once 'config/db.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $pdo = null;
 try {
@@ -80,6 +83,33 @@ if (!empty($search_query) && $pdo !== null) {
         ]);
 
 $matched_events = $event_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+/* --------------------------------------------
+   SAVE SEARCH HISTORY
+---------------------------------------------*/
+try {
+
+    // Adjust this session key if yours is different
+    $user_id = $_SESSION['user_id'] ?? null;
+
+    // Total search results
+    $result_count = count($matched_artists) + count($matched_events);
+
+    $save = $pdo->prepare("
+        INSERT INTO user_searches
+        (user_id, search, result)
+        VALUES (?, ?, ?)
+    ");
+
+    $save->execute([
+        $user_id,
+        $search_query,
+        $result_count
+    ]);
+
+} catch (Exception $e) {
+    // Never stop the search page if logging fails
+}
         
     } catch (Exception $e) {
         // Query fallback container protection
