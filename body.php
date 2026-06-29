@@ -12,17 +12,21 @@ error_reporting(E_ALL);
  */
 require_once 'config/db.php';
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $pdo = null;
 
 try {
-    if (class_exists('Database')) {
-        $db = new Database();
-        $pdo = $db->connect();
-    }
+    $db = new Database();
+    $pdo = $db->connect();
 } catch (Exception $e) {
-    if (!$pdo) {
-        die("Database connection failed.");
-    }
+    die($e->getMessage());
+}
+
+if (!$pdo) {
+    die("Database connection failed.");
 }
 
 function e($value) {
@@ -94,10 +98,15 @@ $heroEvent = fetch_one_row(
      LIMIT 1"
 );
 
-$upcomingSql = "SELECT $eventFields
-                FROM concerts c
-                INNER JOIN artists a ON a.artist_id = c.artist_id
-                WHERE c.index_type = 'upcoming'";
+$upcomingSql = "
+SELECT
+    $eventFields
+FROM concerts c
+INNER JOIN artists a
+    ON a.artist_id = c.artist_id
+WHERE c.index_type = 'upcoming'
+";
+
 $params = [];
 
 if ($heroEvent) {
@@ -105,12 +114,13 @@ if ($heroEvent) {
     $params[] = $heroEvent['concert_id'];
 }
 
-$upcomingSql .= " ORDER BY c.concert_date ASC LIMIT 4";
+$upcomingSql .= "
+ORDER BY c.concert_date ASC,
+         c.concert_id ASC
+LIMIT 4
+";
 
 $upcomingEvents = fetch_all_rows($pdo, $upcomingSql, $params);
-
-$upcomingSql .= " ORDER BY c.concert_date ASC, c.concert_id ASC LIMIT 4";
-$upcomingEvents = fetch_all_rows($pdo, $upcomingSql, $upcomingTypes, $upcomingParams);
 
 $trendingEvents = fetch_all_rows(
     $pdo,
