@@ -179,6 +179,10 @@
         <a href="manage-artists.php" class="btn">
             <i class="fas fa-microphone"></i> Manage Artists
         </a>
+
+                <a href="manage-concerts.php" class="btn">
+            <i class="fas fa-microphone-lines"></i> Manage Concerts
+        </a>
     
     </div>
     
