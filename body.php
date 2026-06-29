@@ -12,7 +12,7 @@ session_start();
  * It expects a mysqli connection in $conn. Adjust the require path if your
  * project uses a different filename.
  */
-require_once __DIR__ . 'config/db.php';
+require_once 'config/db.php';
 
 function e($value) {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
