@@ -140,8 +140,8 @@ $total_concerts_count = count($concerts_results);
             
             <div id="concerts-section" class="scroll-mt-16">
                 <div class="border-b border-gray-200 pb-4 mb-6">
-                    <h3 class="text-2xl font-black tracking-tight text-gray-900">
-                        <?php echo $total_concerts_count; ?> "Concerts Results"
+                    <h3 class="text-1xl font-black tracking-tight text-gray-900">
+                        "<strong>CONCERTS</strong> • <?php echo $total_concerts_count; ?> RESULTS"
                     </h3>
                 </div>
 
