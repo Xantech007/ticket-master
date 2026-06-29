@@ -20,35 +20,25 @@ if ($artist_id <= 0) {
 /* --------------------------------------------------
    FETCH ARTIST
 -------------------------------------------------- */
-try {
-    $stmt = $pdo->prepare("SELECT * FROM artists WHERE artist_id = ?");
-    $stmt->execute([$artist_id]);
-    $artist = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt = $pdo->prepare("SELECT * FROM artists WHERE artist_id = ?");
+$stmt->execute([$artist_id]);
+$artist = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$artist) {
-        $_SESSION['error'] = "Artist not found.";
-        header("Location: manage-artists.php");
-        exit;
-    }
-} catch (PDOException $e) {
-    $_SESSION['error'] = $e->getMessage();
+if (!$artist) {
+    $_SESSION['error'] = "Artist not found.";
     header("Location: manage-artists.php");
     exit;
 }
 
 /* --------------------------------------------------
-   FETCH GALLERY
+   FETCH GALLERY (YOUTUBE LINKS)
 -------------------------------------------------- */
-try {
-    $stmt = $pdo->prepare("SELECT * FROM gallery WHERE artist_id = ? ORDER BY gallery_id DESC");
-    $stmt->execute([$artist_id]);
-    $gallery = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    $gallery = [];
-}
+$stmt = $pdo->prepare("SELECT * FROM gallery WHERE artist_id = ? ORDER BY gallery_id DESC");
+$stmt->execute([$artist_id]);
+$gallery = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 /* --------------------------------------------------
-   HANDLE UPLOAD / DELETE
+   HANDLE ADD / DELETE
 -------------------------------------------------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -56,41 +46,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $action = $_POST['action'] ?? '';
 
-        /* ---------------- UPLOAD ---------------- */
+        /* ---------------- ADD YOUTUBE LINK ---------------- */
         if ($action === 'upload') {
 
-            if (empty($_FILES['files']['name'][0])) {
-                throw new Exception("Please select at least one file.");
+            $link = trim($_POST['youtube_media_link'] ?? '');
+
+            if ($link === '') {
+                throw new Exception("YouTube link is required.");
             }
 
-            $uploadDir = __DIR__ . "/../uploads/gallery/";
+            $stmt = $pdo->prepare("
+                INSERT INTO gallery (artist_id, youtube_media_link, media_type)
+                VALUES (?, ?, 'youtube')
+            ");
 
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
+            $stmt->execute([$artist_id, $link]);
 
-            foreach ($_FILES['files']['tmp_name'] as $key => $tmpName) {
-
-                $originalName = $_FILES['files']['name'][$key];
-                $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-
-                $fileName = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-                $target = $uploadDir . $fileName;
-
-                move_uploaded_file($tmpName, $target);
-
-                /* detect type */
-                $mediaType = in_array($ext, ['mp4', 'webm', 'ogg']) ? 'video' : 'image';
-
-                $stmt = $pdo->prepare("
-                    INSERT INTO gallery (artist_id, media, media_type)
-                    VALUES (?, ?, ?)
-                ");
-
-                $stmt->execute([$artist_id, $fileName, $mediaType]);
-            }
-
-            $_SESSION['success'] = "Media uploaded successfully.";
+            $_SESSION['success'] = "YouTube video added successfully.";
             header("Location: manage-gallery.php?artist_id=" . $artist_id);
             exit;
         }
@@ -99,10 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($action === 'delete') {
 
             $id = (int)($_POST['id'] ?? 0);
-
-            if ($id <= 0) {
-                throw new Exception("Invalid media ID.");
-            }
 
             $stmt = $pdo->prepare("DELETE FROM gallery WHERE gallery_id = ?");
             $stmt->execute([$id]);
@@ -118,11 +86,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
+
+/* --------------------------------------------------
+   EXTRACT YOUTUBE ID
+-------------------------------------------------- */
+function getYoutubeId($url) {
+    preg_match('/(youtu\.be\/|v=)([^&]+)/', $url, $matches);
+    return $matches[2] ?? '';
+}
 ?>
 
 <main style="max-width:1000px;margin:2rem auto;">
 
-<h1 style="text-align:center;margin-bottom:1rem;">Gallery</h1>
+<h1 style="text-align:center;margin-bottom:1rem;">Gallery (YouTube)</h1>
 
 <!-- ARTIST HEADER -->
 <div style="display:flex;align-items:center;gap:15px;background:var(--card);padding:15px;border-radius:10px;border:1px solid var(--border);margin-bottom:2rem;">
@@ -132,69 +108,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div>
         <h3 style="margin:0;"><?= htmlspecialchars($artist['artist_name']) ?></h3>
-        <small style="color:#888;">Manage Gallery</small>
+        <small style="color:#888;">Manage YouTube Gallery</small>
     </div>
 
 </div>
 
-<!-- UPLOAD FORM -->
+<!-- ADD YOUTUBE LINK -->
 <div style="background:#111827;padding:20px;border-radius:10px;margin-bottom:2rem;">
 
-<form method="POST" enctype="multipart/form-data">
+<form method="POST">
 
     <input type="hidden" name="action" value="upload">
 
-    <label style="display:block;margin-bottom:10px;">Upload Images / Videos</label>
+    <label style="display:block;margin-bottom:10px;">
+        YouTube Video Link
+    </label>
 
-    <input type="file"
-           name="files[]"
-           multiple
-           accept="image/*,video/*"
-           style="margin-bottom:10px;width:100%;">
+    <input type="text"
+           name="youtube_media_link"
+           placeholder="https://www.youtube.com/watch?v=XXXX"
+           style="width:100%;padding:.7rem;margin-bottom:10px;">
 
-    <button class="btn" style="width:100%;">Upload</button>
+    <button class="btn" style="width:100%;">Add Video</button>
 
 </form>
 
 </div>
 
-<!-- GALLERY GRID -->
+<!-- GRID -->
 <?php if (empty($gallery)): ?>
-<p style="text-align:center;color:#888;">No media found.</p>
+<p style="text-align:center;color:#888;">No videos found.</p>
 <?php endif; ?>
 
 <div style="
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
     gap:15px;
 ">
 
 <?php foreach ($gallery as $media): ?>
 
+<?php $ytId = getYoutubeId($media['youtube_media_link']); ?>
+
 <div style="background:#111827;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
 
-    <?php if ($media['media_type'] === 'video'): ?>
-
-        <video controls style="width:100%;height:160px;object-fit:cover;">
-            <source src="../uploads/gallery/<?= htmlspecialchars($media['media']) ?>">
-        </video>
-
-    <?php else: ?>
-
-        <img src="../uploads/gallery/<?= htmlspecialchars($media['media']) ?>"
+    <!-- THUMBNAIL -->
+    <?php if ($ytId): ?>
+        <img src="https://img.youtube.com/vi/<?= $ytId ?>/hqdefault.jpg"
              style="width:100%;height:160px;object-fit:cover;">
-
     <?php endif; ?>
 
-    <form method="POST"
-          onsubmit="return confirm('Delete this media?');"
-          style="padding:10px;">
+    <div style="padding:10px;">
 
-        <input type="hidden" name="action" value="delete">
-        <input type="hidden" name="id" value="<?= $media['gallery_id'] ?>">
+        <a href="<?= htmlspecialchars($media['youtube_media_link']) ?>" target="_blank"
+           style="color:#58a6ff;font-size:13px;word-break:break-all;">
+            Watch Video
+        </a>
 
-        <button class="btn red" style="width:100%;">Delete</button>
-    </form>
+        <form method="POST"
+              onsubmit="return confirm('Delete this video?');"
+              style="margin-top:10px;">
+
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="id" value="<?= $media['gallery_id'] ?>">
+
+            <button class="btn red" style="width:100%;">Delete</button>
+        </form>
+
+    </div>
 
 </div>
 
