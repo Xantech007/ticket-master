@@ -1,17 +1,15 @@
 <?php
-// Enable error displaying so we can pinpoint issues if database structural details are missing
 ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-// admin/manage-artists.php
+
 require_once __DIR__ . '/inc/header.php';
 
 $message = '';
 $error   = '';
 
-// --------------------------------------------------
-// FETCH ALL ARTISTS
-// --------------------------------------------------
+/* --------------------------------------------------
+   FETCH ALL ARTISTS
+-------------------------------------------------- */
 try {
     $stmt = $pdo->query("SELECT * FROM artists ORDER BY id DESC");
     $artists = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -20,25 +18,69 @@ try {
     $artists = [];
 }
 
-// --------------------------------------------------
-// HANDLE FORM ACTIONS
-// --------------------------------------------------
+/* --------------------------------------------------
+   HANDLE ACTIONS
+-------------------------------------------------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
 
     $action = $_POST['action'] ?? '';
 
     try {
 
-        // -----------------------------
-        // ADD ARTIST
-        // -----------------------------
+        /* ---------------- ADD ARTIST ---------------- */
         if ($action === 'add') {
 
             $artist_name = trim($_POST['artist_name'] ?? '');
             $vip_exp     = trim($_POST['vip_exp'] ?? '');
             $reviews     = trim($_POST['reviews'] ?? '');
             $about       = trim($_POST['about'] ?? '');
-            $faqs        =
+            $faqs        = trim($_POST['faqs'] ?? '');
+
+            if ($artist_name === '') {
+                throw new Exception("Artist name is required.");
+            }
+
+            $stmt = $pdo->prepare("
+                INSERT INTO artists (artist_name, vip_exp, reviews, about, faqs)
+                VALUES (?, ?, ?, ?, ?)
+            ");
+
+            $stmt->execute([
+                $artist_name,
+                $vip_exp,
+                $reviews,
+                $about,
+                $faqs
+            ]);
+
+            $id = $pdo->lastInsertId();
+
+            $message = "Artist added successfully.";
+
+            // Redirect to concerts page for this artist
+            header("Location: manage-concerts.php?artist_id=" . $id);
+            exit;
+        }
+
+        /* ---------------- DELETE ARTIST ---------------- */
+        if ($action === 'delete') {
+
+            $id = (int)($_POST['id'] ?? 0);
+
+            if ($id <= 0) {
+                throw new Exception("Invalid artist ID.");
+            }
+
+            $stmt = $pdo->prepare("DELETE FROM artists WHERE id = ?");
+            $stmt->execute([$id]);
+
+            $message = "Artist deleted successfully.";
+        }
+
+    } catch (Exception $e) {
+        $error = $e->getMessage();
+    }
+}
 ?>
 
 <main>
