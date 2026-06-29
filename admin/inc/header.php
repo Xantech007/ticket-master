@@ -20,7 +20,7 @@ $is_dashboard = ($current_page === 'dashboard.php');
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BINANCE DIGITAL - Admin<?php echo $is_dashboard ? ' Dashboard' : ''; ?></title>
+  <title>TICKET MASTER - Admin<?php echo $is_dashboard ? ' Dashboard' : ''; ?></title>
   
   <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
@@ -197,7 +197,7 @@ $is_dashboard = ($current_page === 'dashboard.php');
   <header>
     <div class="header-top">
       <div class="logo">
-        <img src="../assets/images/vip.jpg" alt="BINANCE DIGITAL">
+        <img src="../assets/images/vip.jpg" alt="TICKET MASTER">
       </div>
 
       <div class="header-actions">
