@@ -249,6 +249,16 @@
 
 <div class="container">
 
+    <!-- 1. NO REDIRECT EVENTS - 1 Grid -->
+    <div class="grid-4">
+        <div style="position:relative;">
+            <img src="assets/images/summer-lawn.jpeg" alt="Make it a Summer of Live music">
+        </div>
+    <div class="event-info">
+        <p>4 LAWN TICKETS FOR $99</p>
+        <h3>Make it a Summer of Live music</h3>
+    </div>
+
 
     <!-- 2. UPCOMING EVENTS - 4 Grid -->
     <div class="grid-4">
@@ -260,55 +270,24 @@
         <h3>BTS - The ARIRANG WORLD TOUR</h3>
     </div>
 
-
-
-        <div class="event-card">
-            <div style="position:relative;">
-                <img src="assets/images/straykids.jpg" alt="Drake">
-                <div class="date-badge">JUL<br><strong>25-29</strong></div>
-            </div>
-            <div class="event-info">
-                <h3>Stray kids - RUN IT (Part 1) World Tour</h3>
-                <p>KSPO Dome • South Korea, ON</p>
-                <p>Sat, Jul 25 • 6:00 PM</p>
-                <p>Sun, Jul 26 • 5:00 PM</p>
-                <p>Wed, Jul 29 • 6:00 PM</p>
-                <p>Sat, AUG 01 • 5:00 PM</p>
-                <p class="price">From $75</p>
-                <a href="events.php" class="btn btn-primary" style="margin-top:12px; width:100%; text-align:center;">Get Tickets</a>
-            </div>
+    <div class="grid-4">
+        <div style="position:relative;">
+            <img src="assets/images/bts.jpg" alt="Taylor Swift">
         </div>
-
-        <div class="event-card">
-            <div style="position:relative;">
-                <img src="assets/images/Bad-Bunny.jpg" alt="Bad Bunny">
-                <div class="date-badge">JUL<br><strong>10-11</strong></div>
-            </div>
-            <div class="event-info">
-                <h3>Bad Bunny - DeBÍ TiRAR MáS FOToS World Tour</h3>
-                <p>Strawberry Arena • Stocholm, SW</p>
-                <p>Fri, JUL 10 • 7:00 PM</p>
-                <p>Sat, JUL 11 • 7:00 PM</p>
-                <p class="price">From $40</p>
-                <a href="#" class="btn btn-primary" style="margin-top:12px; width:100%; text-align:center;">Get Tickets</a>
-            </div>
-        </div>
-
-        <div class="event-card">
-            <div style="position:relative;">
-                <img src="assets/images/My-Chemical-Romance.jpg" alt="Billie Eilish">
-                <div class="date-badge">JUL-AUG<br><strong>08-30</strong></div>
-            </div>
-            <div class="event-info">
-                <h3>My Chemical Romance - Long Live The Black Parade Tour</h3>
-                <p>Wembley Stadium • London, UK</p>
-                <p>Wed, JUL 8 • 5:00 PM</p>
-                <p>Fri, JUL 10 • 5:00 PM</p>
-                <p class="price">From $50</p>
-                <a href="#" class="btn btn-primary" style="margin-top:12px; width:100%; text-align:center;">Get Tickets</a>
-            </div>
-        </div>
+    <div class="event-info">
+        <p>MetLife Stadium • East Rutherford, NJ</p>
+        <h3>BTS - The ARIRANG WORLD TOUR</h3>
     </div>
+
+    <div class="grid-4">
+        <div style="position:relative;">
+            <img src="assets/images/bts.jpg" alt="Taylor Swift">
+        </div>
+    <div class="event-info">
+        <p>MetLife Stadium • East Rutherford, NJ</p>
+        <h3>BTS - The ARIRANG WORLD TOUR</h3>
+    </div>
+
 
     <!-- 3. TRENDING SEARCHES -->
     <h2 class="section-title"><i class="fa-solid fa-fire icon-red"></i> Trending Searches</h2>
@@ -323,7 +302,6 @@
                 <div class="event-info">
                     <h3>Olivia Rodrigo</h3>
                     <p>The Unraveled Tour • Value City Arena</p>
-                    <p class="price">From $250</p>
                 </div>
             </div>
             <div class="event-card">
@@ -334,7 +312,6 @@
                 <div class="event-info">
                     <h3>Benson Boone</h3>
                     <p>Wanted Man Tour • PPG Paints Arena</p>
-                    <p class="price">From $55</p>
                 </div>
             </div>
             <div class="event-card">
@@ -345,7 +322,6 @@
                 <div class="event-info">
                     <h3>Bad Bunny</h3>
                     <p>DeBÍ TiRAR MáS FOToS World Tour • Strawberry Arena</p>
-                    <p class="price">From $40</p>
                 </div>
             </div>
             <div class="event-card">
@@ -356,12 +332,15 @@
                 <div class="event-info">
                     <h3>Gracie Abrams</h3>
                     <p>The Look At My Life Tour • Ball Arena</p>
-                    <p class="price">From $95</p>
                 </div>
             </div>
         </div>
         <button class="carousel-btn right" onclick="scrollCarousel(this.parentElement.querySelector('.carousel'), 280)">→</button>
     </div>
+
+
+        <!-- add "RECENTLY VIEWED" section here, hide if no data exists for the users -->
+    
 
     <!-- 4. SPONSORED PRESALES & OFFERS - 3 Events -->
     <h2 class="section-title"><i class="fa-solid fa-star icon-red"></i> Sponsored Presales &amp; Offers</h2>
@@ -372,39 +351,33 @@
                 <div class="date-badge">DEC<br><strong>02</strong></div>
             </div>
             <div class="event-info">
-                <h3>Gracie Abrams - The Look At My Life Tour</h3>
-                <p>Ball Arena • DENVER, CO</p>
-                <p>Wed, Dec 02 • 6:30 PM</p>
-                <p class="price">Presale from $90</p>
-                <a href="#" class="btn btn-primary" style="margin-top:12px; width:100%; text-align:center;">Get Presale Tickets</a>
+                <p>Wed, Dec 02 • 6:30 PM</p> <!-- add day_time column-->
+                <h3>Gracie Abrams - The Look At My Life Tour</h3> <!-- title column-->
+                <p>Ball Arena • DENVER, CO</p> <!-- add location column • venue column-->
             </div>
         </div>
 
         <div class="event-card">
             <div style="position:relative;">
-                <img src="assets/images/Weeknd.jpg" alt="The Weeknd">
-                <div class="date-badge">AUG<br><strong>08</strong></div>
+                <img src="assets/images/Gracie-Abrams.jpg" alt="Sabrina Carpenter">
+                <div class="date-badge">DEC<br><strong>02</strong></div>
             </div>
             <div class="event-info">
-                <h3>The Weeknd - After Hours Til Dawn</h3>
-                <p>STADE DE FRANCE • St Denis, 93, France</p>
-                <p>Wed, JUL 8 • 7:00 PM</p>
-                <p class="price">From $69 • Limited Offer</p>
-                <a href="#" class="btn btn-primary" style="margin-top:12px; width:100%; text-align:center;">Get Tickets</a>
+                <p>Wed, Dec 02 • 6:30 PM</p> <!-- add day_time column-->
+                <h3>Gracie Abrams - The Look At My Life Tour</h3> <!-- title column-->
+                <p>Ball Arena • DENVER, CO</p> <!-- add location column • venue column-->
             </div>
         </div>
 
         <div class="event-card">
             <div style="position:relative;">
-                <img src="assets/images/PostMalone.jpg" alt="Post Malone">
-                <div class="date-badge">AUG<br><strong>20</strong></div>
+                <img src="assets/images/Gracie-Abrams.jpg" alt="Sabrina Carpenter">
+                <div class="date-badge">DEC<br><strong>02</strong></div>
             </div>
             <div class="event-info">
-                <h3>Post Malone -  The BIG ASS Stadium Tour</h3>
-                <p>Raymond James Stadium • Tampa, FL</p>
-                <p>Wed, Jul 08 • 7:00 PM</p>
-                <p class="price">Early Bird from $45</p>
-                <a href="#" class="btn btn-primary" style="margin-top:12px; width:100%; text-align:center;">Get Tickets</a>
+                <p>Wed, Dec 02 • 6:30 PM</p> <!-- add day_time column-->
+                <h3>Gracie Abrams - The Look At My Life Tour</h3> <!-- title column-->
+                <p>Ball Arena • DENVER, CO</p> <!-- add location column • venue column-->
             </div>
         </div>
     </div>
@@ -423,9 +396,8 @@
                     <div class="date-badge">AUG 29</div>
                 </div>
                 <div class="event-info">
-                    <h3>Chappell Roan</h3>
-                    <p>Daisy Chain Fields • Irvine, CA</p>
-                    <p class="price">From $310</p>
+                    <p>POP</p> <!-- add genre column under artists table-->
+                    <h3>Chappell Roan</h3>  <!-- add artist_name column under artists table-->
                 </div>
             </div>
             <div class="event-card">
@@ -436,7 +408,6 @@
                 <div class="event-info">
                     <h3>Benson Boone</h3>
                     <p>Wanted Man Tour • PPG Paints Arena</p>
-                    <p class="price">From $50</p>
                 </div>
             </div>
             <div class="event-card">
@@ -447,7 +418,6 @@
                 <div class="event-info">
                     <h3>Drake</h3>
                     <p>Scotiabank Arena • Toronto</p>
-                    <p class="price">From $65</p>
                 </div>
             </div>
             <div class="event-card">
@@ -458,7 +428,6 @@
                 <div class="event-info">
                     <h3>Olivia Rodrigo</h3>
                     <p>The Unraveled Tour • Value City Arena</p>
-                    <p class="price">From $180</p>
                 </div>
             </div>
         </div>
