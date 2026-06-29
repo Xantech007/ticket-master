@@ -1,443 +1,703 @@
-<style>
-/* Mobile-First + Ticketmaster Inspired */
-* { box-sizing: border-box; }
-.container {
-    max-width: 1280px;
-    margin: auto;
-    padding: 15px;
+<?php
+session_start();
+
+/*
+ * Drop this page into the same folder as your DB connection file.
+ * It expects a mysqli connection in $conn. Adjust the require path if your
+ * project uses a different filename.
+ */
+require_once __DIR__ . '/db.php';
+
+function e($value) {
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
-/* Colors */
+function image_url($filename, $fallback = 'assets/images/image.png') {
+    $filename = trim((string) $filename);
+    if ($filename === '') {
+        return $fallback;
+    }
+
+    if (preg_match('/^https?:\/\//i', $filename)) {
+        return $filename;
+    }
+
+    return 'assets/images/' . ltrim($filename, '/');
+}
+
+function fetch_all_rows(mysqli $conn, string $sql, string $types = '', array $params = []) {
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        return [];
+    }
+
+    if ($types !== '' && $params) {
+        $bindParams = [$types];
+        foreach ($params as $key => $value) {
+            $bindParams[] = &$params[$key];
+        }
+        call_user_func_array([$stmt, 'bind_param'], $bindParams);
+    }
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $rows = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+    $stmt->close();
+
+    return $rows;
+}
+
+function fetch_one_row(mysqli $conn, string $sql, string $types = '', array $params = []) {
+    $rows = fetch_all_rows($conn, $sql, $types, $params);
+    return $rows[0] ?? null;
+}
+
+function date_badge($date) {
+    $time = strtotime((string) $date);
+    if (!$time) {
+        return '';
+    }
+
+    return '<span>' . e(strtoupper(date('M', $time))) . '</span><strong>' . e(date('d', $time)) . '</strong>';
+}
+
+$eventFields = "
+    c.concert_id,
+    c.artist_id,
+    c.concert_date,
+    c.day_time,
+    c.venue,
+    c.location,
+    c.title,
+    a.artist_name,
+    a.artist_image,
+    a.genre
+";
+
+$heroEvent = fetch_one_row(
+    $conn,
+    "SELECT $eventFields
+     FROM concerts c
+     INNER JOIN artists a ON a.artist_id = c.artist_id
+     WHERE c.index_type = 'upcoming'
+     ORDER BY c.concert_date ASC, c.concert_id ASC
+     LIMIT 1"
+);
+
+$upcomingSql = "SELECT $eventFields
+                FROM concerts c
+                INNER JOIN artists a ON a.artist_id = c.artist_id
+                WHERE c.index_type = 'upcoming'";
+$upcomingTypes = '';
+$upcomingParams = [];
+
+if ($heroEvent) {
+    $upcomingSql .= " AND c.concert_id <> ?";
+    $upcomingTypes = 'i';
+    $upcomingParams = [(int) $heroEvent['concert_id']];
+}
+
+$upcomingSql .= " ORDER BY c.concert_date ASC, c.concert_id ASC LIMIT 4";
+$upcomingEvents = fetch_all_rows($conn, $upcomingSql, $upcomingTypes, $upcomingParams);
+
+$trendingEvents = fetch_all_rows(
+    $conn,
+    "SELECT $eventFields
+     FROM concerts c
+     INNER JOIN artists a ON a.artist_id = c.artist_id
+     WHERE c.index_type = 'trending'
+     ORDER BY c.concert_date ASC, c.concert_id ASC
+     LIMIT 10"
+);
+
+$sponsoredEvents = fetch_all_rows(
+    $conn,
+    "SELECT $eventFields
+     FROM concerts c
+     INNER JOIN artists a ON a.artist_id = c.artist_id
+     WHERE c.index_type = 'sponsored'
+     ORDER BY c.concert_date ASC, c.concert_id ASC
+     LIMIT 10"
+);
+
+$popularNearYou = fetch_all_rows(
+    $conn,
+    "SELECT DISTINCT
+        c.artist_id,
+        c.concert_date,
+        a.artist_name,
+        a.artist_image,
+        a.genre
+     FROM concerts c
+     INNER JOIN artists a ON a.artist_id = c.artist_id
+     WHERE c.index_type = 'upcoming'
+     ORDER BY c.concert_date ASC, c.concert_id ASC
+     LIMIT 10"
+);
+
+$recentSearches = [];
+if (isset($_SESSION['user_id'])) {
+    $recentSearches = fetch_all_rows(
+        $conn,
+        "SELECT search, result, searched_at
+         FROM user_searches
+         WHERE user_id = ?
+         ORDER BY searched_at DESC
+         LIMIT 5",
+        'i',
+        [(int) $_SESSION['user_id']]
+    );
+} else {
+    $recentSearches = fetch_all_rows(
+        $conn,
+        "SELECT search, result, searched_at
+         FROM user_searches
+         WHERE user_id IS NULL
+         ORDER BY searched_at DESC
+         LIMIT 5"
+    );
+}
+
+$redirectEvent = [
+    'image' => 'assets/images/summer-lawn.jpeg',
+    'eyebrow' => '4 LAWN TICKETS FOR $99',
+    'title' => 'Make it a Summer of Live Music',
+    'url' => '#'
+];
+?>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
 :root {
     --tm-blue: #024ddf;
-    --tm-dark: #121212;
+    --tm-blue-dark: #0138a7;
+    --tm-red: #d71920;
+    --tm-ink: #121212;
+    --tm-muted: #5f6670;
+    --tm-line: #dfe4ea;
+    --tm-surface: #ffffff;
+    --tm-page: #f6f8fb;
 }
 
-/* HERO */
-.hero {
-    width: 100vw;
+body {
     margin: 0;
-    padding: 0;
+    background: var(--tm-page);
+    color: var(--tm-ink);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.tm-container {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+}
+
+.hero {
     position: relative;
-    left: 50%;
-    transform: translateX(-50%);
+    min-height: 430px;
+    display: flex;
+    align-items: flex-end;
     overflow: hidden;
+    background: #101820;
 }
 
-/* Mobile: image decides the height */
 .hero img {
-    width: 100%;
-    height: auto;
-    display: block;
-}
-
-.hero-content {
     position: absolute;
-    top: calc(50% + 30px);   /* moves content 15px down */
-    left: 15px;
-    transform: translateY(-50%);
-    max-width: 580px;
-    color: #fff;
-    z-index: 3;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
 }
 
 .hero::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(rgba(18,18,18,.45), rgba(18,18,18,.65));
-    z-index: 1;
+    background: linear-gradient(90deg, rgba(0,0,0,.78), rgba(0,0,0,.34) 48%, rgba(0,0,0,.08)),
+                linear-gradient(0deg, rgba(0,0,0,.78), transparent 55%);
 }
 
 .hero-content {
-    z-index: 2;
+    position: relative;
+    z-index: 1;
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 0 0 54px;
+    color: #fff;
 }
 
-/* Desktop */
-@media (min-width: 992px) {
-
-    /* Show only the top 60% of the image */
-    .hero {
-        height: 60vh;      /* adjust if you want a taller/shorter hero */
-    }
-
-    .hero img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: top; /* crop from the bottom, keep the top */
-    }
-
-    .hero-content {
-        left: 60px;
-    }
+.hero-kicker,
+.eyebrow {
+    margin: 0 0 8px;
+    color: var(--tm-blue);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
 }
 
-.btn-find {
-    background: var(--tm-blue);
-    color: white;
-    padding: 11px 20px;   /* reduced horizontal padding */
-    font-size: 16px;
-    font-weight: 700;
-    border-radius: 5px;
+.hero-content h1 {
+    max-width: 720px;
+    margin: 0 0 10px;
+    font-size: clamp(34px, 6vw, 68px);
+    line-height: 1;
+    letter-spacing: 0;
+}
+
+.hero-content p {
+    margin: 0 0 22px;
+    max-width: 620px;
+    font-size: 18px;
+    line-height: 1.45;
+    color: rgba(255,255,255,.9);
+}
+
+.btn-find,
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 20px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    font-size: 15px;
+    font-weight: 800;
     text-decoration: none;
-    display: inline-block;
-    min-width: 125px;     /* optional fixed width */
-    text-align: center;
-    transition: all 0.3s;
-}
-.btn-find:hover {
-    background: #024DDF;
-    transform: scale(1.05);
+    cursor: pointer;
 }
 
-/* SECTION TITLES */
+.btn-find,
+.btn-primary {
+    background: var(--tm-blue);
+    color: #fff;
+}
+
+.btn-find:hover,
+.btn-primary:hover {
+    background: var(--tm-blue-dark);
+}
+
+.btn-outline {
+    background: #fff;
+    border-color: var(--tm-blue);
+    color: var(--tm-blue);
+}
+
+.section-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 42px 0 18px;
+}
+
 .section-title {
-    font-size: 28px;
-    font-weight: 700;
-    margin: 45px 0 20px;
-    color: var(--tm-dark);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--tm-ink);
+    font-size: 24px;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.icon-red {
+    color: var(--tm-red);
+}
+
+.grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.event-card,
+.search-card {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    background: var(--tm-surface);
+    border: 1px solid var(--tm-line);
+    border-radius: 6px;
+    color: inherit;
+    text-decoration: none;
+    transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease;
+}
+
+.event-card:hover,
+.search-card:hover {
+    transform: translateY(-2px);
+    border-color: #b9c6d6;
+    box-shadow: 0 10px 26px rgba(10,22,41,.12);
+}
+
+.event-media {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    background: #dfe4ea;
+}
+
+.event-media img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.event-info {
+    padding: 14px 14px 16px;
+}
+
+.event-info h3 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    line-height: 1.25;
+    font-weight: 800;
+}
+
+.event-info p {
+    margin: 0 0 6px;
+    color: var(--tm-muted);
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.date-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    min-width: 48px;
+    padding: 6px 7px;
+    background: #fff;
+    border-radius: 4px;
+    color: var(--tm-ink);
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,.16);
+}
+
+.date-badge span,
+.date-badge strong {
+    display: block;
+    line-height: 1;
+}
+
+.date-badge span {
+    color: var(--tm-blue);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.date-badge strong {
+    margin-top: 3px;
+    font-size: 18px;
+}
+
+.promo-card {
+    grid-column: span 2;
+}
+
+.promo-card .event-media {
+    aspect-ratio: 16 / 7;
+}
+
+.carousel-wrapper {
+    position: relative;
+}
+
+.carousel {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    padding: 2px 2px 18px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.carousel .event-card,
+.carousel .search-card {
+    width: 270px;
+    flex: 0 0 270px;
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 42%;
+    z-index: 2;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--tm-line);
+    border-radius: 50%;
+    background: #fff;
+    color: var(--tm-ink);
+    font-size: 22px;
+    box-shadow: 0 6px 18px rgba(10,22,41,.16);
+    cursor: pointer;
+}
+
+.carousel-btn.left {
+    left: -21px;
+}
+
+.carousel-btn.right {
+    right: -21px;
+}
+
+.near-header {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-/* EVENT CARD - Ticketmaster Polish */
-.event-card {
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    transition: transform 0.3s;
-    position: relative;
-}
-.event-card:hover {
-    transform: translateY(-6px);
-}
-.event-card img {
-    width: 100%;
-    height: 170px;
-    object-fit: cover;
-}
-.event-info {
-    padding: 16px;
-    margin-left: 0;
-    padding-left: 0;
-}
-.event-info h3 {
-    font-size: 17.5px;
-    margin: 0 0 6px;
-    line-height: 1.3;
-}
-.event-info p {
-    color: #555;
-    font-size: 14px;
-    margin: 3px 0;
-}
-.date-badge {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    background: white;
-    color: var(--tm-blue);
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-weight: 700;
-    text-align: center;
-    font-size: 13px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-.price {
-    color: var(--tm-blue);
-    font-weight: 700;
-    font-size: 15px;
-}
-
-/* GRID */
-.grid-4 {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 24px;
-}
-
-/* HORIZONTAL SCROLL CAROUSEL */
-.carousel-wrapper {
-    position: relative;
-}
-.carousel {
-    display: flex;
-    gap: 20px;
-    overflow-x: auto;
-    padding-bottom: 20px;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-}
-.carousel::-webkit-scrollbar { display: none; }
-.carousel .event-card {
-    min-width: 260px;
-    flex-shrink: 0;
-}
-
-/* Carousel Arrows */
-.carousel-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255,255,255,0.9);
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    font-size: 20px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 10;
-    display: flex;
+.pill {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-}
-.carousel-btn.left { left: -18px; }
-.carousel-btn.right { right: -18px; }
-
-/* BUTTONS */
-.btn {
-    padding: 12px 24px;
-    border-radius: 20px;
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-block;
-    transition: all 0.3s;
-}
-.btn-primary {
-    background: var(--tm-blue);
-    color: white;
-}
-.btn-outline {
-    border: 2px solid var(--tm-blue);
+    min-height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--tm-blue);
+    border-radius: 999px;
+    background: #fff;
     color: var(--tm-blue);
+    font-size: 14px;
+    font-weight: 800;
 }
-.btn-primary:hover { background: #024DDF; }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
-    .hero h1 {
-        font-size: 24px;
+.search-card {
+    padding: 16px;
+}
+
+.search-card h3 {
+    margin: 0 0 8px;
+    font-size: 16px;
+}
+
+.search-card p {
+    margin: 0;
+    color: var(--tm-muted);
+    font-size: 14px;
+}
+
+.empty-section {
+    padding: 24px;
+    border: 1px dashed var(--tm-line);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--tm-muted);
+}
+
+@media (max-width: 980px) {
+    .grid-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .section-title {
-        font-size: 24px;
-        margin: 35px 0 18px;
+    .promo-card {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 680px) {
+    .tm-container {
+        width: min(100% - 24px, 1180px);
+    }
+
+    .hero {
+        min-height: 390px;
+    }
+
+    .hero-content {
+        width: min(100% - 24px, 1180px);
+        padding-bottom: 36px;
+    }
+
+    .hero-content p {
+        font-size: 15px;
+    }
+
+    .section-bar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .grid-4 {
+        grid-template-columns: 1fr;
+    }
+
+    .promo-card {
+        grid-column: auto;
     }
 
     .carousel-btn {
         display: none;
     }
+
+    .carousel .event-card,
+    .carousel .search-card {
+        width: 240px;
+        flex-basis: 240px;
+    }
 }
 </style>
 
-<!-- HERO (Outside .container) -->
-<div class="hero">
-    <img src="assets/images/image.png" alt="Hero Banner">
-
-    <div class="hero-content">
-        <h1>WICKED The Musical</h1>
-        <p>Text</p>
-        <a href="#" class="btn-find">Find Tickets</a>
-    </div>
-</div>
-
-
-<div class="container">
-
-    <!-- 1. NO REDIRECT EVENTS - 1 Grid -->
-    <div class="grid-4">
-        <div style="position:relative;">
-            <img src="assets/images/summer-lawn.jpeg" alt="Make it a Summer of Live music">
+<?php if ($heroEvent): ?>
+    <section class="hero">
+        <img src="<?= e(image_url($heroEvent['artist_image'])) ?>" alt="<?= e($heroEvent['artist_name']) ?>">
+        <div class="hero-content">
+            <p class="hero-kicker"><?= e($heroEvent['day_time']) ?> &bull; <?= e($heroEvent['venue']) ?></p>
+            <h1><?= e($heroEvent['title']) ?></h1>
+            <p><?= e($heroEvent['location']) ?></p>
+            <a href="events.php?artist_id=<?= (int) $heroEvent['artist_id'] ?>" class="btn-find">Find Tickets</a>
         </div>
-    <div class="event-info">
-        <p>4 LAWN TICKETS FOR $99</p>
-        <h3>Make it a Summer of Live music</h3>
+    </section>
+<?php endif; ?>
+
+<main class="tm-container">
+    <div class="section-bar">
+        <h2 class="section-title">Featured Events</h2>
     </div>
 
-
-    <!-- 2. UPCOMING EVENTS - 4 Grid -->
-    <div class="grid-4">
-        <div style="position:relative;">
-            <img src="assets/images/bts.jpg" alt="Taylor Swift">
-        </div>
-    <div class="event-info">
-        <p>MetLife Stadium • East Rutherford, NJ</p>
-        <h3>BTS - The ARIRANG WORLD TOUR</h3>
-    </div>
-
-    <div class="grid-4">
-        <div style="position:relative;">
-            <img src="assets/images/bts.jpg" alt="Taylor Swift">
-        </div>
-    <div class="event-info">
-        <p>MetLife Stadium • East Rutherford, NJ</p>
-        <h3>BTS - The ARIRANG WORLD TOUR</h3>
-    </div>
-
-    <div class="grid-4">
-        <div style="position:relative;">
-            <img src="assets/images/bts.jpg" alt="Taylor Swift">
-        </div>
-    <div class="event-info">
-        <p>MetLife Stadium • East Rutherford, NJ</p>
-        <h3>BTS - The ARIRANG WORLD TOUR</h3>
-    </div>
-
-
-    <!-- 3. TRENDING SEARCHES -->
-    <h2 class="section-title"><i class="fa-solid fa-fire icon-red"></i> Trending Searches</h2>
-    <div class="carousel-wrapper">
-        <button class="carousel-btn left" onclick="scrollCarousel(this.parentElement.querySelector('.carousel'), -280)">←</button>
-        <div class="carousel" id="trending-carousel">
-            <div class="event-card">
-                <div style="position:relative;">
-                    <img src="assets/images/Olivia.jpg" alt="">
-                    <div class="date-badge">OCT 29</div>
-                </div>
-                <div class="event-info">
-                    <h3>Olivia Rodrigo</h3>
-                    <p>The Unraveled Tour • Value City Arena</p>
-                </div>
-            </div>
-            <div class="event-card">
-                <div style="position:relative;">
-                    <img src="assets/images/Benson-Boone.jpg" alt="">
-                    <div class="date-badge">JUL 07</div>
-                </div>
-                <div class="event-info">
-                    <h3>Benson Boone</h3>
-                    <p>Wanted Man Tour • PPG Paints Arena</p>
-                </div>
-            </div>
-            <div class="event-card">
-                <div style="position:relative;">
-                    <img src="assets/images/Bad-Bunny.jpg" alt="">
-                    <div class="date-badge">AUG 05</div>
-                </div>
-                <div class="event-info">
-                    <h3>Bad Bunny</h3>
-                    <p>DeBÍ TiRAR MáS FOToS World Tour • Strawberry Arena</p>
-                </div>
-            </div>
-            <div class="event-card">
-                <div style="position:relative;">
-                    <img src="assets/images/Gracie-Abrams.jpg" alt="">
-                    <div class="date-badge">DEC 02</div>
-                </div>
-                <div class="event-info">
-                    <h3>Gracie Abrams</h3>
-                    <p>The Look At My Life Tour • Ball Arena</p>
-                </div>
-            </div>
-        </div>
-        <button class="carousel-btn right" onclick="scrollCarousel(this.parentElement.querySelector('.carousel'), 280)">→</button>
-    </div>
-
-
-        <!-- add "RECENTLY VIEWED" section here, hide if no data exists for the users -->
-    
-
-    <!-- 4. SPONSORED PRESALES & OFFERS - 3 Events -->
-    <h2 class="section-title"><i class="fa-solid fa-star icon-red"></i> Sponsored Presales &amp; Offers</h2>
-    <div class="grid-4" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
-        <div class="event-card">
-            <div style="position:relative;">
-                <img src="assets/images/Gracie-Abrams.jpg" alt="Sabrina Carpenter">
-                <div class="date-badge">DEC<br><strong>02</strong></div>
+    <section class="grid-4">
+        <a href="<?= e($redirectEvent['url']) ?>" class="event-card promo-card">
+            <div class="event-media">
+                <img src="<?= e($redirectEvent['image']) ?>" alt="<?= e($redirectEvent['title']) ?>">
             </div>
             <div class="event-info">
-                <p>Wed, Dec 02 • 6:30 PM</p> <!-- add day_time column-->
-                <h3>Gracie Abrams - The Look At My Life Tour</h3> <!-- title column-->
-                <p>Ball Arena • DENVER, CO</p> <!-- add location column • venue column-->
+                <p class="eyebrow"><?= e($redirectEvent['eyebrow']) ?></p>
+                <h3><?= e($redirectEvent['title']) ?></h3>
             </div>
-        </div>
+        </a>
 
-        <div class="event-card">
-            <div style="position:relative;">
-                <img src="assets/images/Gracie-Abrams.jpg" alt="Sabrina Carpenter">
-                <div class="date-badge">DEC<br><strong>02</strong></div>
-            </div>
-            <div class="event-info">
-                <p>Wed, Dec 02 • 6:30 PM</p> <!-- add day_time column-->
-                <h3>Gracie Abrams - The Look At My Life Tour</h3> <!-- title column-->
-                <p>Ball Arena • DENVER, CO</p> <!-- add location column • venue column-->
-            </div>
-        </div>
+        <?php foreach ($upcomingEvents as $event): ?>
+            <a href="events.php?artist_id=<?= (int) $event['artist_id'] ?>" class="event-card">
+                <div class="event-media">
+                    <img src="<?= e(image_url($event['artist_image'])) ?>" alt="<?= e($event['artist_name']) ?>">
+                    <div class="date-badge"><?= date_badge($event['concert_date']) ?></div>
+                </div>
+                <div class="event-info">
+                    <p><?= e($event['venue']) ?> &bull; <?= e($event['location']) ?></p>
+                    <h3><?= e($event['title']) ?></h3>
+                </div>
+            </a>
+        <?php endforeach; ?>
+    </section>
 
-        <div class="event-card">
-            <div style="position:relative;">
-                <img src="assets/images/Gracie-Abrams.jpg" alt="Sabrina Carpenter">
-                <div class="date-badge">DEC<br><strong>02</strong></div>
-            </div>
-            <div class="event-info">
-                <p>Wed, Dec 02 • 6:30 PM</p> <!-- add day_time column-->
-                <h3>Gracie Abrams - The Look At My Life Tour</h3> <!-- title column-->
-                <p>Ball Arena • DENVER, CO</p> <!-- add location column • venue column-->
-            </div>
-        </div>
+    <div class="section-bar">
+        <h2 class="section-title"><i class="fa-solid fa-fire icon-red"></i> Trending Searches</h2>
     </div>
 
-    <!-- 5. POPULAR NEAR YOU -->
-    <div style="display:flex; justify-content:space-between; align-items:center; margin:45px 0 20px;">
-        <h2 class="section-title" style="margin:0;"><i class="fa-solid fa-location-dot icon-red"></i> Popular Near You</h2>
-        <a href="#" class="btn btn-outline">See All Events</a>
-    </div>
-    <div class="carousel-wrapper">
-        <button class="carousel-btn left" onclick="scrollCarousel(this.parentElement.querySelector('.carousel'), -280)">←</button>
-        <div class="carousel" id="near-carousel">
-            <div class="event-card">
-                <div style="position:relative;">
-                    <img src="assets/images/ChappellRoan.jpg" alt="">
-                    <div class="date-badge">AUG 29</div>
-                </div>
-                <div class="event-info">
-                    <p>POP</p> <!-- add genre column under artists table-->
-                    <h3>Chappell Roan</h3>  <!-- add artist_name column under artists table-->
-                </div>
+    <?php if ($trendingEvents): ?>
+        <section class="carousel-wrapper">
+            <button class="carousel-btn left" type="button" onclick="scrollCarousel(this.parentElement.querySelector('.carousel'), -288)" aria-label="Previous trending events">&#8249;</button>
+            <div class="carousel">
+                <?php foreach ($trendingEvents as $event): ?>
+                    <a href="events.php?artist_id=<?= (int) $event['artist_id'] ?>" class="event-card">
+                        <div class="event-media">
+                            <img src="<?= e(image_url($event['artist_image'])) ?>" alt="<?= e($event['artist_name']) ?>">
+                            <div class="date-badge"><?= date_badge($event['concert_date']) ?></div>
+                        </div>
+                        <div class="event-info">
+                            <h3><?= e($event['artist_name']) ?></h3>
+                            <p><?= e($event['title']) ?> &bull; <?= e($event['venue']) ?></p>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
             </div>
-            <div class="event-card">
-                <div style="position:relative;">
-                    <img src="assets/images/Benson-Boone.jpg" alt="">
-                    <div class="date-badge">JUL 07</div>
-                </div>
-                <div class="event-info">
-                    <h3>Benson Boone</h3>
-                    <p>Wanted Man Tour • PPG Paints Arena</p>
-                </div>
-            </div>
-            <div class="event-card">
-                <div style="position:relative;">
-                    <img src="https://picsum.photos/id/201/600/400" alt="">
-                    <div class="date-badge">AUG 02</div>
-                </div>
-                <div class="event-info">
-                    <h3>Drake</h3>
-                    <p>Scotiabank Arena • Toronto</p>
-                </div>
-            </div>
-            <div class="event-card">
-                <div style="position:relative;">
-                    <img src="assets/images/Olivia.jpg" alt="">
-                    <div class="date-badge">OCT 29</div>
-                </div>
-                <div class="event-info">
-                    <h3>Olivia Rodrigo</h3>
-                    <p>The Unraveled Tour • Value City Arena</p>
-                </div>
-            </div>
+            <button class="carousel-btn right" type="button" onclick="scrollCarousel(this.parentElement.querySelector('.carousel'), 288)" aria-label="Next trending events">&#8250;</button>
+        </section>
+    <?php else: ?>
+        <div class="empty-section">No trending events are available right now.</div>
+    <?php endif; ?>
+
+    <?php if ($recentSearches): ?>
+        <div class="section-bar">
+            <h2 class="section-title">Recently Viewed</h2>
         </div>
-        <button class="carousel-btn right" onclick="scrollCarousel(this.parentElement.querySelector('.carousel'), 280)">→</button>
+
+        <section class="carousel-wrapper">
+            <button class="carousel-btn left" type="button" onclick="scrollCarousel(this.parentElement.querySelector('.carousel'), -288)" aria-label="Previous recent searches">&#8249;</button>
+            <div class="carousel">
+                <?php foreach ($recentSearches as $search): ?>
+                    <a href="search.php?q=<?= urlencode($search['search']) ?>" class="search-card">
+                        <h3><?= e($search['search']) ?></h3>
+                        <p><?= (int) $search['result'] ?> results &bull; <?= e(date('M d, Y', strtotime($search['searched_at']))) ?></p>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+            <button class="carousel-btn right" type="button" onclick="scrollCarousel(this.parentElement.querySelector('.carousel'), 288)" aria-label="Next recent searches">&#8250;</button>
+        </section>
+    <?php endif; ?>
+
+    <div class="section-bar">
+        <h2 class="section-title"><i class="fa-solid fa-star icon-red"></i> Sponsored Presales &amp; Offers</h2>
     </div>
 
-</div>
+    <?php if ($sponsoredEvents): ?>
+        <section class="carousel-wrapper">
+            <button class="carousel-btn left" type="button" onclick="scrollCarousel(this.parentElement.querySelector('.carousel'), -288)" aria-label="Previous sponsored events">&#8249;</button>
+            <div class="carousel">
+                <?php foreach ($sponsoredEvents as $event): ?>
+                    <a href="events.php?artist_id=<?= (int) $event['artist_id'] ?>" class="event-card">
+                        <div class="event-media">
+                            <img src="<?= e(image_url($event['artist_image'])) ?>" alt="<?= e($event['artist_name']) ?>">
+                            <div class="date-badge"><?= date_badge($event['concert_date']) ?></div>
+                        </div>
+                        <div class="event-info">
+                            <p><?= e($event['day_time']) ?></p>
+                            <h3><?= e($event['title']) ?></h3>
+                            <p><?= e($event['venue']) ?> &bull; <?= e($event['location']) ?></p>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+            <button class="carousel-btn right" type="button" onclick="scrollCarousel(this.parentElement.querySelector('.carousel'), 288)" aria-label="Next sponsored events">&#8250;</button>
+        </section>
+    <?php else: ?>
+        <div class="empty-section">No sponsored offers are available right now.</div>
+    <?php endif; ?>
+
+    <div class="section-bar">
+        <div class="near-header">
+            <h2 class="section-title"><i class="fa-solid fa-location-dot icon-red"></i> Popular Near You</h2>
+            <span class="pill">Concerts</span>
+        </div>
+        <a href="events.php" class="btn btn-outline">See All Events</a>
+    </div>
+
+    <?php if ($popularNearYou): ?>
+        <section class="carousel-wrapper">
+            <button class="carousel-btn left" type="button" onclick="scrollCarousel(this.parentElement.querySelector('.carousel'), -288)" aria-label="Previous popular events">&#8249;</button>
+            <div class="carousel">
+                <?php foreach ($popularNearYou as $event): ?>
+                    <a href="events.php?artist_id=<?= (int) $event['artist_id'] ?>" class="event-card">
+                        <div class="event-media">
+                            <img src="<?= e(image_url($event['artist_image'])) ?>" alt="<?= e($event['artist_name']) ?>">
+                            <div class="date-badge"><?= date_badge($event['concert_date']) ?></div>
+                        </div>
+                        <div class="event-info">
+                            <p><?= e($event['genre']) ?></p>
+                            <h3><?= e($event['artist_name']) ?></h3>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+            <button class="carousel-btn right" type="button" onclick="scrollCarousel(this.parentElement.querySelector('.carousel'), 288)" aria-label="Next popular events">&#8250;</button>
+        </section>
+    <?php else: ?>
+        <div class="empty-section">No nearby popular events are available right now.</div>
+    <?php endif; ?>
+</main>
 
 <script>
 function scrollCarousel(carousel, offset) {
+    if (!carousel) return;
     carousel.scrollBy({ left: offset, behavior: 'smooth' });
 }
 </script>
