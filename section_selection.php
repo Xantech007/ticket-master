@@ -19,8 +19,8 @@ $sections = $secStmt->fetchAll();
 <html lang="en">
 <?php include "inc/head.php"; ?>
 <body class="bg-gray-100 text-gray-900">
-<?php include "inc/navbar1.php"; ?>
-<?php include "inc/navbar2.php"; ?>
+<?php include "inc/navbar.php"; ?>
+<?php include "inc/header.php"; ?>
 
 <div class="max-w-4xl mx-auto px-4 py-8">
     <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
