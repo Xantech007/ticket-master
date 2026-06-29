@@ -31,7 +31,7 @@ if (!$artist) {
 }
 
 /* --------------------------------------------------
-   FETCH GALLERY (YOUTUBE LINKS)
+   FETCH GALLERY
 -------------------------------------------------- */
 $stmt = $pdo->prepare("SELECT * FROM gallery WHERE artist_id = ? ORDER BY gallery_id DESC");
 $stmt->execute([$artist_id]);
@@ -46,36 +46,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $action = $_POST['action'] ?? '';
 
-        /* ---------------- ADD YOUTUBE LINK ---------------- */
+        /* ---------------- ADD YOUTUBE ---------------- */
         if ($action === 'upload') {
 
-            $media_title = trim($_POST['media_title'] ?? '');
-            $link = trim($_POST['youtube_media_link'] ?? '');
-            
-            if ($media_title === '') {
-                throw new Exception("Media title is required.");
-            }
-            
+            $link  = trim($_POST['youtube_media_link'] ?? '');
+            $title = trim($_POST['media_title'] ?? '');
+
             if ($link === '') {
                 throw new Exception("YouTube link is required.");
             }
-            
+
             $stmt = $pdo->prepare("
-                INSERT INTO gallery (
-                    artist_id,
-                    media_title,
-                    youtube_media_link,
-                )
+                INSERT INTO gallery (artist_id, youtube_media_link, media_title)
                 VALUES (?, ?, ?, 'youtube')
             ");
-            
+
             $stmt->execute([
                 $artist_id,
-                $media_title,
-                $link
+                $link,
+                $title
             ]);
 
-            $_SESSION['success'] = "YouTube video added successfully.";
+            $_SESSION['success'] = "Video added successfully.";
             header("Location: manage-gallery.php?artist_id=" . $artist_id);
             exit;
         }
@@ -126,38 +118,26 @@ function getYoutubeId($url) {
 
 </div>
 
-<!-- ADD YOUTUBE LINK -->
+<!-- ADD FORM -->
 <div style="background:#111827;padding:20px;border-radius:10px;margin-bottom:2rem;">
 
 <form method="POST">
 
     <input type="hidden" name="action" value="upload">
 
-    <label style="display:block;margin-bottom:8px;">
-        Media Title
-    </label>
+    <label style="display:block;margin-bottom:10px;">Video Title</label>
+    <input type="text"
+           name="media_title"
+           placeholder="e.g. Live Concert 2026"
+           style="width:100%;padding:.7rem;margin-bottom:10px;">
 
-    <input
-        type="text"
-        name="media_title"
-        placeholder="e.g. Live in Lagos 2025"
-        required
-        style="width:100%;padding:.7rem;margin-bottom:15px;">
+    <label style="display:block;margin-bottom:10px;">YouTube Link</label>
+    <input type="text"
+           name="youtube_media_link"
+           placeholder="https://www.youtube.com/watch?v=XXXX"
+           style="width:100%;padding:.7rem;margin-bottom:10px;">
 
-    <label style="display:block;margin-bottom:8px;">
-        YouTube Video Link
-    </label>
-
-    <input
-        type="url"
-        name="youtube_media_link"
-        placeholder="https://www.youtube.com/watch?v=XXXX"
-        required
-        style="width:100%;padding:.7rem;margin-bottom:15px;">
-
-    <button class="btn" style="width:100%;">
-        <i class="fas fa-plus"></i> Add Video
-    </button>
+    <button class="btn" style="width:100%;">Add Video</button>
 
 </form>
 
@@ -186,18 +166,20 @@ function getYoutubeId($url) {
              style="width:100%;height:160px;object-fit:cover;">
     <?php endif; ?>
 
-    <div style="padding:15px;">
-   
-        <h3 style="margin:0 0 10px;font-size:16px;">
-           <?= htmlspecialchars($media['media_title']) ?>
-        </h3>
-   
-        <a href="<?= htmlspecialchars($media['youtube_media_link']) ?>"
-           target="_blank"
-           style="color:#58a6ff;text-decoration:none;font-size:14px;word-break:break-all;">
-            <i class="fab fa-youtube"></i> Watch on YouTube
+    <div style="padding:10px;">
+
+        <!-- TITLE -->
+        <h4 style="margin:0 0 6px;font-size:14px;color:#fff;">
+            <?= htmlspecialchars($media['media_title'] ?: 'Untitled Video') ?>
+        </h4>
+
+        <!-- LINK -->
+        <a href="<?= htmlspecialchars($media['youtube_media_link']) ?>" target="_blank"
+           style="color:#58a6ff;font-size:13px;word-break:break-all;">
+            Watch Video
         </a>
 
+        <!-- DELETE -->
         <form method="POST"
               onsubmit="return confirm('Delete this video?');"
               style="margin-top:10px;">
