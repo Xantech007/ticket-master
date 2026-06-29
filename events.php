@@ -5,9 +5,6 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// 1. Corrected Path: Load the connection file from the 'config' folder
-require_once 'config/db.php';
-
 // 2. Instantiate your "Database" class and invoke the connect() function to expose $pdo safely
 $pdo = null;
 try {
