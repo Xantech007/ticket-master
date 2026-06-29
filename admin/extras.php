@@ -110,6 +110,13 @@ try {
         Fans Also Viewed
     </a>
 
+    <!-- NEWS -->
+    <a href="manage-fans-also-viewed.php?artist_id=<?= $artist_id ?>"
+       style="background:#111827;padding:20px;border-radius:10px;text-align:center;text-decoration:none;color:#fff;border:1px solid var(--border);">
+        <i class="fas fa-news" style="font-size:20px;margin-bottom:8px;display:block;"></i>
+        NEWS
+    </a>
+
 </div>
 
 </main>
