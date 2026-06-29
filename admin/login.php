@@ -7,7 +7,7 @@ if (isset($_SESSION['admin_id']) && isset($_SESSION['admin_logged_in'])) {
     exit();
 }
 
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/db.php';
 // Assuming it defines $pdo as PDO object
 
 $error = '';
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Login – BINANCE DIGITAL</title>
+  <title>Admin Login – TICKET MASTER</title>
   
   <!-- Font Awesome 6 Free (CDN) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
@@ -192,11 +192,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="login-container">
   <div class="logo">
-    <img src="../assets/images/vip.jpg" alt="BINANCE DIGITAL Logo">
+    <img src="../assets/images/vip.jpg" alt="TICKET MASTER Logo">
   </div>
   
   <h1>Admin Panel</h1>
-  <div class="subtitle">BINANCE DIGITAL</div>
+  <div class="subtitle">TICKET MASTER</div>
 
   <?php if ($error): ?>
     <div class="error">
@@ -230,7 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </form>
 
   <div class="footer">
-    © <?= date("Y") ?> BINANCE DIGITAL • Admin Access Only
+    © <?= date("Y") ?> TICKET MASTER • Admin Access Only
   </div>
 </div>
 
