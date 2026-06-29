@@ -206,9 +206,9 @@ $is_dashboard = ($current_page === 'dashboard.php');
 
       <div class="header-actions">
         <?php if (!$is_dashboard): ?>
-          <a href="dashboard.php" class="btn-header btn-back">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-          </a>
+            <a href="javascript:history.back()" class="btn-header btn-back">
+              <i class="fas fa-arrow-left"></i> Back
+            </a>
         <?php endif; ?>
         
         <a href="logout.php" class="btn-header btn-logout" 
