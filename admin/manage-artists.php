@@ -176,9 +176,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
     </td>
 
     <!-- RATING -->
-    <td style="padding:12px;">
-        ⭐ <?= htmlspecialchars($artist['rating']) ?>
-    </td>
+   <td style="padding:12px;">
+       <i class="fas fa-star" style="color:#facc15;"></i>
+       <strong><?= htmlspecialchars($artist['rating']) ?></strong>
+   </td>
 
     <!-- ABOUT (TRUNCATED) -->
     <td style="padding:12px;max-width:250px;">
