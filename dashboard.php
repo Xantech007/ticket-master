@@ -1,7 +1,7 @@
 <?php
 // dashboard.php
 session_start();
-require_once 'db.php';
+require_once 'config/db.php';
 
 // Safe sandbox fallback to preserve developer integration context
 if (!isset($_SESSION['user_id'])) {
