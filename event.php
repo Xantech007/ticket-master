@@ -81,7 +81,7 @@ $total_concerts_count = count($concerts_results);
 <html lang="en">
 
 <?php include "inc/head.php"; ?>
-<?php include "inc/navbar1.php"; ?> 
+<?php include "inc/navbar.php"; ?> 
  
 <body class="bg-white text-gray-900 font-sans antialiased">
     <div id="__next">
