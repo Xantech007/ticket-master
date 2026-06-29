@@ -2,7 +2,7 @@
 <html lang="en">
 
 <?php include "inc/head.php"; ?>
-<?php include "inc/navbar1.php"; ?> 
+<?php include "inc/navbar.php"; ?> 
  
 <body>
         
