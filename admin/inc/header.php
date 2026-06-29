@@ -1,6 +1,10 @@
 <?php
-// admin/inc/header.php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Prevent any accidental output before redirects
+ob_start();
 
 // Simple protection - redirect if not logged in
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
@@ -8,9 +12,9 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     exit();
 }
 
-require_once __DIR__ . '/../../config/db.php'; // adjust path if needed
+require_once __DIR__ . '/../../config/db.php';
 
-// Determine current page (simple basename check)
+// Determine current page
 $current_page = basename($_SERVER['PHP_SELF']);
 $is_dashboard = ($current_page === 'dashboard.php');
 ?>
