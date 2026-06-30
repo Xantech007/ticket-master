@@ -140,6 +140,34 @@ if (!empty($artist_id) && $pdo) {
     }
 
 }
+
+$gallery_items = [];
+
+if (!empty($artist_id) && $pdo) {
+
+    $stmt = $pdo->prepare("
+        SELECT *
+        FROM gallery
+        WHERE artist_id = ?
+        ORDER BY gallery_id ASC
+    ");
+
+    $stmt->execute([$artist_id]);
+
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+
+        // Extract YouTube Video ID
+        preg_match(
+            '/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/',
+            $row['youtube_media_link'],
+            $matches
+        );
+
+        $row['youtube_id'] = $matches[1] ?? '';
+
+        $gallery_items[] = $row;
+    }
+}
     
 ?>
 <!DOCTYPE html>
@@ -396,6 +424,89 @@ if (!empty($artist_id) && $pdo) {
             
             <?php endif; ?>
 
+            <?php if(!empty($gallery_items)): ?>
+            
+            <div id="gallery-section" class="scroll-mt-16 py-14">
+            
+                <div class="flex items-center mb-8">
+            
+                    <div class="w-8 h-[3px] bg-black mr-3"></div>
+            
+                    <h2 class="text-3xl font-black uppercase tracking-wide">
+                        Gallery
+                    </h2>
+            
+                </div>
+            
+                <div class="relative">
+            
+                    <!-- Left -->
+                    <button id="galleryPrev"
+                        class="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white shadow w-10 h-10 rounded flex items-center justify-center">
+            
+                        <i class="fas fa-chevron-left"></i>
+            
+                    </button>
+            
+                    <!-- Right -->
+                    <button id="galleryNext"
+                        class="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-[#0256ff] text-white shadow w-10 h-10 rounded flex items-center justify-center">
+            
+                        <i class="fas fa-chevron-right"></i>
+            
+                    </button>
+            
+                    <div
+                        id="gallerySlider"
+                        class="flex overflow-x-auto scroll-smooth snap-x snap-mandatory">
+            
+                        <?php foreach($gallery_items as $media): ?>
+            
+                            <a
+                                href="<?= htmlspecialchars($media['youtube_media_link']); ?>"
+                                target="_blank"
+                                class="relative min-w-[250px] md:min-w-[320px] h-[190px] snap-start overflow-hidden group">
+            
+                                <img
+                                    src="https://img.youtube.com/vi/<?= $media['youtube_id']; ?>/hqdefault.jpg"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+            
+                                <div class="absolute inset-0 bg-black/40"></div>
+            
+                                <!-- Play Icon -->
+                                <div class="absolute inset-0 flex items-center justify-center">
+            
+                                    <div class="w-14 h-14 rounded-full border-2 border-white flex items-center justify-center">
+            
+                                        <i class="fas fa-play text-white ml-1"></i>
+            
+                                    </div>
+            
+                                </div>
+            
+                                <!-- Title -->
+                                <div class="absolute bottom-4 left-4 right-4">
+            
+                                    <p class="text-white font-bold leading-6 text-lg drop-shadow">
+            
+                                        <?= htmlspecialchars($media['media_title']); ?>
+            
+                                    </p>
+            
+                                </div>
+            
+                            </a>
+            
+                        <?php endforeach; ?>
+            
+                    </div>
+            
+                </div>
+            
+            </div>
+            
+            <?php endif; ?>
+
             <div id="reviews-section" class="scroll-mt-16 bg-gray-50 rounded-2xl p-8 border border-gray-100">
                 <span class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-2">Category Box C</span>
                 <h3 class="text-2xl font-black text-gray-900 tracking-tight mb-4">Verified Fan Reviews</h3>
@@ -463,6 +574,15 @@ if (!empty($artist_id) && $pdo) {
             -ms-overflow-style:none;
             scrollbar-width:none;
         }
+
+        #gallerySlider::-webkit-scrollbar{
+            display:none;
+        }
+        
+        #gallerySlider{
+            scrollbar-width:none;
+            -ms-overflow-style:none;
+        }
     </style>
 
 <script>
@@ -484,6 +604,30 @@ if(slider){
 
         slider.scrollBy({
             left:-450,
+            behavior:'smooth'
+        });
+
+    };
+
+}
+
+const gallerySlider = document.getElementById('gallerySlider');
+
+if(gallerySlider){
+
+    document.getElementById('galleryNext').onclick=function(){
+
+        gallerySlider.scrollBy({
+            left:320,
+            behavior:'smooth'
+        });
+
+    };
+
+    document.getElementById('galleryPrev').onclick=function(){
+
+        gallerySlider.scrollBy({
+            left:-320,
             behavior:'smooth'
         });
 
