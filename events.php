@@ -70,29 +70,53 @@ if (isset($_GET['artist_id'])) {
 
 }
 
-// Simulated dynamic loop container populated to output the exact block layout sequence you requested
-$concerts_results = [
-    [
-        'id' => 101,
-        'month' => 'Aug',
-        'day_num' => '01',
-        'day_name' => 'Sat',
-        'time' => '8:00 PM',
-        'location' => 'East Rutherford, NJ',
-        'venue' => 'MetLife Stadium',
-        'title' => "BTS WORLD TOUR 'ARIRANG' IN EAST RUTHERFORD"
-    ],
-    [
-        'id' => 102,
-        'month' => 'Aug',
-        'day_num' => '02',
-        'day_name' => 'Sun',
-        'time' => '08:00 PM',
-        'location' => 'East Rutherford, NJ',
-        'venue' => 'MetLife Stadium',
-        'title' => "BTS WORLD TOUR 'ARIRANG' IN EAST RUTHERFORD"
-    ]
-];
+$concerts_results = [];
+
+if (!empty($artist_id) && $pdo) {
+
+    $stmt = $pdo->prepare("
+        SELECT *
+        FROM concerts
+        WHERE artist_id = ?
+        ORDER BY concert_date ASC
+    ");
+
+    $stmt->execute([$artist_id]);
+
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+
+        // Month and Day Number from concert_date
+        $timestamp = strtotime($row['concert_date']);
+
+        // Split "Sat • 8:00 PM"
+        $parts = explode('•', $row['day_time']);
+
+        $day_name = trim($parts[0] ?? '');
+        $time = trim($parts[1] ?? '');
+
+        $concerts_results[] = [
+
+            'id' => $row['concert_id'],
+
+            'month' => date('M', $timestamp),
+
+            'day_num' => date('d', $timestamp),
+
+            'day_name' => $day_name,
+
+            'time' => $time,
+
+            'location' => $row['location'],
+
+            'venue' => $row['venue'],
+
+            'title' => $row['title']
+
+        ];
+
+    }
+
+}
 
 $total_concerts_count = count($concerts_results);
 ?>
