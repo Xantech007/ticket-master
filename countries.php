@@ -6,9 +6,7 @@
   <title>Country & Language Selector</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  
   <style>
-    /* Hide native Google elements completely */
     .goog-te-banner-frame, .goog-te-gadget, #google_translate_element, .skiptranslate {
       display: none !important;
     }
@@ -70,10 +68,18 @@ function processGlobalTranslation() {
     const selectedLang = select.value;
     if (!selectedLang) return;
 
-    // 1. Save the selection to a global cookie valid across the entire domain path
-    document.cookie = "goog_lang=" + selectedLang + "; path=/; max-age=" + (365 * 24 * 60 * 60);
+    // Build the official native Google Translation cookie format string value
+    const cookieValue = "/en/" + selectedLang;
 
-    // 2. Safely bounce user back to their original page, or fallback home to event.php
+    // Delete any old cookies first to prevent conflicting values
+    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + window.location.hostname;
+
+    // Save the official translation parameter across all secure pathways
+    document.cookie = "googtrans=" + cookieValue + "; path=/; max-age=" + (365 * 24 * 60 * 60);
+    document.cookie = "googtrans=" + cookieValue + "; path=/; domain=" + window.location.hostname + "; max-age=" + (365 * 24 * 60 * 60);
+
+    // Bounce the user back to the originating referrer page node instantly
     if (document.referrer && document.referrer !== "" && !document.referrer.includes('countries.php')) {
         window.location.href = document.referrer;
     } else {
