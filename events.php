@@ -28,35 +28,33 @@ $rating = "4.9";
 
 
 // If an ID parameter is appended, load matching database row allocations
-if (isset($_GET['id'])) {
-    $id = (int)$_GET['id'];
+if (isset($_GET['artist_id'])) {
+    $artist_id = (int)$_GET['artist_id'];
     try {
         if (isset($pdo) && $pdo !== null) {
             $stmt = $pdo->prepare("
                 SELECT
-                    e.*,
-                    a.name AS artist_name,
-                    a.artist_image,
-                    a.genre,
-                    a.rating
-                FROM events e
-                JOIN artists a ON e.artist_id = a.id
-                WHERE e.id = ?
+                    id,
+                    name,
+                    artist_image,
+                    genre,
+                    rating
+                FROM artists
+                WHERE id = ?
             ");
-            $stmt->execute([$id]);
-            $event_data = $stmt->fetch();
-            if ($event_data) {
+            $stmt->execute([$artist_id]);
+            $artist_data = $stmt->fetch(PDO::FETCH_ASSOC);
             
-                $artist_name = $event_data['artist_name'];
-                $event_title_overlay = $event_data['title'];
+            if ($artist_data) {
             
-                // Banner Image (Artist Image)
-                if (!empty($event_data['artist_image'])) {
-                    $event_banner_image = "uploads/artists/" . $event_data['artist_image'];
+                $artist_name = $artist_data['name'];
+            
+                if (!empty($artist_data['artist_image'])) {
+                    $event_banner_image = "uploads/artists/" . $artist_data['artist_image'];
                 }
             
-                $genre = $event_data['genre'] ?? "Pop";
-                $rating = $event_data['rating'] ?? "0.0";
+                $genre = $artist_data['genre'] ?? "Pop";
+                $rating = $artist_data['rating'] ?? "0.0";
             }
         }
     } catch (Exception $e) {
