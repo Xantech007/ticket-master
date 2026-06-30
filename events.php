@@ -128,7 +128,7 @@ if (!empty($artist_id) && $pdo) {
         SELECT *
         FROM vip_exp
         WHERE artist_id = ?
-        ORDER BY vip_id ASC
+        ORDER BY vip_exp_id ASC
     ");
 
     $stmt->execute([$artist_id]);
