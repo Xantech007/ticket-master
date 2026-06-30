@@ -167,7 +167,7 @@ $total_concerts_count = count($concerts_results);
                 </p>
         
                 <!-- Artist -->
-                <h1 class="text-5xl md:text-6xl font-black leading-none">
+                <h1 class="text-4xl md:text-4xl font-black leading-none">
                     <?= htmlspecialchars($artist_name); ?> Tickets
                 </h1>
         
