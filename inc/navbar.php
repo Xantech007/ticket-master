@@ -37,7 +37,7 @@
             </svg>
           </span>
       
-          <span class="font-semibold text-white">US</span>
+          <span class="font-semibold w-auto h-5 text-white">US</span>
       
         </a>
       </div>
