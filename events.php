@@ -19,15 +19,12 @@ try {
     // Catch initial structural connection issues down below gracefully
 }
 
-// Safe URL Parameter Fetching (Fallback definitions if no ID is passed yet)
-$artist_name = "BTS";
-$event_title_overlay = "WORLD TOUR 'ARIRANG'";
+// Default values
+$artist_name = "";
 $event_banner_image = "https://picsum.photos/id/625/2000/1000";
-$genre = "Pop";
-$rating = "4.9";
+$genre = "";
+$rating = "";
 
-
-// If an ID parameter is appended, load matching database row allocations
 if (isset($_GET['artist_id'])) {
 
     $artist_id = (int)$_GET['artist_id'];
@@ -38,13 +35,12 @@ if (isset($_GET['artist_id'])) {
 
             $stmt = $pdo->prepare("
                 SELECT
-                    id,
-                    name,
+                    artist_name,
                     artist_image,
                     genre,
                     rating
                 FROM artists
-                WHERE id = ?
+                WHERE artist_id = ?
                 LIMIT 1
             ");
 
@@ -54,19 +50,19 @@ if (isset($_GET['artist_id'])) {
 
             if ($artist) {
 
-                $artist_name = $artist['name'];
+                $artist_name = $artist['artist_name'];
+                $genre = $artist['genre'];
+                $rating = $artist['rating'];
 
                 if (!empty($artist['artist_image'])) {
                     $event_banner_image = "uploads/artists/" . $artist['artist_image'];
                 }
 
-                $genre = $artist['genre'];
-                $rating = $artist['rating'];
             }
 
         }
 
-    } catch (Exception $e) {
+    } catch (PDOException $e) {
 
         die($e->getMessage());
 
