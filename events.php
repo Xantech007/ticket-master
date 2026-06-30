@@ -52,7 +52,7 @@ if (isset($_GET['id'])) {
             
                 // Banner Image (Artist Image)
                 if (!empty($event_data['artist_image'])) {
-                    $event_banner_image = "uploads/" . $event_data['artist_image'];
+                    $event_banner_image = "uploads/artists/" . $event_data['artist_image'];
                 }
             
                 $genre = $event_data['genre'] ?? "Pop";
