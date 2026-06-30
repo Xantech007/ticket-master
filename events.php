@@ -287,7 +287,7 @@ $total_concerts_count = count($concerts_results);
                             </div>
 
                             <div class="shrink-0 text-right">
-                                <a href="booking.php?event_id=<?php echo $concert['id']; ?>" 
+                                <a href="booking.php?concert_id=<?php echo $concert['concert_id']; ?>" 
                                    class="block text-center w-full md:w-auto bg-[#024DDF] hover:bg-blue-800 text-white font-bold text-xs uppercase tracking-wider py-3 px-6 rounded-lg transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     Find Tickets
                                 </a>
