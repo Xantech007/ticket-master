@@ -175,20 +175,20 @@ $total_concerts_count = count($concerts_results);
                 <div class="flex items-center gap-3 mt-6">
         
                     <div class="w-11 h-11 rounded-full border border-white flex items-center justify-center">
-        
+                    
                         <svg xmlns="http://www.w3.org/2000/svg"
                             class="w-6 h-6"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor">
-        
+                    
                             <path stroke-linecap="round"
                                 stroke-linejoin="round"
                                 stroke-width="2"
                                 d="M5 5l14 14M19 5L5 19"/>
-        
+                    
                         </svg>
-        
+                    
                     </div>
         
                     <div class="bg-white text-black px-4 py-2 rounded font-bold flex items-center gap-2">
