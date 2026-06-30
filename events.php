@@ -428,15 +428,12 @@ if (!empty($artist_id) && $pdo) {
             
             <div id="gallery-section" class="scroll-mt-16 py-14">
             
-                <div class="flex items-center mb-8">
-            
-                    <div class="w-8 h-[3px] bg-black mr-3"></div>
-            
-                    <h2 class="text-3xl font-black uppercase tracking-wide">
-                        Gallery
-                    </h2>
-            
-                </div>
+                    <div class="mb-8">
+                        <div class="w-8 h-[3px] bg-white mb-3"></div>
+                        <h2 class="text-white font-bold text-3xl uppercase tracking-wide">
+                            Gallery
+                        </h2>
+                    </div>
             
                 <div class="relative">
             
