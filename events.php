@@ -22,28 +22,41 @@ try {
 // Safe URL Parameter Fetching (Fallback definitions if no ID is passed yet)
 $artist_name = "BTS";
 $event_title_overlay = "WORLD TOUR 'ARIRANG'";
-$event_banner_image = "https://picsum.photos/id/1015/2000/800"; // Fallback presentation banner
-$artist_image = "https://picsum.photos/id/64/400/400"; // Fallback circular artist image profile
+$event_banner_image = "https://picsum.photos/id/625/2000/1000";
+$genre = "Pop";
+$rating = "4.9";
+
 
 // If an ID parameter is appended, load matching database row allocations
 if (isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     try {
         if (isset($pdo) && $pdo !== null) {
-            $stmt = $pdo->prepare("SELECT e.*, a.name AS artist_name, a.artist_image AS artist_img FROM events e JOIN artists a ON e.artist_id = a.id WHERE e.id = ?");
+            $stmt = $pdo->prepare("
+                SELECT
+                    e.*,
+                    a.name AS artist_name,
+                    a.artist_image,
+                    a.genre,
+                    a.rating
+                FROM events e
+                JOIN artists a ON e.artist_id = a.id
+                WHERE e.id = ?
+            ");
             $stmt->execute([$id]);
             $event_data = $stmt->fetch();
             if ($event_data) {
+            
                 $artist_name = $event_data['artist_name'];
                 $event_title_overlay = $event_data['title'];
-                
-                // Assigning uploaded graphic assets using column definitions from phpMyAdmin
-                if (!empty($event_data['stadium_image'])) {
-                    $event_banner_image = "uploads/" . $event_data['stadium_image'];
+            
+                // Banner Image (Artist Image)
+                if (!empty($event_data['artist_image'])) {
+                    $event_banner_image = "uploads/" . $event_data['artist_image'];
                 }
-                if (!empty($event_data['artist_img'])) {
-                    $artist_image = "uploads/" . $event_data['artist_img'];
-                }
+            
+                $genre = $event_data['genre'] ?? "Pop";
+                $rating = $event_data['rating'] ?? "0.0";
             }
         }
     } catch (Exception $e) {
@@ -100,29 +113,97 @@ $total_concerts_count = count($concerts_results);
         
         <?php include "inc/header.php"; ?>
 
-        <div class="relative w-full h-[360px] md:h-[480px] bg-black overflow-hidden select-none">
-            <img src="<?php echo htmlspecialchars($event_banner_image); ?>" 
-                 onerror="this.src='https://picsum.photos/id/625/2000/1000';" 
-                 alt="Full Event Banner" 
-                 class="w-full h-full object-cover opacity-80">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent"></div>
-            
-            <div class="absolute bottom-0 left-0 w-full p-6 md:p-12 text-white max-w-4xl flex items-center gap-4 md:gap-6">
-                <img src="<?php echo htmlspecialchars($artist_image); ?>" 
-                     onerror="this.src='https://picsum.photos/id/64/400/400';" 
-                     alt="Artist Profile Image" 
-                     class="w-16 h-16 md:w-24 md:h-24 rounded-full object-cover border-2 border-white/40 shadow-lg shrink-0">
-                
-                <div>
-                    <p class="text-xs uppercase tracking-widest font-black text-blue-400 mb-1">Live Presentation Spot</p>
-                    <h1 class="text-3xl md:text-6xl font-black tracking-tight leading-none drop-shadow-md">
-                        <?php echo htmlspecialchars($artist_name); ?>
-                    </h1>
-                    <h2 class="text-xl md:text-2xl font-bold mt-2 text-gray-200 opacity-95 drop-shadow-sm">
-                        <?php echo htmlspecialchars($event_title_overlay); ?>
-                    </h2>
-                </div>
+        <div class="relative w-full h-[420px] md:h-[500px] overflow-hidden bg-black">
+        
+            <!-- Banner -->
+            <img
+                src="<?= htmlspecialchars($event_banner_image); ?>"
+                onerror="this.src='https://picsum.photos/2000/900';"
+                class="absolute inset-0 w-full h-full object-cover"
+                alt="<?= htmlspecialchars($artist_name); ?>"
+            >
+        
+            <!-- Dark Overlay -->
+            <div class="absolute inset-0 bg-black/45"></div>
+        
+            <!-- Bottom Gradient -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
+        
+            <!-- Breadcrumb -->
+            <div class="absolute top-8 left-8 md:left-12 text-white text-sm">
+        
+                <span class="text-white/80">Home</span>
+        
+                <span class="mx-1">/</span>
+        
+                <span class="text-white/80">Concerts</span>
+        
+                <span class="mx-1">/</span>
+        
+                <span class="text-white/80">
+                    <?= htmlspecialchars($genre); ?>
+                </span>
+        
+                <span class="mx-1">/</span>
+        
+                <span class="font-medium">
+                    <?= htmlspecialchars($artist_name); ?> Tickets
+                </span>
+        
             </div>
+        
+            <!-- Content -->
+            <div class="absolute bottom-12 left-8 md:left-12 text-white">
+        
+                <!-- Genre -->
+                <p class="text-xl font-semibold mb-2">
+                    <?= htmlspecialchars($genre); ?>
+                </p>
+        
+                <!-- Artist -->
+                <h1 class="text-5xl md:text-6xl font-black leading-none">
+                    <?= htmlspecialchars($artist_name); ?> Tickets
+                </h1>
+        
+                <!-- Rating -->
+                <div class="flex items-center gap-3 mt-6">
+        
+                    <div class="w-11 h-11 rounded-full border border-white flex items-center justify-center">
+        
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="w-6 h-6"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor">
+        
+                            <path stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M5 5l14 14M19 5L5 19"/>
+        
+                        </svg>
+        
+                    </div>
+        
+                    <div class="bg-white text-black px-4 py-2 rounded font-bold flex items-center gap-2">
+        
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="w-5 h-5 text-yellow-500"
+                            fill="currentColor"
+                            viewBox="0 0 20 20">
+        
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.783.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.363-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.95-.69z"/>
+        
+                        </svg>
+        
+                        <?= htmlspecialchars($rating); ?>
+        
+                    </div>
+        
+                </div>
+        
+            </div>
+        
         </div>
 
         <div class="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm overflow-x-auto select-none">
