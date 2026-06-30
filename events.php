@@ -119,6 +119,28 @@ if (!empty($artist_id) && $pdo) {
 }
 
 $total_concerts_count = count($concerts_results);
+
+$vip_packages = [];
+
+if (!empty($artist_id) && $pdo) {
+
+    $stmt = $pdo->prepare("
+        SELECT *
+        FROM vip_exp
+        WHERE artist_id = ?
+        ORDER BY vip_id ASC
+    ");
+
+    $stmt->execute([$artist_id]);
+
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+
+        $vip_packages[] = $row;
+
+    }
+
+}
+    
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -298,15 +320,81 @@ $total_concerts_count = count($concerts_results);
                 </div>
             </div>
 
-            <div id="vip-section" class="scroll-mt-16 bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-8 shadow-xl border border-slate-800">
-                <div class="max-w-2xl">
-                    <span class="text-xs font-bold uppercase tracking-widest text-blue-400 bg-blue-950/60 px-3 py-1 rounded-full">Category Box B</span>
-                    <h3 class="text-3xl font-black tracking-tight mt-3">VIP Experience Premium Packages</h3>
-                    <p class="text-sm text-gray-300 mt-2 leading-relaxed">
-                        Unlock early access, behind-the-scenes premium field lounge passes, artist merchandise, and structural soundcheck entries. Package details will initialize dynamically during the individual seating configuration allocation step.
-                    </p>
+            <?php if (!empty($vip_packages)): ?>
+            
+            <div id="vip-section" class="scroll-mt-16 bg-[#121212] py-12 relative">
+            
+                <div class="max-w-7xl mx-auto px-4 md:px-8">
+            
+                    <div class="mb-8">
+                        <div class="w-8 h-[3px] bg-white mb-3"></div>
+                        <h2 class="text-white font-bold text-3xl uppercase tracking-wide">
+                            Experience
+                        </h2>
+                    </div>
+            
+                    <!-- Left Arrow -->
+                    <button
+                        id="vipPrev"
+                        class="absolute left-5 top-1/2 -translate-y-1/2 z-20 bg-white text-gray-700 w-10 h-10 rounded flex items-center justify-center shadow hover:bg-gray-200">
+            
+                        <i class="fas fa-chevron-left"></i>
+            
+                    </button>
+            
+                    <!-- Right Arrow -->
+                    <button
+                        id="vipNext"
+                        class="absolute right-5 top-1/2 -translate-y-1/2 z-20 bg-[#0256ff] text-white w-10 h-10 rounded flex items-center justify-center shadow hover:bg-blue-700">
+            
+                        <i class="fas fa-chevron-right"></i>
+            
+                    </button>
+            
+                    <div
+                        id="vipSlider"
+                        class="flex gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4">
+            
+                        <?php foreach($vip_packages as $vip): ?>
+            
+                            <div class="min-w-[430px] max-w-[430px] snap-start bg-white shadow-xl">
+            
+                                <div class="bg-black h-60 flex items-center justify-center">
+            
+                                    <img
+                                        src="uploads/vip/<?= htmlspecialchars($vip['image']); ?>"
+                                        class="max-h-full max-w-full object-contain"
+                                        alt="<?= htmlspecialchars($vip['title']); ?>">
+            
+                                </div>
+            
+                                <div class="p-8">
+            
+                                    <h3 class="text-3xl font-semibold mb-5">
+            
+                                        <?= htmlspecialchars($vip['title']); ?>
+            
+                                    </h3>
+            
+                                    <div class="text-gray-700 leading-7 whitespace-pre-line">
+            
+                                        <?= nl2br(htmlspecialchars($vip['description'])); ?>
+            
+                                    </div>
+            
+                                </div>
+            
+                            </div>
+            
+                        <?php endforeach; ?>
+            
+                    </div>
+            
                 </div>
+            
             </div>
+            
+            <?php endif; ?>
 
             <div id="reviews-section" class="scroll-mt-16 bg-gray-50 rounded-2xl p-8 border border-gray-100">
                 <span class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-2">Category Box C</span>
@@ -366,6 +454,44 @@ $total_concerts_count = count($concerts_results);
         html { scroll-behavior: smooth; }
         body { overflow-x: hidden; }
         .sticky::-webkit-scrollbar { display: none; }
+
+        #vipSlider::-webkit-scrollbar{
+            display:none;
+        }
+        
+        #vipSlider{
+            -ms-overflow-style:none;
+            scrollbar-width:none;
+        }
     </style>
+
+<script>
+
+const slider = document.getElementById('vipSlider');
+
+if(slider){
+
+    document.getElementById('vipNext').onclick=function(){
+
+        slider.scrollBy({
+            left:450,
+            behavior:'smooth'
+        });
+
+    };
+
+    document.getElementById('vipPrev').onclick=function(){
+
+        slider.scrollBy({
+            left:-450,
+            behavior:'smooth'
+        });
+
+    };
+
+}
+
+</script>
+    
 </body>
 </html>
