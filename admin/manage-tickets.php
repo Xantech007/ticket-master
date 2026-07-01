@@ -82,37 +82,6 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
             $_SESSION['success']="Ticket added.";
         }
 
-        /*---------------- UPDATE ----------------*/
-        if($action=="update"){
-
-            $ticket_id=(int)$_POST['ticket_id'];
-
-            $ticket_name=trim($_POST['ticket_name']);
-            $section_name=trim($_POST['section_name']);
-            $row_name=trim($_POST['row_name']);
-            $seat_name=trim($_POST['seat_name']);
-            $price=(float)$_POST['price'];
-
-            if(empty($ticket_name)||empty($section_name)||empty($row_name)||empty($seat_name)||$price<=0){
-                throw new Exception("All fields are required.");
-            }
-
-            $stmt=$pdo->prepare("
-                UPDATE tickets SET
-                ticket_name=?,
-                section_name=?,
-                row_name=?,
-                seat_name=?,
-                price=?
-                WHERE ticket_id=?
-            ");
-
-            $stmt->execute([
-                $ticket_name,$section_name,$row_name,$seat_name,$price,$ticket_id
-            ]);
-
-            $_SESSION['success']="Ticket updated.";
-        }
 
         /*---------------- DELETE ----------------*/
         if($action=="delete"){
@@ -260,17 +229,16 @@ style="width:55px;height:55px;object-fit:cover;border-radius:8px;">
 <a
     href="edit-tickets.php?ticket_id=<?= $ticket['ticket_id'] ?>"
     class="btn"
-    style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;"
->
+    style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
+    <i class="fas fa-edit"></i>
     Edit
 </a>
-
 <!-- DELETE -->
 <form method="POST" onsubmit="return confirm('Delete ticket?');">
 <input type="hidden" name="action" value="delete">
 <input type="hidden" name="concert_id" value="<?= $concert_id ?>">
 <input type="hidden" name="ticket_id" value="<?= $ticket['ticket_id'] ?>">
-<button class="btn red"></i></button>
+<button class="btn red"><i class="fas fa-trash"></i></button>
 </form>
 
 </td>
@@ -312,33 +280,6 @@ style="width:55px;height:55px;object-fit:cover;border-radius:8px;">
 </div>
 </div>
 
-<!-- EDIT MODAL -->
-<div id="editModal" style="display:none;position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.7);">
-
-<div style="background:#111827;max-width:600px;margin:5% auto;padding:25px;border-radius:10px;">
-
-<h2>Edit Ticket</h2>
-
-<form method="POST">
-
-<input type="hidden" name="action" value="update">
-<input type="hidden" id="edit_ticket_id" name="ticket_id">
-<input type="hidden" name="concert_id" value="<?= $concert_id ?>">
-
-<input id="edit_ticket_name" name="ticket_name" required style="width:100%;padding:10px;margin:10px 0;">
-<input id="edit_section_name" name="section_name" required style="width:100%;padding:10px;margin:10px 0;">
-<input id="edit_row_name" name="row_name" required style="width:100%;padding:10px;margin:10px 0;">
-<input id="edit_seat_name" name="seat_name" required style="width:100%;padding:10px;margin:10px 0;">
-<input id="edit_price" name="price" required style="width:100%;padding:10px;margin:10px 0;">
-
-<button class="btn" style="width:100%;">Update</button>
-</form>
-
-<br>
-<button class="btn red" onclick="closeEditModal()" style="width:100%;">Close</button>
-
-</div>
-</div>
 
 <script>
 
@@ -350,20 +291,6 @@ function closeAddModal(){
 document.getElementById("addModal").style.display="none";
 }
 
-function openEditModal(ticket){
-document.getElementById("editModal").style.display="block";
-
-document.getElementById("edit_ticket_id").value=ticket.ticket_id;
-document.getElementById("edit_ticket_name").value=ticket.ticket_name;
-document.getElementById("edit_section_name").value=ticket.section_name;
-document.getElementById("edit_row_name").value=ticket.row_name;
-document.getElementById("edit_seat_name").value=ticket.seat_name;
-document.getElementById("edit_price").value=ticket.price;
-}
-
-function closeEditModal(){
-document.getElementById("editModal").style.display="none";
-}
 
 </script>
 
