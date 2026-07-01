@@ -22,15 +22,15 @@ if ($faq_id <= 0) {
 -------------------------------------------------- */
 try {
 
-    $stmt = $pdo->prepare("SELECT * FROM faqs WHERE faq_id = ?");
-    $stmt->execute([$faq_id]);
-    $faq = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$faq) {
-        $_SESSION['error'] = "FAQ not found.";
-        header("Location: manage-faqs.php?artist_id=" . ($faq['artist_id'] ?? ''));
-        exit;
-    }
+   $stmt = $pdo->prepare("SELECT * FROM faqs WHERE faq_id = ?");
+   $stmt->execute([$faq_id]);
+   $faq = $stmt->fetch(PDO::FETCH_ASSOC);
+   
+   if (!$faq) {
+       $_SESSION['error'] = "FAQ not found.";
+       header("Location: manage-artists.php");
+       exit;
+   }
 
 } catch (PDOException $e) {
     $_SESSION['error'] = $e->getMessage();
