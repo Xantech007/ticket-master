@@ -10,153 +10,148 @@ require_once "inc/countries.php";
 
     <title>Authentication</title>
 
-    <!-- FAVICON -->
     <link rel="icon" href="assets/favicon.png" type="image/png">
 
-    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+        body { font-family: Inter, sans-serif; }
 
-        .brand-blue {
-            color: #024DDF;
-        }
-
-        .bg-brand {
-            background: #024DDF;
-        }
-
-        .ring-brand {
-            --tw-ring-color: #024DDF;
-        }
+        .brand { color:#024DDF; }
+        .bg-brand { background:#024DDF; }
 
         .glass {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(14px);
         }
 
         .tab-active {
-            background: rgba(2, 77, 223, 0.08);
-            color: #024DDF;
+            background: rgba(2,77,223,0.08);
+            color:#024DDF;
+        }
+
+        .input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(2,77,223,0.15);
+            border-color:#024DDF;
+        }
+
+        .bar {
+            height:6px;
+            border-radius:999px;
+            transition:0.3s;
         }
     </style>
 </head>
 
-<body class="bg-gray-50 text-gray-900">
+<body class="bg-gray-50">
 
-<!-- Background accent -->
+<!-- background -->
 <div class="fixed inset-0 -z-10">
-    <div class="absolute top-[-200px] left-[-200px] w-[500px] h-[500px] bg-blue-100 rounded-full blur-3xl opacity-40"></div>
-    <div class="absolute bottom-[-200px] right-[-200px] w-[500px] h-[500px] bg-blue-200 rounded-full blur-3xl opacity-30"></div>
+    <div class="absolute top-[-200px] left-[-200px] w-[500px] h-[500px] bg-blue-100 blur-3xl opacity-40"></div>
+    <div class="absolute bottom-[-200px] right-[-200px] w-[500px] h-[500px] bg-blue-200 blur-3xl opacity-30"></div>
 </div>
 
 <div class="min-h-screen flex items-center justify-center px-4">
 
-    <div class="w-full max-w-md glass border border-gray-200 rounded-3xl shadow-2xl overflow-hidden">
+<div class="w-full max-w-md glass border border-gray-200 rounded-3xl shadow-2xl overflow-hidden">
 
-        <!-- HEADER -->
-        <div class="p-6 text-center border-b bg-white/70">
-            <img src="assets/logo.png" class="h-10 mx-auto mb-3" alt="Logo">
+<!-- HEADER -->
+<div class="p-6 text-center border-b bg-white/80">
+    <img src="assets/logo.png" class="h-10 mx-auto mb-3">
 
-            <h1 class="text-2xl font-black text-gray-900">Welcome Back</h1>
-            <p class="text-sm text-gray-500 mt-1">Sign in or create your account to continue</p>
+    <h1 class="text-2xl font-black">Welcome</h1>
+    <p class="text-sm text-gray-500">Sign in or create account</p>
+</div>
+
+<!-- TABS -->
+<div class="flex border-b bg-white">
+    <button id="loginTab" onclick="showLogin()" class="w-1/2 py-3 font-bold tab-active">
+        Sign In
+    </button>
+    <button id="registerTab" onclick="showRegister()" class="w-1/2 py-3 font-bold text-gray-500">
+        Create Account
+    </button>
+</div>
+
+<!-- LOGIN -->
+<form id="loginForm" class="p-6 space-y-4">
+
+    <input class="w-full border rounded-xl px-4 py-3 text-sm input"
+        type="email" placeholder="Email">
+
+    <input class="w-full border rounded-xl px-4 py-3 text-sm input"
+        type="password" placeholder="Password">
+
+    <button id="loginBtn"
+        class="w-full bg-brand text-white font-black py-3 rounded-xl hover:bg-blue-800 transition">
+        Sign In
+    </button>
+
+</form>
+
+<!-- REGISTER -->
+<form id="registerForm" class="p-6 space-y-4 hidden">
+
+    <input class="w-full border rounded-xl px-4 py-3 text-sm input" placeholder="Full Name">
+    <input class="w-full border rounded-xl px-4 py-3 text-sm input" placeholder="Email">
+
+    <select id="countrySelect" class="w-full border rounded-xl px-4 py-3 text-sm input">
+        <option>Select Country</option>
+        <?php foreach ($countries as $c): ?>
+            <option><?= htmlspecialchars($c) ?></option>
+        <?php endforeach; ?>
+    </select>
+
+    <select id="codeSelect" class="w-full border rounded-xl px-4 py-3 text-sm input">
+        <option>Code</option>
+    </select>
+
+    <input class="w-full border rounded-xl px-4 py-3 text-sm input" placeholder="Phone">
+
+    <!-- PASSWORD -->
+    <input id="password"
+        class="w-full border rounded-xl px-4 py-3 text-sm input"
+        type="password" placeholder="Password"
+        oninput="checkStrength(this.value)">
+
+    <!-- STRENGTH BAR -->
+    <div class="space-y-1">
+        <div class="bg-gray-200 bar w-full overflow-hidden">
+            <div id="strengthBar" class="bar w-0 bg-red-500"></div>
         </div>
-
-        <!-- TABS -->
-        <div class="flex border-b bg-white">
-            <button onclick="showLogin()"
-                id="loginTab"
-                class="w-1/2 py-3 text-sm font-bold tab-active transition-all">
-                Sign In
-            </button>
-
-            <button onclick="showRegister()"
-                id="registerTab"
-                class="w-1/2 py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all">
-                Create Account
-            </button>
-        </div>
-
-        <!-- LOGIN -->
-        <form id="loginForm" class="p-6 space-y-4">
-
-            <input type="email" placeholder="Email address"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 ring-brand">
-
-            <input type="password" placeholder="Password"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 ring-brand">
-
-            <button class="w-full bg-brand hover:bg-blue-800 text-white font-black py-3 rounded-xl shadow-md transition">
-                Sign In
-            </button>
-
-            <p class="text-xs text-center text-gray-400">
-                Forgot password? Contact support
-            </p>
-        </form>
-
-        <!-- REGISTER -->
-        <form id="registerForm" class="p-6 space-y-4 hidden">
-
-            <input type="text" placeholder="Full Name"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 ring-brand">
-
-            <input type="email" placeholder="Email address"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 ring-brand">
-
-            <!-- COUNTRY -->
-            <select id="countrySelect"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 ring-brand">
-                <option value="">Select Country</option>
-                <?php foreach ($countries as $c): ?>
-                    <option value="<?= htmlspecialchars($c) ?>">
-                        <?= htmlspecialchars($c) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-
-            <!-- COUNTRY CODE -->
-            <select id="codeSelect"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 ring-brand">
-                <option value="">Country Code</option>
-            </select>
-
-            <input type="tel" placeholder="Phone number"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 ring-brand">
-
-            <input type="password" placeholder="Password"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 ring-brand">
-
-            <input type="password" placeholder="Confirm Password"
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 ring-brand">
-
-            <button class="w-full bg-brand hover:bg-blue-800 text-white font-black py-3 rounded-xl shadow-md transition">
-                Create Account
-            </button>
-        </form>
-
+        <p id="strengthText" class="text-xs text-gray-500">Password strength: -</p>
     </div>
+
+    <input class="w-full border rounded-xl px-4 py-3 text-sm input"
+        type="password" placeholder="Confirm Password">
+
+    <button id="registerBtn"
+        class="w-full bg-brand text-white font-black py-3 rounded-xl hover:bg-blue-800 transition">
+        Create Account
+    </button>
+
+</form>
+
+</div>
 </div>
 
 <script>
-/* -----------------------------
-   TAB SWITCH
-------------------------------*/
+
+/* -----------------------
+   TAB SWITCH + BUTTON TEXT CONTROL
+------------------------*/
 function showLogin() {
     document.getElementById("loginForm").classList.remove("hidden");
     document.getElementById("registerForm").classList.add("hidden");
 
     document.getElementById("loginTab").classList.add("tab-active");
     document.getElementById("registerTab").classList.remove("tab-active");
-    document.getElementById("registerTab").classList.add("text-gray-500");
+
+    document.getElementById("loginBtn").style.display = "block";
+    document.getElementById("registerBtn").style.display = "none";
 }
 
 function showRegister() {
@@ -165,59 +160,92 @@ function showRegister() {
 
     document.getElementById("registerTab").classList.add("tab-active");
     document.getElementById("loginTab").classList.remove("tab-active");
-    document.getElementById("loginTab").classList.add("text-gray-500");
+
+    document.getElementById("loginBtn").style.display = "none";
+    document.getElementById("registerBtn").style.display = "block";
 }
 
-/* -----------------------------
-   COUNTRY CODE MAP
-------------------------------*/
+/* -----------------------
+   PASSWORD STRENGTH ENGINE
+------------------------*/
+function checkStrength(password) {
+
+    let score = 0;
+
+    if (password.length >= 6) score++;
+    if (password.length >= 10) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    const bar = document.getElementById("strengthBar");
+    const text = document.getElementById("strengthText");
+
+    let width = score * 20;
+
+    bar.style.width = width + "%";
+
+    if (score <= 1) {
+        bar.className = "bar bg-red-500";
+        text.innerText = "Weak password";
+    }
+    else if (score <= 3) {
+        bar.className = "bar bg-yellow-500";
+        text.innerText = "Medium strength";
+    }
+    else {
+        bar.className = "bar bg-green-500";
+        text.innerText = "Strong password";
+    }
+}
+
+/* -----------------------
+   COUNTRY CODES
+------------------------*/
 const countryCodes = {
-    "Nigeria": "+234",
-    "Ghana": "+233",
-    "Kenya": "+254",
-    "South Africa": "+27",
-    "United States": "+1",
-    "Canada": "+1",
-    "United Kingdom": "+44",
-    "India": "+91",
-    "Germany": "+49",
-    "France": "+33",
-    "Australia": "+61"
+    "Nigeria":"+234",
+    "Ghana":"+233",
+    "Kenya":"+254",
+    "South Africa":"+27",
+    "United States":"+1",
+    "United Kingdom":"+44",
+    "India":"+91",
+    "Germany":"+49"
 };
 
 document.getElementById("countrySelect").addEventListener("change", function () {
-    const code = countryCodes[this.value] || "";
     document.getElementById("codeSelect").innerHTML =
-        `<option value="${code}">${code}</option>`;
+        `<option>${countryCodes[this.value] || ""}</option>`;
 });
 
-/* -----------------------------
-   GEOLOCATION AUTO DETECT
-------------------------------*/
+/* -----------------------
+   GEO DETECT COUNTRY
+------------------------*/
 function detectCountry() {
     if (!navigator.geolocation) return;
 
-    navigator.geolocation.getCurrentPosition(async function (pos) {
+    navigator.geolocation.getCurrentPosition(async (pos) => {
         try {
             const res = await fetch(
                 `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`
             );
 
             const data = await res.json();
-            const country = data?.address?.country;
 
-            if (country) {
-                const select = document.getElementById("countrySelect");
-                select.value = country;
-                select.dispatchEvent(new Event("change"));
+            if (data?.address?.country) {
+                const c = document.getElementById("countrySelect");
+                c.value = data.address.country;
+                c.dispatchEvent(new Event("change"));
             }
-        } catch (e) {
-            console.log("Geo detection failed");
-        }
+        } catch (e) {}
     });
 }
 
 detectCountry();
+
+/* default UI state */
+showLogin();
+
 </script>
 
 </body>
