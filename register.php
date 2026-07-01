@@ -67,10 +67,16 @@ $stmt->execute([
 $user_id = $pdo->lastInsertId();
 
 /* -------------------------
-   LOGIN USER SESSION
+   AUTO LOGIN
 --------------------------*/
 $_SESSION["user_id"] = $user_id;
 $_SESSION["email"] = $email;
 
-header("Location: booking.php");
+/* -------------------------
+   REDIRECT LOGIC (RETURN TO PREVIOUS PAGE)
+--------------------------*/
+$redirect = $_SESSION["redirect_after_auth"] ?? "booking.php";
+unset($_SESSION["redirect_after_auth"]);
+
+header("Location: $redirect");
 exit;
