@@ -19,54 +19,120 @@ try {
     // Safe fallback handling if connection breaks down
 }
 
-// Default mock parameters matching your structural tree if database variables aren't initialized yet
-$artist_name = "BTS";
-$concert_title = "BTS WORLD TOUR 'ARIRANG' IN EAST RUTHERFORD";
-$concert_details = "Sat • Aug 01, 2026 • 8:00 PM • MetLife Stadium — East Rutherford, NJ";
-$stadium_map_image = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80"; // Default bold fallback image
-
-// Try extracting specific database content map based on incoming Find Tickets event click context
-if (isset($_GET['event_id'])) {
-    $event_id = (int)$_GET['event_id'];
-    try {
-        if (isset($pdo) && $pdo !== null) {
-            // Query to match your structure: looks up individual event node along with parent metadata and stadium data
-            $stmt = $pdo->prepare("SELECT e.*, a.name AS artist_name, a.artist_image AS artist_image FROM events e JOIN artists a ON e.artist_id = a.id WHERE e.id = ?");
-            $stmt->execute([$event_id]);
-            $data = $stmt->fetch();
-            if ($data) {
-                $artist_name = $data['artist_name'];
-                $concert_title = $data['title'];
-                // Dynamic check for stadium layout paths or fallback to generic event graphics if absent
-                $stadium_map_image = !empty($data['stadium_image']) ? "uploads/" . $data['stadium_image'] : "uploads/" . $data['artist_image'];
-            }
-        }
-    } catch (Exception $e) {
-        // Structural validation protection
-    }
+// ---------------------------------------------
+// GET CONCERT ID
+// ---------------------------------------------
+if (!isset($_GET['concert_id']) || !is_numeric($_GET['concert_id'])) {
+    die("Invalid concert.");
 }
 
-// Complete mock configuration matrix matching your entry specification requirements exactly
-$ticket_sections = [
-    [
-        'id' => 'sec_519_r20',
-        'section' => 'Sec 519',
-        'row' => 'Row 20',
-        'type' => 'Resale Ticket',
-        'price' => 229.90,
-        'entry' => 'Mobile Entry',
-        'seats' => ['Seat 1', 'Seat 2', 'Seat 3', 'Seat 4', 'Seat 5', 'Seat 6']
-    ],
-    [
-        'id' => 'sec_507_r20',
-        'section' => 'Sec 507',
-        'row' => 'Row 20',
-        'type' => 'Resale Ticket',
-        'price' => 232.32,
-        'entry' => 'Mobile Entry',
-        'seats' => ['Seat 11', 'Seat 12', 'Seat 13', 'Seat 14']
-    ]
-];
+$concert_id = (int)$_GET['concert_id'];
+
+$artist_name = "";
+$concert_title = "";
+$concert_details = "";
+$stadium_map_image = "";
+$ticket_sections = [];
+
+try {
+
+    // ---------------------------------------------
+    // FETCH CONCERT DETAILS
+    // ---------------------------------------------
+    $stmt = $pdo->prepare("
+        SELECT
+            c.*,
+            a.artist_name
+        FROM concerts c
+        INNER JOIN artists a
+            ON a.artist_name = c.artist_name
+        WHERE c.id = ?
+        LIMIT 1
+    ");
+
+    $stmt->execute([$concert_id]);
+    $concert = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$concert) {
+        die("Concert not found.");
+    }
+
+    $artist_name   = $concert['artist_name'];
+    $concert_title = $concert['event_title'];
+
+    // ---------------------------------------------
+    // FETCH EVENT DETAILS
+    // (first event belonging to this concert)
+    // ---------------------------------------------
+    $stmt = $pdo->prepare("
+        SELECT *
+        FROM events
+        WHERE concert_id = ?
+        LIMIT 1
+    ");
+
+    $stmt->execute([$concert_id]);
+    $event = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($event) {
+
+        $concert_details =
+            $event['time'] . " • " .
+            $event['venue'] . " • " .
+            $event['location'];
+
+        // Use uploaded map if available
+        if (!empty($event['map_view'])) {
+            $stadium_map_image = "uploads/" . $event['map_view'];
+        }
+    }
+
+    // Default image
+    if (empty($stadium_map_image)) {
+        $stadium_map_image = "assets/images/stadium-map.jpg";
+    }
+
+    // ---------------------------------------------
+    // FETCH ALL TICKETS FOR THIS CONCERT
+    // ---------------------------------------------
+    $stmt = $pdo->prepare("
+        SELECT *
+        FROM tickets
+        WHERE concert_id = ?
+        ORDER BY section_name,row_name,seat_name
+    ");
+
+    $stmt->execute([$concert_id]);
+
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+
+        $key = $row['section_name'] . "_" . $row['row_name'];
+
+        if (!isset($ticket_sections[$key])) {
+
+            $ticket_sections[$key] = [
+                'id'      => $key,
+                'section' => $row['section_name'],
+                'row'     => $row['row_name'],
+                'type'    => $row['ticket_name'],
+                'price'   => $row['price'],
+                'entry'   => 'Mobile Entry',
+                'image'   => $row['section_view'],
+                'seats'   => []
+            ];
+        }
+
+        $ticket_sections[$key]['seats'][] = $row['seat_name'];
+    }
+
+    // Convert associative array into indexed array
+    $ticket_sections = array_values($ticket_sections);
+
+} catch (PDOException $e) {
+
+    die($e->getMessage());
+
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
