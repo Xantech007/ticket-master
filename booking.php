@@ -77,7 +77,7 @@ try {
         $concert['location'];
 
     if (!empty($concert['map_view'])) {
-        $stadium_map_image = "uploads/" . $concert['map_view'];
+        $stadium_map_image = "uploads/concerts/" . $concert['map_view'];
     } else {
         $stadium_map_image = "assets/images/stadium-map.jpg";
     }
