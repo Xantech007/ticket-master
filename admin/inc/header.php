@@ -205,18 +205,23 @@ $is_dashboard = ($current_page === 'dashboard.php');
       </div>
 
       <div class="header-actions">
-        <?php if (!$is_dashboard): ?>
-            <a href="javascript:history.back()" class="btn-header btn-back">
-              <i class="fas fa-arrow-left"></i> Back
-            </a>
-        <?php endif; ?>
-        
-        <a href="logout.php" class="btn-header btn-logout" 
-           onclick="return confirm('Are you sure you want to log out?');">
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </a>
+    
+          <?php if (!$is_dashboard): ?>
+              <a href="dashboard.php" class="btn-header btn-back">
+                  <i class="fas fa-house"></i> Dashboard
+              </a>
+    
+              <a href="javascript:history.back()" class="btn-header btn-back">
+                  <i class="fas fa-arrow-left"></i> Back
+              </a>
+          <?php endif; ?>
+    
+          <a href="logout.php" class="btn-header btn-logout" 
+             onclick="return confirm('Are you sure you want to log out?');">
+              <i class="fas fa-sign-out-alt"></i> Logout
+          </a>
+    
       </div>
-    </div>
 
     <h1>Admin<?php echo $is_dashboard ? ' Dashboard' : ''; ?></h1>
     <div class="welcome">
