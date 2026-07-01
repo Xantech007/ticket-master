@@ -1,6 +1,5 @@
 <?php
 session_start();
-require_once "inc/countries.php";
 require_once "inc/country-codes.php";
 ?>
 <!DOCTYPE html>
@@ -191,7 +190,25 @@ function checkStrength(password) {
     }
 }
 
+/* -----------------------
+   COUNTRY CODE AUTO
+------------------------*/
 
+let countryCodes = {};
+
+fetch("inc/country-codes.php")
+    .then(response => response.json())
+    .then(data => {
+        countryCodes = data;
+
+        document.getElementById("countrySelect").addEventListener("change", function () {
+            document.getElementById("codeSelect").innerHTML =
+                `<option>${countryCodes[this.value] || ""}</option>`;
+        });
+    })
+    .catch(error => {
+        console.error("Failed to load country codes:", error);
+    });
 document.getElementById("countrySelect").addEventListener("change", function () {
     document.getElementById("codeSelect").innerHTML =
         `<option>${countryCodes[this.value] || ""}</option>`;
