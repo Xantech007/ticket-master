@@ -30,13 +30,15 @@ $order_item = ['title' => 'The Eras World Tour Live Finale Pass', 'base_price' =
 
 if ($pdo !== null) {
     try {
-        // Fetch Admin Dynamic Settings Support Configurations
-        $stmt = $pdo->query("SELECT setting_key, setting_value FROM admin_settings WHERE setting_key IN ('support_whatsapp', 'support_telegram', 'support_email')");
-        while ($row = $stmt->fetch()) {
-            $key = str_replace('support_', '', $row['setting_key']);
-            $support[$key] = $row['setting_value'];
+        // Fetch support contacts from admins table
+        $stmt = $pdo->query("SELECT email, telegram, whatsapp FROM admins LIMIT 1");
+        $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($admin) {
+            $support['email'] = $admin['email'];
+            $support['telegram'] = $admin['telegram'];
+            $support['whatsapp'] = $admin['whatsapp'];
         }
-
         // Fetch Administrative Enabled Payment Vectors
         $cryptos = $pdo->query("SELECT * FROM payment_crypto WHERE is_active = 1 ORDER BY id DESC")->fetchAll();
         $giftcards = $pdo->query("SELECT * FROM payment_giftcards WHERE is_active = 1 ORDER BY id DESC")->fetchAll();
