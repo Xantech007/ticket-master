@@ -22,6 +22,24 @@ function js($value) {
     return json_encode((string)$value, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
 }
 
+function image_path($value, $basePath, $fallback) {
+    $value = trim((string)$value);
+
+    if ($value === '') {
+        return $fallback;
+    }
+
+    if (preg_match('/^https?:\/\//i', $value)) {
+        return $value;
+    }
+
+    if (preg_match('/^(uploads|assets)\//i', $value)) {
+        return str_replace('\\', '/', $value);
+    }
+
+    return rtrim($basePath, '/') . '/' . basename($value);
+}
+
 $concert_not_found = false;
 $concert_id = null;
 
@@ -53,16 +71,18 @@ try {
             $artist_name = $artist['artist_name'] ?? '';
             $concert_title = $concert['title'] ?? '';
 
-            $concert_details = implode(" • ", array_filter([
+            $concert_details = implode(" / ", array_filter([
                 $concert['concert_date'] ?? '',
                 $concert['day_time'] ?? '',
                 $concert['venue'] ?? '',
                 $concert['location'] ?? '',
             ]));
 
-            $stadium_map_image = !empty($concert['map_view'])
-                ? "uploads/concerts/" . basename($concert['map_view'])
-                : "assets/images/theatre.jpg";
+            $stadium_map_image = image_path(
+                $concert['map_view'] ?? '',
+                'uploads/concerts',
+                'assets/images/theatre.jpg'
+            );
 
             $stmt = $pdo->prepare("
                 SELECT * FROM tickets
@@ -75,6 +95,11 @@ try {
                 $section = $row['section_name'] ?? '';
                 $row_name = $row['row_name'] ?? '';
                 $key = md5($section . '|' . $row_name);
+                $sectionViewImage = image_path(
+                    $row['section_view'] ?? '',
+                    'uploads/tickets',
+                    ''
+                );
 
                 if (!isset($ticket_sections[$key])) {
                     $ticket_sections[$key] = [
@@ -84,8 +109,11 @@ try {
                         'type' => $row['ticket_name'] ?? '',
                         'price' => (float)($row['price'] ?? 0),
                         'entry' => 'Mobile Entry',
+                        'section_view' => $sectionViewImage,
                         'seats' => []
                     ];
+                } elseif ($ticket_sections[$key]['section_view'] === '' && $sectionViewImage !== '') {
+                    $ticket_sections[$key]['section_view'] = $sectionViewImage;
                 }
 
                 $ticket_sections[$key]['seats'][] = $row['seat_name'] ?? '';
@@ -111,143 +139,252 @@ if ($concert_not_found) {
 
 <?php include "inc/head.php"; ?>
 
-<body class="bg-gray-50 text-gray-900 font-sans antialiased">
-    <div id="__next">
+<body class="bg-slate-50 text-slate-950 font-sans antialiased">
+    <div id="__next" class="min-h-screen">
         <?php include "inc/navbar.php"; ?>
         <?php include "inc/header.php"; ?>
 
-        <div class="bg-white border-b border-gray-200 py-6 px-4 md:px-8 shadow-sm">
-            <div class="max-w-7xl mx-auto">
-                <span class="text-xs font-black uppercase tracking-wider text-[#024DDF] bg-blue-50 px-2.5 py-1 rounded">Selected Concert Node</span>
-                <h1 class="text-2xl md:text-4xl font-black text-gray-900 tracking-tight mt-2">
-                    <?php echo e($artist_name); ?> — <span class="font-bold text-gray-700"><?php echo e($concert_title); ?></span>
-                </h1>
-                <p class="text-sm md:text-base font-medium text-gray-500 mt-1 flex items-center gap-2">
-                    <i class="far fa-calendar-check text-blue-600"></i> <?php echo e($concert_details); ?>
-                </p>
-            </div>
-        </div>
+        <section class="bg-white border-b border-slate-200 px-4 py-5 shadow-sm sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div class="min-w-0">
+                    <span class="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-[#024DDF] ring-1 ring-blue-100">
+                        <i class="fas fa-ticket-alt"></i> Selected Concert
+                    </span>
+                    <h1 class="mt-3 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl lg:text-4xl">
+                        <?php echo e($artist_name); ?>
+                        <span class="block text-slate-600 sm:inline"> - <?php echo e($concert_title); ?></span>
+                    </h1>
+                    <p class="mt-2 flex items-start gap-2 text-sm font-semibold leading-6 text-slate-500 sm:text-base">
+                        <i class="far fa-calendar-check mt-1 text-[#024DDF]"></i>
+                        <span><?php echo e($concert_details); ?></span>
+                    </p>
+                </div>
 
-        <div class="w-full bg-black relative h-[260px] md:h-[420px] overflow-hidden select-none shadow-inner">
-            <img src="<?php echo e($stadium_map_image); ?>"
-                 onerror="this.onerror=null; this.src='assets/images/theatre.jpg';"
-                 alt="Stadium Grid Mapping Layout"
-                 class="w-full h-full object-cover opacity-90 object-center">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-            <div class="absolute bottom-4 left-4 md:left-8 bg-black/70 backdrop-blur-md border border-gray-700 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest">
-                <i class="fas fa-map-marked-alt mr-1.5 text-blue-400"></i> Stadium Map Reference Vector
+                <button type="button"
+                        onclick="openImageModal(<?php echo js($stadium_map_image); ?>, 'Full Stadium Map')"
+                        class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-black uppercase tracking-wider text-white shadow-sm transition hover:bg-[#024DDF] focus:outline-none focus:ring-4 focus:ring-blue-100 sm:w-auto">
+                    <i class="fas fa-search-plus"></i> Open Map
+                </button>
             </div>
-        </div>
+        </section>
+
+        <section class="relative isolate overflow-hidden bg-slate-950">
+            <button type="button"
+                    onclick="openImageModal(<?php echo js($stadium_map_image); ?>, 'Full Stadium Map')"
+                    class="group block h-[280px] w-full cursor-zoom-in text-left sm:h-[360px] lg:h-[460px]"
+                    aria-label="Open full stadium map">
+                <img src="<?php echo e($stadium_map_image); ?>"
+                     onerror="this.onerror=null; this.src='assets/images/theatre.jpg';"
+                     alt="Stadium seating map"
+                     class="h-full w-full object-cover object-center opacity-95 transition duration-500 group-hover:scale-[1.02] group-hover:opacity-100">
+                <span class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent"></span>
+                <span class="absolute bottom-4 left-4 right-4 flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-950/70 p-4 text-white shadow-2xl backdrop-blur md:bottom-6 md:left-8 md:right-auto md:min-w-[360px]">
+                    <span class="text-[11px] font-black uppercase tracking-[0.2em] text-blue-200">
+                        <i class="fas fa-map-marked-alt mr-2"></i> Map View
+                    </span>
+                    <span class="flex items-center justify-between gap-4 text-sm font-bold">
+                        View the full seating layout
+                        <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-slate-950 transition group-hover:bg-[#024DDF] group-hover:text-white">
+                            <i class="fas fa-expand-alt"></i>
+                        </span>
+                    </span>
+                </span>
+            </button>
+        </section>
 
         <?php if ($concert_not_found): ?>
             <div class="max-w-7xl mx-auto px-4 md:px-8 mt-6">
-                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg font-bold">
+                <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-bold text-red-700">
                     Sorry, the concert you are looking for was not found or is no longer available.
                 </div>
             </div>
         <?php endif; ?>
 
-        <main class="max-w-7xl mx-auto px-4 md:px-8 py-8">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                <div class="lg:col-span-7 space-y-4">
-                    <h2 class="text-lg font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
-                        <i class="fas fa-list-ol text-[#024DDF]"></i> Available Seating Entries
-                    </h2>
+        <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
+                <div class="space-y-4 lg:col-span-8">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <h2 class="flex items-center gap-2 text-lg font-black uppercase tracking-wider text-slate-800">
+                                <i class="fas fa-list-ol text-[#024DDF]"></i> Available Seating
+                            </h2>
+                            <p class="mt-1 text-sm font-semibold text-slate-500">Choose a section, review its image, then lock in seats.</p>
+                        </div>
+                        <span class="text-xs font-black uppercase tracking-wider text-slate-400">
+                            <?php echo count($ticket_sections); ?> section(s)
+                        </span>
+                    </div>
 
                     <?php if (empty($ticket_sections) && !$concert_not_found): ?>
-                        <div class="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm text-sm font-bold text-gray-500">
+                        <div class="rounded-2xl border border-slate-200 bg-white p-5 text-sm font-bold text-slate-500 shadow-sm">
                             No tickets are currently available for this concert.
                         </div>
                     <?php endif; ?>
 
                     <?php foreach ($ticket_sections as $sec): ?>
-                        <div class="bg-white border-2 border-gray-200 rounded-xl transition-all shadow-sm overflow-hidden" id="card-<?php echo e($sec['id']); ?>">
-                            <div onclick="toggleSectionDisplay(<?php echo js($sec['id']); ?>)"
-                                 class="p-4 md:p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50/80 transition-colors select-none">
-                                <div>
-                                    <h3 class="text-base md:text-lg font-black text-gray-900 tracking-tight">
-                                        <?php echo e($sec['section']); ?> • <?php echo e($sec['row']); ?>
-                                    </h3>
-                                    <p class="text-xs font-bold text-gray-400 uppercase mt-0.5 tracking-wide">
-                                        Total available seats: <span class="text-gray-700 font-extrabold"><?php echo count($sec['seats']); ?> entries</span>
-                                    </p>
-                                    <div class="flex items-center gap-2 mt-2">
-                                        <span class="text-[10px] font-black uppercase bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded">
-                                            <?php echo e($sec['type']); ?>
-                                        </span>
-                                        <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded flex items-center gap-1">
-                                            <i class="fas fa-mobile-alt"></i> <?php echo e($sec['entry']); ?>
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="text-right flex items-center gap-4">
-                                    <div>
-                                        <span class="block text-xl font-black text-[#024DDF] tracking-tight">
-                                            $<?php echo number_format((float)$sec['price'], 2); ?>
-                                        </span>
-                                        <span class="text-[10px] text-gray-400 block font-medium">ea + transaction fees</span>
-                                    </div>
-                                    <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 transform" id="icon-<?php echo e($sec['id']); ?>"></i>
-                                </div>
-                            </div>
-
-                            <div id="drawer-<?php echo e($sec['id']); ?>" class="hidden border-t border-gray-100 bg-gray-50/50 p-4">
-                                <p class="text-xs font-bold text-gray-500 uppercase tracking-tight mb-3">
-                                    Select desired seat positions from the manifest layout below:
-                                </p>
-                                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                                    <?php foreach ($sec['seats'] as $seat): ?>
+                        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-blue-200 hover:shadow-md" id="card-<?php echo e($sec['id']); ?>">
+                            <div class="grid gap-0 md:grid-cols-[180px_1fr]">
+                                <div class="relative min-h-[150px] bg-slate-100">
+                                    <?php if (!empty($sec['section_view'])): ?>
                                         <button type="button"
-                                                onclick="toggleSeatSelection(this, <?php echo js($sec['id']); ?>, <?php echo js($seat); ?>, <?php echo json_encode((float)$sec['price']); ?>, <?php echo js($sec['section']); ?>, <?php echo js($sec['row']); ?>)"
-                                                class="seat-btn bg-white border border-gray-300 rounded-lg py-2.5 px-2 text-xs font-bold text-gray-700 hover:border-[#024DDF] hover:bg-blue-50/50 transition-all text-center focus:outline-none select-none">
-                                            <i class="fas fa-chair text-[10px] opacity-40 mr-1"></i>
-                                            <?php echo e($seat); ?>
+                                                onclick="event.stopPropagation(); openImageModal(<?php echo js($sec['section_view']); ?>, <?php echo js(($sec['section'] ?: 'Section') . ' ' . ($sec['row'] ?: 'View')); ?>)"
+                                                class="group h-full w-full cursor-zoom-in overflow-hidden text-left"
+                                                aria-label="Open section view image">
+                                            <img src="<?php echo e($sec['section_view']); ?>"
+                                                 onerror="this.closest('.relative').classList.add('image-load-failed'); this.remove();"
+                                                 alt="Section <?php echo e($sec['section']); ?> view"
+                                                 class="h-full min-h-[150px] w-full object-cover transition duration-300 group-hover:scale-105">
+                                            <span class="absolute inset-x-3 bottom-3 inline-flex items-center justify-center gap-2 rounded-lg bg-slate-950/75 px-3 py-2 text-xs font-black uppercase tracking-wider text-white backdrop-blur">
+                                                <i class="fas fa-search-plus"></i> Section View
+                                            </span>
                                         </button>
-                                    <?php endforeach; ?>
+                                    <?php endif; ?>
+                                    <div class="section-image-empty absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center text-slate-400">
+                                        <i class="far fa-image text-2xl"></i>
+                                        <span class="text-xs font-black uppercase tracking-wider">No Section Image</span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <button type="button"
+                                            onclick="toggleSectionDisplay(<?php echo js($sec['id']); ?>)"
+                                            class="flex w-full cursor-pointer items-center justify-between gap-4 p-4 text-left transition hover:bg-slate-50 sm:p-5">
+                                        <span class="min-w-0">
+                                            <span class="block text-base font-black tracking-tight text-slate-950 sm:text-lg">
+                                                <?php echo e($sec['section']); ?> <span class="text-slate-300">/</span> <?php echo e($sec['row']); ?>
+                                            </span>
+                                            <span class="mt-1 block text-xs font-bold uppercase tracking-wide text-slate-400">
+                                                <?php echo count($sec['seats']); ?> seat entry(s) available
+                                            </span>
+                                            <span class="mt-3 flex flex-wrap items-center gap-2">
+                                                <span class="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase text-amber-700">
+                                                    <?php echo e($sec['type']); ?>
+                                                </span>
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-500">
+                                                    <i class="fas fa-mobile-alt"></i> <?php echo e($sec['entry']); ?>
+                                                </span>
+                                            </span>
+                                        </span>
+                                        <span class="flex shrink-0 items-center gap-3 text-right">
+                                            <span>
+                                                <span class="block text-xl font-black tracking-tight text-[#024DDF]">
+                                                    $<?php echo number_format((float)$sec['price'], 2); ?>
+                                                </span>
+                                                <span class="block text-[10px] font-semibold text-slate-400">ea + fees</span>
+                                            </span>
+                                            <i class="fas fa-chevron-down text-slate-400 transition-transform duration-300" id="icon-<?php echo e($sec['id']); ?>"></i>
+                                        </span>
+                                    </button>
+
+                                    <div id="drawer-<?php echo e($sec['id']); ?>" class="hidden border-t border-slate-100 bg-slate-50/80 p-4 sm:p-5">
+                                        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                            <p class="text-xs font-bold uppercase tracking-tight text-slate-500">
+                                                Select desired seat positions below.
+                                            </p>
+                                            <?php if (!empty($sec['section_view'])): ?>
+                                                <button type="button"
+                                                        onclick="openImageModal(<?php echo js($sec['section_view']); ?>, <?php echo js(($sec['section'] ?: 'Section') . ' ' . ($sec['row'] ?: 'View')); ?>)"
+                                                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black uppercase tracking-wider text-slate-700 transition hover:border-blue-200 hover:text-[#024DDF]">
+                                                    <i class="far fa-image"></i> View Image
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6">
+                                            <?php foreach ($sec['seats'] as $seat): ?>
+                                                <button type="button"
+                                                        onclick="toggleSeatSelection(this, <?php echo js($sec['id']); ?>, <?php echo js($seat); ?>, <?php echo json_encode((float)$sec['price']); ?>, <?php echo js($sec['section']); ?>, <?php echo js($sec['row']); ?>)"
+                                                        class="seat-btn min-h-11 rounded-xl border border-slate-300 bg-white px-2 py-2 text-center text-xs font-black text-slate-700 transition hover:border-[#024DDF] hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100">
+                                                    <i class="fas fa-chair mr-1 text-[10px] opacity-40"></i>
+                                                    <?php echo e($seat); ?>
+                                                </button>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </article>
                     <?php endforeach; ?>
                 </div>
 
-                <div class="lg:col-span-5 sticky top-4">
-                    <div id="checkout-sidebar-panel" class="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-md transition-all opacity-40 pointer-events-none select-none">
-                        <h3 class="text-base font-black uppercase tracking-wider text-gray-800 border-b border-gray-100 pb-3 mb-4 flex items-center gap-2">
-                            <i class="fas fa-shopping-basket text-[#024DDF]"></i> Order Review Summary
+                <aside class="lg:col-span-4 lg:sticky lg:top-4">
+                    <div id="checkout-sidebar-panel" class="rounded-2xl border border-slate-200 bg-white p-5 opacity-45 shadow-md transition sm:p-6 pointer-events-none select-none">
+                        <h3 class="mb-4 flex items-center gap-2 border-b border-slate-100 pb-3 text-base font-black uppercase tracking-wider text-slate-800">
+                            <i class="fas fa-shopping-basket text-[#024DDF]"></i> Order Summary
                         </h3>
 
-                        <div id="selected-seats-container" class="space-y-2 max-h-[180px] overflow-y-auto mb-4 pr-1">
-                            <p class="text-xs font-bold text-gray-400 italic py-2">No active seat nodes locked yet.</p>
+                        <div id="selected-seats-container" class="mb-4 max-h-[220px] space-y-2 overflow-y-auto pr-1">
+                            <p class="py-2 text-xs font-bold italic text-slate-400">No seats selected yet.</p>
                         </div>
 
-                        <div class="border-t border-gray-100 pt-4 space-y-2">
-                            <div class="flex justify-between text-xs font-bold text-gray-500">
+                        <div class="space-y-3 border-t border-slate-100 pt-4">
+                            <div class="flex justify-between text-xs font-bold text-slate-500">
                                 <span>Selected Count:</span>
                                 <span id="summary-count">0 seats</span>
                             </div>
-                            <div class="flex justify-between items-baseline pt-2 border-t border-dashed border-gray-100">
-                                <span class="text-sm font-black text-gray-900">Estimated Total:</span>
-                                <span class="text-2xl font-black text-[#024DDF] tracking-tight" id="summary-total-price">$0.00</span>
+                            <div class="flex items-baseline justify-between border-t border-dashed border-slate-100 pt-3">
+                                <span class="text-sm font-black text-slate-950">Estimated Total:</span>
+                                <span class="text-2xl font-black tracking-tight text-[#024DDF]" id="summary-total-price">$0.00</span>
                             </div>
                         </div>
 
                         <form action="checkout.php" method="POST" class="mt-6">
                             <input type="hidden" name="serialized_seat_payload" id="serialized-seat-payload" value="">
                             <button type="submit"
-                                    class="w-full bg-[#024DDF] hover:bg-blue-800 text-white font-black text-sm uppercase tracking-widest py-4 px-6 rounded-xl transition-all shadow focus:outline-none flex items-center justify-center gap-2">
+                                    class="flex w-full items-center justify-center gap-2 rounded-xl bg-[#024DDF] px-6 py-4 text-sm font-black uppercase tracking-widest text-white shadow transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-100">
                                 Proceed to Checkout <i class="fas fa-arrow-right text-xs"></i>
                             </button>
                         </form>
                     </div>
-                </div>
+                </aside>
             </div>
         </main>
+
+        <div id="image-modal" class="fixed inset-0 z-[9999] hidden bg-slate-950/95 p-3 sm:p-5" role="dialog" aria-modal="true" aria-labelledby="image-modal-title">
+            <div class="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-2xl">
+                <div class="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-3 py-3 text-white sm:px-4">
+                    <div class="min-w-0">
+                        <h2 id="image-modal-title" class="truncate text-sm font-black uppercase tracking-wider">Image View</h2>
+                        <p id="image-modal-zoom-label" class="text-xs font-semibold text-slate-400">100%</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="zoomImage(-0.2)" class="modal-tool-btn" aria-label="Zoom out">
+                            <i class="fas fa-search-minus"></i>
+                        </button>
+                        <button type="button" onclick="resetImageZoom()" class="modal-tool-btn" aria-label="Reset zoom">
+                            <i class="fas fa-compress-alt"></i>
+                        </button>
+                        <button type="button" onclick="zoomImage(0.2)" class="modal-tool-btn" aria-label="Zoom in">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                        <button type="button" onclick="closeImageModal()" class="modal-tool-btn bg-white text-slate-950 hover:bg-blue-50" aria-label="Close image view">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="image-modal-stage" class="relative flex min-h-0 flex-1 touch-none cursor-grab items-center justify-center overflow-hidden bg-black">
+                    <img id="image-modal-img"
+                         src=""
+                         alt=""
+                         draggable="false"
+                         class="max-h-full max-w-full select-none object-contain transition-transform duration-100 ease-out">
+                </div>
+            </div>
+        </div>
 
         <?php include "inc/footer.php"; ?>
     </div>
 
     <script>
         let pickedSeatsRegister = [];
+        let activeImageScale = 1;
+        let activeImageTranslateX = 0;
+        let activeImageTranslateY = 0;
+        let isImageDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let dragOriginX = 0;
+        let dragOriginY = 0;
 
         function escapeHtml(value) {
             return String(value).replace(/[&<>"']/g, char => ({
@@ -257,6 +394,69 @@ if ($concert_not_found) {
                 '"': '&quot;',
                 "'": '&#039;'
             }[char]));
+        }
+
+        function openImageModal(src, title) {
+            const modal = document.getElementById('image-modal');
+            const image = document.getElementById('image-modal-img');
+            const titleElement = document.getElementById('image-modal-title');
+
+            if (!modal || !image || !src) {
+                return;
+            }
+
+            image.src = src;
+            image.alt = title || 'Expanded image';
+            titleElement.innerText = title || 'Image View';
+            modal.classList.remove('hidden');
+            document.body.classList.add('modal-open');
+            resetImageZoom();
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('image-modal');
+            const image = document.getElementById('image-modal-img');
+
+            if (!modal || !image) {
+                return;
+            }
+
+            modal.classList.add('hidden');
+            document.body.classList.remove('modal-open');
+            image.src = '';
+        }
+
+        function applyImageTransform() {
+            const image = document.getElementById('image-modal-img');
+            const zoomLabel = document.getElementById('image-modal-zoom-label');
+
+            if (!image) {
+                return;
+            }
+
+            image.style.transform = `translate(${activeImageTranslateX}px, ${activeImageTranslateY}px) scale(${activeImageScale})`;
+
+            if (zoomLabel) {
+                zoomLabel.innerText = `${Math.round(activeImageScale * 100)}%`;
+            }
+        }
+
+        function zoomImage(delta) {
+            activeImageScale = Math.min(4, Math.max(0.5, activeImageScale + delta));
+
+            if (activeImageScale <= 1) {
+                activeImageTranslateX = 0;
+                activeImageTranslateY = 0;
+            }
+
+            applyImageTransform();
+        }
+
+        function resetImageZoom() {
+            activeImageScale = 1;
+            activeImageTranslateX = 0;
+            activeImageTranslateY = 0;
+            applyImageTransform();
         }
 
         function toggleSectionDisplay(sectionId) {
@@ -271,13 +471,13 @@ if ($concert_not_found) {
             if (drawer.classList.contains('hidden')) {
                 drawer.classList.remove('hidden');
                 icon.classList.add('rotate-180');
-                card.classList.remove('border-gray-200');
+                card.classList.remove('border-slate-200');
                 card.classList.add('border-blue-200', 'shadow-md');
             } else {
                 drawer.classList.add('hidden');
                 icon.classList.remove('rotate-180');
                 card.classList.remove('border-blue-200', 'shadow-md');
-                card.classList.add('border-gray-200');
+                card.classList.add('border-slate-200');
             }
         }
 
@@ -288,7 +488,7 @@ if ($concert_not_found) {
             if (searchIndex > -1) {
                 pickedSeatsRegister.splice(searchIndex, 1);
                 buttonElement.classList.remove('bg-[#024DDF]', 'text-white', 'border-[#024DDF]', 'shadow-inner');
-                buttonElement.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+                buttonElement.classList.add('bg-white', 'text-slate-700', 'border-slate-300');
             } else {
                 pickedSeatsRegister.push({
                     id: compositeKeyId,
@@ -298,7 +498,7 @@ if ($concert_not_found) {
                     seat: seatName,
                     price: parseFloat(priceMetric) || 0
                 });
-                buttonElement.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                buttonElement.classList.remove('bg-white', 'text-slate-700', 'border-slate-300');
                 buttonElement.classList.add('bg-[#024DDF]', 'text-white', 'border-[#024DDF]', 'shadow-inner');
             }
 
@@ -313,15 +513,15 @@ if ($concert_not_found) {
             const hiddenPayloadInput = document.getElementById('serialized-seat-payload');
 
             if (pickedSeatsRegister.length === 0) {
-                sidebarPanel.classList.add('opacity-40', 'pointer-events-none', 'select-none');
-                container.innerHTML = `<p class="text-xs font-bold text-gray-400 italic py-2">No active seat nodes locked yet.</p>`;
+                sidebarPanel.classList.add('opacity-45', 'pointer-events-none', 'select-none');
+                container.innerHTML = `<p class="py-2 text-xs font-bold italic text-slate-400">No seats selected yet.</p>`;
                 countLabel.innerText = "0 seats";
                 priceLabel.innerText = "$0.00";
                 hiddenPayloadInput.value = "";
                 return;
             }
 
-            sidebarPanel.classList.remove('opacity-40', 'pointer-events-none', 'select-none');
+            sidebarPanel.classList.remove('opacity-45', 'pointer-events-none', 'select-none');
 
             let cumulativeTotalSum = 0;
             let injectionHtmlBuffer = "";
@@ -329,10 +529,10 @@ if ($concert_not_found) {
             pickedSeatsRegister.forEach(seatNode => {
                 cumulativeTotalSum += seatNode.price;
                 injectionHtmlBuffer += `
-                    <div class="flex items-center justify-between bg-blue-50/60 border border-blue-100 rounded-lg p-2.5 text-xs animate-fade-in">
+                    <div class="flex items-center justify-between rounded-xl border border-blue-100 bg-blue-50/70 p-3 text-xs">
                         <div>
-                            <span class="font-black text-gray-900 block">${escapeHtml(seatNode.section)} • ${escapeHtml(seatNode.row)}</span>
-                            <span class="font-bold text-gray-500">${escapeHtml(seatNode.seat)}</span>
+                            <span class="block font-black text-slate-950">${escapeHtml(seatNode.section)} / ${escapeHtml(seatNode.row)}</span>
+                            <span class="font-bold text-slate-500">${escapeHtml(seatNode.seat)}</span>
                         </div>
                         <span class="font-extrabold text-[#024DDF]">$${seatNode.price.toFixed(2)}</span>
                     </div>
@@ -340,16 +540,129 @@ if ($concert_not_found) {
             });
 
             container.innerHTML = injectionHtmlBuffer;
-            countLabel.innerText = `${pickedSeatsRegister.length} position(s) locked`;
+            countLabel.innerText = `${pickedSeatsRegister.length} seat(s)`;
             priceLabel.innerText = `$${cumulativeTotalSum.toFixed(2)}`;
             hiddenPayloadInput.value = JSON.stringify(pickedSeatsRegister);
         }
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                closeImageModal();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const stage = document.getElementById('image-modal-stage');
+            const modal = document.getElementById('image-modal');
+
+            if (!stage || !modal) {
+                return;
+            }
+
+            stage.addEventListener('wheel', event => {
+                if (modal.classList.contains('hidden')) {
+                    return;
+                }
+
+                event.preventDefault();
+                zoomImage(event.deltaY > 0 ? -0.15 : 0.15);
+            }, { passive: false });
+
+            stage.addEventListener('pointerdown', event => {
+                if (activeImageScale <= 1) {
+                    return;
+                }
+
+                isImageDragging = true;
+                stage.setPointerCapture(event.pointerId);
+                stage.classList.add('cursor-grabbing');
+                dragStartX = event.clientX;
+                dragStartY = event.clientY;
+                dragOriginX = activeImageTranslateX;
+                dragOriginY = activeImageTranslateY;
+            });
+
+            stage.addEventListener('pointermove', event => {
+                if (!isImageDragging) {
+                    return;
+                }
+
+                activeImageTranslateX = dragOriginX + event.clientX - dragStartX;
+                activeImageTranslateY = dragOriginY + event.clientY - dragStartY;
+                applyImageTransform();
+            });
+
+            stage.addEventListener('pointerup', event => {
+                isImageDragging = false;
+                stage.releasePointerCapture(event.pointerId);
+                stage.classList.remove('cursor-grabbing');
+            });
+
+            stage.addEventListener('pointercancel', () => {
+                isImageDragging = false;
+                stage.classList.remove('cursor-grabbing');
+            });
+        });
     </script>
 
     <style>
-        .rotate-180 { transform: rotate(180deg); }
-        .seat-btn { transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
-        body { overflow-x: hidden; }
+        body {
+            overflow-x: hidden;
+        }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+
+        .seat-btn {
+            transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .modal-tool-btn {
+            display: inline-flex;
+            width: 2.5rem;
+            height: 2.5rem;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.75rem;
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+        }
+
+        .modal-tool-btn:hover {
+            background: rgba(255, 255, 255, 0.16);
+            transform: translateY(-1px);
+        }
+
+        .modal-tool-btn.bg-white {
+            background: #fff;
+            color: #0f172a;
+        }
+
+        .section-image-empty {
+            display: flex;
+        }
+
+        .relative:has(img) .section-image-empty {
+            display: none;
+        }
+
+        .relative.image-load-failed .section-image-empty {
+            display: flex;
+        }
+
+        @media (max-width: 640px) {
+            .modal-tool-btn {
+                width: 2.25rem;
+                height: 2.25rem;
+                border-radius: 0.65rem;
+            }
+        }
     </style>
 </body>
 </html>
