@@ -1,34 +1,25 @@
 <?php
-// booking.php - Selection & Seat Reservation Pipeline
-// Enable error displaying so we can pinpoint issues if database structural details are missing
 ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// 1. Load the connection file from the 'config' folder
 require_once 'config/db.php';
 
-// 2. Instantiate your "Database" class and invoke connect() to expose $pdo safely
 $pdo = null;
 try {
     if (class_exists('Database')) {
         $dbInstance = new Database();
-        $pdo = $dbInstance->connect(); 
+        $pdo = $dbInstance->connect();
     }
-} catch (Exception $e) {
-    // Safe fallback handling if connection breaks down
-}
+} catch (Exception $e) {}
 
-// ---------------------------------------------
-// GET CONCERT ID
-// ---------------------------------------------
+$concert_not_found = false;
+$concert_id = null;
+
 if (!isset($_GET['concert_id'])) {
     $concert_not_found = true;
 } else {
     $concert_id = (int)$_GET['concert_id'];
 }
-
-$concert_id = (int)$_GET['concert_id'];
 
 $artist_name = "";
 $concert_title = "";
@@ -38,89 +29,71 @@ $ticket_sections = [];
 
 try {
 
-    // Fetch the concert
-    $stmt = $pdo->prepare("
-        SELECT *
-        FROM concerts
-        WHERE concert_id = ?
-        LIMIT 1
-    ");
+    if (!$concert_not_found && $pdo) {
 
-    $stmt->execute([$concert_id]);
-    $concert = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Concert
+        $stmt = $pdo->prepare("SELECT * FROM concerts WHERE concert_id = ? LIMIT 1");
+        $stmt->execute([$concert_id]);
+        $concert = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$concert) {
-        $concert_not_found = true;
-    }
-    }
+        if (!$concert) {
+            $concert_not_found = true;
+        } else {
 
-    // Get artist name
-    $stmt = $pdo->prepare("
-        SELECT artist_name
-        FROM artists
-        WHERE artist_id = ?
-        LIMIT 1
-    ");
+            // Artist
+            $stmt = $pdo->prepare("SELECT artist_name FROM artists WHERE artist_id = ? LIMIT 1");
+            $stmt->execute([$concert['artist_id']]);
+            $artist = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $stmt->execute([$concert['artist_id']]);
-    $artist = $stmt->fetch(PDO::FETCH_ASSOC);
+            $artist_name = $artist['artist_name'] ?? '';
+            $concert_title = $concert['title'];
 
-    $artist_name = $artist['artist_name'] ?? '';
+            $concert_details =
+                $concert['concert_date'] . " • " .
+                $concert['day_time'] . " • " .
+                $concert['venue'] . " • " .
+                $concert['location'];
 
-    // Concert details
-    $concert_title = $concert['title'];
+            $stadium_map_image = !empty($concert['map_view'])
+                ? "uploads/concerts/" . $concert['map_view']
+                : "assets/images/stadium-map.jpg";
 
-    $concert_details =
-        $concert['concert_date'] .
-        " • " .
-        $concert['day_time'] .
-        " • " .
-        $concert['venue'] .
-        " • " .
-        $concert['location'];
+            // Tickets
+            $stmt = $pdo->prepare("
+                SELECT * FROM tickets
+                WHERE concert_id = ?
+                ORDER BY section_name,row_name,seat_name
+            ");
+            $stmt->execute([$concert_id]);
 
-    if (!empty($concert['map_view'])) {
-        $stadium_map_image = "uploads/concerts/" . $concert['map_view'];
-    } else {
-        $stadium_map_image = "assets/images/stadium-map.jpg";
-    }
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
-    // Fetch tickets
-    $stmt = $pdo->prepare("
-        SELECT *
-        FROM tickets
-        WHERE concert_id = ?
-        ORDER BY section_name,row_name,seat_name
-    ");
+                $key = $row['section_name'].'_'.$row['row_name'];
 
-    $stmt->execute([$concert_id]);
+                if (!isset($ticket_sections[$key])) {
+                    $ticket_sections[$key] = [
+                        'id' => $key,
+                        'section' => $row['section_name'],
+                        'row' => $row['row_name'],
+                        'type' => $row['ticket_name'],
+                        'price' => $row['price'],
+                        'entry' => 'Mobile Entry',
+                        'seats' => []
+                    ];
+                }
 
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $ticket_sections[$key]['seats'][] = $row['seat_name'];
+            }
 
-        $key = $row['section_name'].'_'.$row['row_name'];
-
-        if (!isset($ticket_sections[$key])) {
-
-            $ticket_sections[$key] = [
-                'id'      => $key,
-                'section' => $row['section_name'],
-                'row'     => $row['row_name'],
-                'type'    => $row['ticket_name'],
-                'price'   => $row['price'],
-                'entry'   => 'Mobile Entry',
-                'seats'   => []
-            ];
+            $ticket_sections = array_values($ticket_sections);
         }
-
-        $ticket_sections[$key]['seats'][] = $row['seat_name'];
     }
-
-    $ticket_sections = array_values($ticket_sections);
 
 } catch (PDOException $e) {
-    die($e->getMessage());
+    die("Database error: " . $e->getMessage());
 }
 
+// fallback UI values
 if ($concert_not_found) {
     $artist_name = "Unavailable";
     $concert_title = "Concert Not Found";
@@ -128,8 +101,6 @@ if ($concert_not_found) {
     $stadium_map_image = "assets/images/stadium-map.jpg";
     $ticket_sections = [];
 }
-
-    
 ?>
 <!DOCTYPE html>
 <html lang="en">
