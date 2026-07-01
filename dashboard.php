@@ -34,7 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
         try {
             // Check if updates can be committed directly to database or keep transient
             if ($pdo !== null) {
-                // If you have a users table, this executes directly. Otherwise, it falls back to a success message.
                 $update_stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?");
                 $update_stmt->execute([$full_name, $email_address, $phone_number, $user_id]);
             }
@@ -47,21 +46,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     }
 }
 
-// 3. Fallback Data Layers (Ensures the user dashboard populates with standard info even if tables are empty)
+// 3. Fallback Data Layers (Ensures user profile populates nicely if tables are blank)
 $user_profile = [
     'name' => 'Jane Doe',
     'email' => 'janedoe@infinityfreeapp.com',
     'phone' => '+1 (555) 019-2834'
-];
-
-$recent_orders = [
-    ['id' => 'TM-908231', 'title' => "BTS WORLD TOUR 'ARIRANG'", 'venue' => 'MetLife Stadium', 'seats' => 'Sec 519, Row 20, Seat 1 & 2', 'status' => 'Confirmed Ticket', 'date' => 'Aug 01, 2026'],
-    ['id' => 'TM-441029', 'title' => 'Coldplay: Music of the Spheres', 'venue' => 'Wembley Stadium', 'seats' => 'Sec 102, Row 5, Seat 12', 'status' => 'Dispatched Node', 'date' => 'Sep 14, 2026']
-];
-
-$transaction_history = [
-    ['ref' => 'TXN-8829102', 'date' => '2026-06-15', 'method' => 'Visa ending in 4242', 'amount' => 459.80, 'status' => 'Successful'],
-    ['ref' => 'TXN-1102983', 'date' => '2026-05-11', 'method' => 'Apple Pay Electronic', 'amount' => 232.32, 'status' => 'Successful']
 ];
 
 $recently_viewed_shows = [
@@ -69,27 +58,70 @@ $recently_viewed_shows = [
     ['id' => 7, 'artist' => 'Blackpink', 'title' => 'Born Pink Finale Concert', 'location' => 'Seoul, South Korea']
 ];
 
-// 4. Fetch Dynamic Resources Uploaded by Admin Panel
+// 4. Fetch Dynamic Resources Uploaded by Admin Panel & Live Checkout Orders
 $admin_tickets = [];
 $admin_messages = [];
+$recent_orders = [];
+$transaction_history = [];
 
 if ($pdo !== null) {
     try {
-        // Fetch Admin Ticket uploads (adjust table name if needed)
+        // Fetch Real Orders generated through checkout.php for this explicit user session context
+        $order_query = $pdo->prepare("SELECT * FROM user_orders WHERE user_id = ? ORDER BY id DESC LIMIT 10");
+        $order_query->execute([$user_id]);
+        $raw_orders = $order_query->fetchAll();
+
+        foreach ($raw_orders as $order) {
+            // Map checkout structure properties cleanly into dashboard UI formatting layers
+            $recent_orders[] = [
+                'id' => 'TM-' . $order['id'],
+                'title' => $order['item_title'],
+                'venue' => 'Digital Delivery Arena', // Fallback context display string
+                'seats' => 'Payment Method: ' . strtoupper($order['payment_method']),
+                'status' => $order['status'], // processing, confirmed, pending
+                'date' => date('M d, Y', strtotime($order['created_at']))
+            ];
+
+            // Build out transaction list matching checkout metrics execution entries
+            $transaction_history[] = [
+                'ref' => 'TXN-' . (100000 + $order['id']),
+                'date' => date('Y-m-d', strtotime($order['created_at'])),
+                'method' => strtoupper($order['payment_method']) . ' Portal',
+                'amount' => $order['amount'],
+                'currency' => $order['currency'],
+                'status' => ($order['status'] === 'confirmed') ? 'Successful' : 'Processing'
+            ];
+        }
+
+        // Fetch Admin Ticket uploads
         $ticket_query = $pdo->prepare("SELECT * FROM admin_tickets ORDER BY id DESC LIMIT 3");
         $ticket_query->execute();
         $admin_tickets = $ticket_query->fetchAll();
 
-        // Fetch Admin Alert System Messages (adjust table name if needed)
+        // Fetch Admin Alert System Messages
         $message_query = $pdo->prepare("SELECT * FROM admin_messages ORDER BY id DESC LIMIT 5");
         $message_query->execute();
         $admin_messages = $message_query->fetchAll();
     } catch (Exception $e) {
-        // Tables do not exist yet; use fallback templates below
+        // Fallback catch logs block
     }
 }
 
-// Default fallback items for administrative modules if tables aren't built yet
+// -------------------------------------------------------------------------
+// HARD STATIC FALLBACK ENGINE MOUNT: Executes if table indexes are unseeded
+// -------------------------------------------------------------------------
+if (empty($recent_orders)) {
+    $recent_orders = [
+        ['id' => 'TM-908231', 'title' => "The Eras World Tour Live Finale Pass", 'venue' => 'Digital Gateway Platform', 'seats' => 'Payment Method: GIFT CARD', 'status' => 'processing', 'date' => date('M d, Y')],
+        ['id' => 'TM-441029', 'title' => 'Coldplay: Music of the Spheres Tour', 'venue' => 'Wembley Stadium', 'seats' => 'Sec 102, Row 5, Seat 12', 'status' => 'confirmed', 'date' => 'Sep 14, 2026']
+    ];
+}
+if (empty($transaction_history)) {
+    $transaction_history = [
+        ['ref' => 'TXN-8829102', 'date' => date('Y-m-d'), 'method' => 'GIFT CARD Wire', 'amount' => 150.00, 'currency' => 'USD', 'status' => 'Processing'],
+        ['ref' => 'TXN-1102983', 'date' => '2026-05-11', 'method' => 'Crypto Wallet Node', 'amount' => 232.32, 'currency' => 'USD', 'status' => 'Successful']
+    ];
+}
 if (empty($admin_tickets)) {
     $admin_tickets = [
         ['file_path' => 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=600&q=80', 'description' => 'VIP Golden Circle Early Entry Pass Package Allocation File Vector. Valid across all standard stadium layout properties. Please save to phone pass wallet storage.']
@@ -215,16 +247,29 @@ if (empty($admin_messages)) {
                                     <div class="space-y-1">
                                         <div class="flex items-center gap-2">
                                             <span class="text-[10px] font-mono font-black text-gray-400 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded"><?php echo htmlspecialchars($order['id']); ?></span>
-                                            <span class="text-xs font-black text-green-600 bg-green-50 px-2 py-0.5 rounded uppercase tracking-wide"><?php echo htmlspecialchars($order['status']); ?></span>
+                                            
+                                            <?php 
+                                                $status = strtolower($order['status']);
+                                                if ($status === 'confirmed') {
+                                                    $badge_cls = 'text-emerald-600 bg-emerald-50';
+                                                } elseif ($status === 'processing') {
+                                                    $badge_cls = 'text-amber-600 bg-amber-50 animate-pulse';
+                                                } else { // pending state handler
+                                                    $badge_cls = 'text-blue-600 bg-blue-50';
+                                                }
+                                            ?>
+                                            <span class="text-xs font-black px-2 py-0.5 rounded uppercase tracking-wide <?php echo $badge_cls; ?>">
+                                                <?php echo htmlspecialchars($order['status']); ?>
+                                            </span>
                                         </div>
                                         <h4 class="text-sm font-black text-gray-900 tracking-tight"><?php echo htmlspecialchars($order['title']); ?></h4>
                                         <p class="text-xs text-gray-500 font-medium">
-                                            <i class="fas fa-map-marker-alt text-gray-400 mr-1"></i> <?php echo htmlspecialchars($order['venue']); ?> • <span class="font-bold text-gray-600"><?php echo htmlspecialchars($order['seats']); ?></span>
+                                            <i class="fas fa-wallet text-gray-400 mr-1"></i> <?php echo htmlspecialchars($order['venue']); ?> • <span class="font-bold text-gray-600"><?php echo htmlspecialchars($order['seats']); ?></span>
                                         </p>
                                     </div>
                                     <div class="text-left sm:text-right w-full sm:w-auto shrink-0 border-t sm:border-t-0 border-gray-100 pt-2 sm:pt-0">
                                         <span class="text-xs font-black text-gray-800 block"><?php echo htmlspecialchars($order['date']); ?></span>
-                                        <span class="text-[10px] text-gray-400 block font-medium">Doors open 6:30 PM</span>
+                                        <span class="text-[10px] text-gray-400 block font-medium">Platform Transaction Tracking Node</span>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -252,9 +297,15 @@ if (empty($admin_messages)) {
                                             <td class="p-3 font-mono font-bold text-gray-900"><?php echo htmlspecialchars($txn['ref']); ?></td>
                                             <td class="p-3 text-gray-500 font-bold"><?php echo htmlspecialchars($txn['date']); ?></td>
                                             <td class="p-3 text-gray-500 font-bold"><?php echo htmlspecialchars($txn['method']); ?></td>
-                                            <td class="p-3 text-right font-black text-[#024DDF]">$<?php echo number_format($txn['amount'], 2); ?></td>
+                                            <td class="p-3 text-right font-black text-[#024DDF]">
+                                                <?php 
+                                                    // Explicit Multi-Currency Representation Render
+                                                    $symbol = ($txn['currency'] === 'EUR') ? '€' : (($txn['currency'] === 'GBP') ? '£' : '$');
+                                                    echo $symbol . number_format($txn['amount'], 2); 
+                                                ?>
+                                            </td>
                                             <td class="p-3 text-center">
-                                                <span class="bg-blue-50 text-blue-700 font-black tracking-wide uppercase px-2 py-0.5 rounded text-[10px]">
+                                                <span class="font-black tracking-wide uppercase px-2 py-0.5 rounded text-[10px] <?php echo ($txn['status'] === 'Successful') ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'; ?>">
                                                     <?php echo htmlspecialchars($txn['status']); ?>
                                                 </span>
                                             </td>
