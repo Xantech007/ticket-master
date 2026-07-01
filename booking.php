@@ -224,7 +224,7 @@ if ($concert_not_found) {
                     <?php foreach ($ticket_sections as $sec): ?>
                         <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-blue-200 hover:shadow-md" id="card-<?php echo e($sec['id']); ?>">
                             <div class="grid gap-0 md:grid-cols-[180px_1fr]">
-                                <div class="relative min-h-[150px] bg-slate-100">
+                                <div class="relative min-h-[150px] bg-slate-100 hidden md:block">
                                     <?php if (!empty($sec['section_view'])): ?>
                                         <button type="button"
                                                 onclick="event.stopPropagation(); openImageModal(<?php echo js($sec['section_view']); ?>, <?php echo js(($sec['section'] ?: 'Section') . ' ' . ($sec['row'] ?: 'View')); ?>)"
@@ -260,10 +260,22 @@ if ($concert_not_found) {
                                                 <span class="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase text-amber-700">
                                                     <?php echo e($sec['type']); ?>
                                                 </span>
+                                            
                                                 <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-500">
-                                                    <i class="fas fa-mobile-alt"></i> <?php echo e($sec['entry']); ?>
+                                                    <i class="fas fa-mobile-alt"></i>
+                                                    <?php echo e($sec['entry']); ?>
                                                 </span>
                                             </span>
+                                            
+                                            <?php if (!empty($sec['section_view'])): ?>
+                                            <button
+                                                type="button"
+                                                onclick="event.stopPropagation();openImageModal(<?php echo js($sec['section_view']); ?>,<?php echo js($sec['section'].' '.$sec['row']); ?>)"
+                                                class="mt-3 inline-flex md:hidden items-center gap-2 rounded-lg bg-[#024DDF] px-3 py-2 text-xs font-bold text-white">
+                                                <i class="fas fa-image"></i>
+                                                View Section
+                                            </button>
+                                            <?php endif; ?>
                                         </span>
                                         <span class="flex shrink-0 items-center gap-3 text-right">
                                             <span>
@@ -308,7 +320,8 @@ if ($concert_not_found) {
                 </div>
 
                 <aside class="lg:col-span-4 lg:sticky lg:top-4">
-                    <div id="checkout-sidebar-panel" class="rounded-2xl border border-slate-200 bg-white p-5 opacity-45 shadow-md transition sm:p-6 pointer-events-none select-none">
+                    <div id="checkout-sidebar-panel"
+                    class="rounded-2xl border border-slate-200 bg-white p-5 opacity-45 shadow-md transition sm:p-6">
                         <h3 class="mb-4 flex items-center gap-2 border-b border-slate-100 pb-3 text-base font-black uppercase tracking-wider text-slate-800">
                             <i class="fas fa-shopping-basket text-[#024DDF]"></i> Order Summary
                         </h3>
@@ -330,7 +343,9 @@ if ($concert_not_found) {
 
                         <form action="checkout.php" method="POST" class="mt-6">
                             <input type="hidden" name="serialized_seat_payload" id="serialized-seat-payload" value="">
-                            <button type="submit"
+                            <button
+                            id="checkoutBtn"
+                            type="submit"
                                     class="flex w-full items-center justify-center gap-2 rounded-xl bg-[#024DDF] px-6 py-4 text-sm font-black uppercase tracking-widest text-white shadow transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-100">
                                 Proceed to Checkout <i class="fas fa-arrow-right text-xs"></i>
                             </button>
@@ -375,294 +390,458 @@ if ($concert_not_found) {
         <?php include "inc/footer.php"; ?>
     </div>
 
-    <script>
-        let pickedSeatsRegister = [];
-        let activeImageScale = 1;
-        let activeImageTranslateX = 0;
-        let activeImageTranslateY = 0;
-        let isImageDragging = false;
-        let dragStartX = 0;
-        let dragStartY = 0;
-        let dragOriginX = 0;
-        let dragOriginY = 0;
+<script>
+let pickedSeatsRegister = [];
 
-        function escapeHtml(value) {
-            return String(value).replace(/[&<>"']/g, char => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            }[char]));
-        }
+let activeImageScale = 1;
+let activeImageTranslateX = 0;
+let activeImageTranslateY = 0;
 
-        function openImageModal(src, title) {
-            const modal = document.getElementById('image-modal');
-            const image = document.getElementById('image-modal-img');
-            const titleElement = document.getElementById('image-modal-title');
+let isImageDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragOriginX = 0;
+let dragOriginY = 0;
 
-            if (!modal || !image || !src) {
-                return;
-            }
+let pinchStartDistance = 0;
 
-            image.src = src;
-            image.alt = title || 'Expanded image';
-            titleElement.innerText = title || 'Image View';
-            modal.classList.remove('hidden');
-            document.body.classList.add('modal-open');
-            resetImageZoom();
-        }
+function escapeHtml(value){
+    return String(value).replace(/[&<>"']/g,char=>({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#039;'
+    }[char]));
+}
 
-        function closeImageModal() {
-            const modal = document.getElementById('image-modal');
-            const image = document.getElementById('image-modal-img');
+function openImageModal(src,title){
 
-            if (!modal || !image) {
-                return;
-            }
+    const modal=document.getElementById('image-modal');
+    const image=document.getElementById('image-modal-img');
 
-            modal.classList.add('hidden');
-            document.body.classList.remove('modal-open');
-            image.src = '';
-        }
+    if(!src)return;
 
-        function applyImageTransform() {
-            const image = document.getElementById('image-modal-img');
-            const zoomLabel = document.getElementById('image-modal-zoom-label');
+    image.src=src;
+    image.alt=title||"Image";
 
-            if (!image) {
-                return;
-            }
+    document.getElementById("image-modal-title").innerText=title||"Image";
 
-            image.style.transform = `translate(${activeImageTranslateX}px, ${activeImageTranslateY}px) scale(${activeImageScale})`;
+    modal.classList.remove("hidden");
+    document.body.classList.add("modal-open");
 
-            if (zoomLabel) {
-                zoomLabel.innerText = `${Math.round(activeImageScale * 100)}%`;
-            }
-        }
+    resetImageZoom();
+}
 
-        function zoomImage(delta) {
-            activeImageScale = Math.min(4, Math.max(0.5, activeImageScale + delta));
+function closeImageModal(){
 
-            if (activeImageScale <= 1) {
-                activeImageTranslateX = 0;
-                activeImageTranslateY = 0;
-            }
+    document.getElementById("image-modal").classList.add("hidden");
+    document.body.classList.remove("modal-open");
 
-            applyImageTransform();
-        }
+    document.getElementById("image-modal-img").src="";
 
-        function resetImageZoom() {
-            activeImageScale = 1;
-            activeImageTranslateX = 0;
-            activeImageTranslateY = 0;
-            applyImageTransform();
-        }
+    resetImageZoom();
+}
 
-        function toggleSectionDisplay(sectionId) {
-            const drawer = document.getElementById('drawer-' + sectionId);
-            const icon = document.getElementById('icon-' + sectionId);
-            const card = document.getElementById('card-' + sectionId);
+function applyImageTransform(){
 
-            if (!drawer || !icon || !card) {
-                return;
-            }
+    const image=document.getElementById("image-modal-img");
 
-            if (drawer.classList.contains('hidden')) {
-                drawer.classList.remove('hidden');
-                icon.classList.add('rotate-180');
-                card.classList.remove('border-slate-200');
-                card.classList.add('border-blue-200', 'shadow-md');
-            } else {
-                drawer.classList.add('hidden');
-                icon.classList.remove('rotate-180');
-                card.classList.remove('border-blue-200', 'shadow-md');
-                card.classList.add('border-slate-200');
-            }
-        }
+    image.style.transform=
+        `translate(${activeImageTranslateX}px,${activeImageTranslateY}px) scale(${activeImageScale})`;
 
-        function toggleSeatSelection(buttonElement, sectionId, seatName, priceMetric, sectionName, rowName) {
-            const compositeKeyId = `${sectionId}_${seatName}`;
-            const searchIndex = pickedSeatsRegister.findIndex(item => item.id === compositeKeyId);
+    document.getElementById("image-modal-zoom-label").innerText=
+        Math.round(activeImageScale*100)+"%";
+}
 
-            if (searchIndex > -1) {
-                pickedSeatsRegister.splice(searchIndex, 1);
-                buttonElement.classList.remove('bg-[#024DDF]', 'text-white', 'border-[#024DDF]', 'shadow-inner');
-                buttonElement.classList.add('bg-white', 'text-slate-700', 'border-slate-300');
-            } else {
-                pickedSeatsRegister.push({
-                    id: compositeKeyId,
-                    section_id: sectionId,
-                    section: sectionName,
-                    row: rowName,
-                    seat: seatName,
-                    price: parseFloat(priceMetric) || 0
-                });
-                buttonElement.classList.remove('bg-white', 'text-slate-700', 'border-slate-300');
-                buttonElement.classList.add('bg-[#024DDF]', 'text-white', 'border-[#024DDF]', 'shadow-inner');
-            }
+function zoomImage(delta){
 
-            refreshSidebarStateView();
-        }
+    activeImageScale+=delta;
 
-        function refreshSidebarStateView() {
-            const sidebarPanel = document.getElementById('checkout-sidebar-panel');
-            const container = document.getElementById('selected-seats-container');
-            const countLabel = document.getElementById('summary-count');
-            const priceLabel = document.getElementById('summary-total-price');
-            const hiddenPayloadInput = document.getElementById('serialized-seat-payload');
+    if(activeImageScale<1)
+        activeImageScale=1;
 
-            if (pickedSeatsRegister.length === 0) {
-                sidebarPanel.classList.add('opacity-45', 'pointer-events-none', 'select-none');
-                container.innerHTML = `<p class="py-2 text-xs font-bold italic text-slate-400">No seats selected yet.</p>`;
-                countLabel.innerText = "0 seats";
-                priceLabel.innerText = "$0.00";
-                hiddenPayloadInput.value = "";
-                return;
-            }
+    if(activeImageScale>5)
+        activeImageScale=5;
 
-            sidebarPanel.classList.remove('opacity-45', 'pointer-events-none', 'select-none');
+    if(activeImageScale===1){
+        activeImageTranslateX=0;
+        activeImageTranslateY=0;
+    }
 
-            let cumulativeTotalSum = 0;
-            let injectionHtmlBuffer = "";
+    applyImageTransform();
+}
 
-            pickedSeatsRegister.forEach(seatNode => {
-                cumulativeTotalSum += seatNode.price;
-                injectionHtmlBuffer += `
-                    <div class="flex items-center justify-between rounded-xl border border-blue-100 bg-blue-50/70 p-3 text-xs">
-                        <div>
-                            <span class="block font-black text-slate-950">${escapeHtml(seatNode.section)} / ${escapeHtml(seatNode.row)}</span>
-                            <span class="font-bold text-slate-500">${escapeHtml(seatNode.seat)}</span>
-                        </div>
-                        <span class="font-extrabold text-[#024DDF]">$${seatNode.price.toFixed(2)}</span>
-                    </div>
-                `;
-            });
+function resetImageZoom(){
 
-            container.innerHTML = injectionHtmlBuffer;
-            countLabel.innerText = `${pickedSeatsRegister.length} seat(s)`;
-            priceLabel.innerText = `$${cumulativeTotalSum.toFixed(2)}`;
-            hiddenPayloadInput.value = JSON.stringify(pickedSeatsRegister);
-        }
+    activeImageScale=1;
+    activeImageTranslateX=0;
+    activeImageTranslateY=0;
 
-        document.addEventListener('keydown', event => {
-            if (event.key === 'Escape') {
-                closeImageModal();
-            }
+    applyImageTransform();
+}
+
+function getDistance(t1,t2){
+
+    const dx=t1.clientX-t2.clientX;
+    const dy=t1.clientY-t2.clientY;
+
+    return Math.sqrt(dx*dx+dy*dy);
+
+}
+
+function toggleSectionDisplay(sectionId){
+
+    const drawer=document.getElementById("drawer-"+sectionId);
+    const icon=document.getElementById("icon-"+sectionId);
+    const card=document.getElementById("card-"+sectionId);
+
+    if(!drawer)return;
+
+    drawer.classList.toggle("hidden");
+    icon.classList.toggle("rotate-180");
+
+    card.classList.toggle("border-blue-200");
+    card.classList.toggle("shadow-md");
+    card.classList.toggle("border-slate-200");
+}
+
+function toggleSeatSelection(btn,sectionId,seatName,priceMetric,sectionName,rowName){
+
+    const id=sectionId+"_"+seatName;
+
+    const index=pickedSeatsRegister.findIndex(s=>s.id===id);
+
+    if(index>-1){
+
+        pickedSeatsRegister.splice(index,1);
+
+        btn.classList.remove("selected-seat");
+
+    }else{
+
+        pickedSeatsRegister.push({
+
+            id:id,
+            section_id:sectionId,
+            section:sectionName,
+            row:rowName,
+            seat:seatName,
+            price:parseFloat(priceMetric)||0
+
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const stage = document.getElementById('image-modal-stage');
-            const modal = document.getElementById('image-modal');
+        btn.classList.add("selected-seat");
 
-            if (!stage || !modal) {
-                return;
-            }
+    }
 
-            stage.addEventListener('wheel', event => {
-                if (modal.classList.contains('hidden')) {
-                    return;
-                }
+    refreshSidebarStateView();
 
-                event.preventDefault();
-                zoomImage(event.deltaY > 0 ? -0.15 : 0.15);
-            }, { passive: false });
+}
 
-            stage.addEventListener('pointerdown', event => {
-                if (activeImageScale <= 1) {
-                    return;
-                }
+function refreshSidebarStateView(){
 
-                isImageDragging = true;
-                stage.setPointerCapture(event.pointerId);
-                stage.classList.add('cursor-grabbing');
-                dragStartX = event.clientX;
-                dragStartY = event.clientY;
-                dragOriginX = activeImageTranslateX;
-                dragOriginY = activeImageTranslateY;
-            });
+    const sidebar=document.getElementById("checkout-sidebar-panel");
 
-            stage.addEventListener('pointermove', event => {
-                if (!isImageDragging) {
-                    return;
-                }
+    const container=document.getElementById("selected-seats-container");
 
-                activeImageTranslateX = dragOriginX + event.clientX - dragStartX;
-                activeImageTranslateY = dragOriginY + event.clientY - dragStartY;
-                applyImageTransform();
-            });
+    const count=document.getElementById("summary-count");
 
-            stage.addEventListener('pointerup', event => {
-                isImageDragging = false;
-                stage.releasePointerCapture(event.pointerId);
-                stage.classList.remove('cursor-grabbing');
-            });
+    const total=document.getElementById("summary-total-price");
 
-            stage.addEventListener('pointercancel', () => {
-                isImageDragging = false;
-                stage.classList.remove('cursor-grabbing');
-            });
-        });
-    </script>
+    const payload=document.getElementById("serialized-seat-payload");
 
-    <style>
-        body {
-            overflow-x: hidden;
+    const checkout=document.getElementById("checkoutBtn");
+
+    if(pickedSeatsRegister.length===0){
+
+        sidebar.classList.add("opacity-45","pointer-events-none","select-none");
+
+        container.innerHTML=
+        `<p class="py-2 text-xs font-bold italic text-slate-400">
+        No seats selected yet.
+        </p>`;
+
+        count.innerHTML="0 seats";
+
+        total.innerHTML="$0.00";
+
+        payload.value="";
+
+        if(checkout) checkout.disabled=true;
+
+        return;
+    }
+
+    sidebar.classList.remove("opacity-45","pointer-events-none","select-none");
+
+    if(checkout) checkout.disabled=false;
+
+    let sum=0;
+
+    let html="";
+
+    pickedSeatsRegister.forEach(item=>{
+
+        sum+=item.price;
+
+        html+=`
+        <div class="flex justify-between rounded-xl border border-blue-100 bg-blue-50 p-3 text-xs">
+            <div>
+                <div class="font-black">${escapeHtml(item.section)} / ${escapeHtml(item.row)}</div>
+                <div>${escapeHtml(item.seat)}</div>
+            </div>
+            <div class="font-black text-[#024DDF]">$${item.price.toFixed(2)}</div>
+        </div>`;
+
+    });
+
+    container.innerHTML=html;
+
+    count.innerHTML=pickedSeatsRegister.length+" seat(s)";
+
+    total.innerHTML="$"+sum.toFixed(2);
+
+    payload.value=JSON.stringify(pickedSeatsRegister);
+
+}
+
+document.addEventListener("keydown",e=>{
+
+    if(e.key==="Escape")
+        closeImageModal();
+
+});
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+    const stage=document.getElementById("image-modal-stage");
+
+    const modal=document.getElementById("image-modal");
+
+    stage.addEventListener("wheel",e=>{
+
+        if(modal.classList.contains("hidden")) return;
+
+        e.preventDefault();
+
+        zoomImage(e.deltaY>0?-0.15:0.15);
+
+    },{passive:false});
+
+    stage.addEventListener("pointerdown",e=>{
+
+        if(activeImageScale<=1) return;
+
+        isImageDragging=true;
+
+        dragStartX=e.clientX;
+        dragStartY=e.clientY;
+
+        dragOriginX=activeImageTranslateX;
+        dragOriginY=activeImageTranslateY;
+
+        stage.setPointerCapture(e.pointerId);
+
+    });
+
+    stage.addEventListener("pointermove",e=>{
+
+        if(!isImageDragging) return;
+
+        activeImageTranslateX=
+        dragOriginX+(e.clientX-dragStartX);
+
+        activeImageTranslateY=
+        dragOriginY+(e.clientY-dragStartY);
+
+        applyImageTransform();
+
+    });
+
+    stage.addEventListener("pointerup",()=>{
+
+        isImageDragging=false;
+
+    });
+
+    stage.addEventListener("pointercancel",()=>{
+
+        isImageDragging=false;
+
+    });
+
+    stage.addEventListener("touchmove",function(e){
+
+        if(e.touches.length!==2) return;
+
+        e.preventDefault();
+
+        const distance=getDistance(
+            e.touches[0],
+            e.touches[1]
+        );
+
+        if(!pinchStartDistance){
+
+            pinchStartDistance=distance;
+            return;
+
         }
 
-        body.modal-open {
-            overflow: hidden;
+        const diff=distance-pinchStartDistance;
+
+        activeImageScale+=diff*0.003;
+
+        if(activeImageScale<1)
+            activeImageScale=1;
+
+        if(activeImageScale>5)
+            activeImageScale=5;
+
+        pinchStartDistance=distance;
+
+        applyImageTransform();
+
+    },{passive:false});
+
+    stage.addEventListener("touchend",()=>{
+
+        pinchStartDistance=0;
+
+    });
+
+    stage.addEventListener("dblclick",()=>{
+
+        resetImageZoom();
+
+    });
+
+    refreshSidebarStateView();
+
+});
+</script>
+
+<style>
+    body {
+        overflow-x: hidden;
+    }
+
+    body.modal-open {
+        overflow: hidden;
+        touch-action: none;
+    }
+
+    .rotate-180 {
+        transform: rotate(180deg);
+    }
+
+    .seat-btn {
+        transition:
+            border-color .15s ease,
+            background-color .15s ease,
+            color .15s ease,
+            box-shadow .15s ease,
+            transform .15s ease;
+    }
+
+    .seat-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .selected-seat {
+        background: #024DDF !important;
+        color: #fff !important;
+        border-color: #024DDF !important;
+        box-shadow: inset 0 2px 8px rgba(0,0,0,.25);
+    }
+
+    .modal-tool-btn {
+        display: inline-flex;
+        width: 2.5rem;
+        height: 2.5rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: .75rem;
+        background: rgba(255,255,255,.08);
+        color: #fff;
+        transition: .2s;
+    }
+
+    .modal-tool-btn:hover {
+        background: rgba(255,255,255,.18);
+        transform: translateY(-1px);
+    }
+
+    .modal-tool-btn.bg-white {
+        background: #fff;
+        color: #0f172a;
+    }
+
+    #image-modal-stage {
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        overflow: hidden;
+    }
+
+    #image-modal-img {
+        transform-origin: center center;
+        cursor: grab;
+        will-change: transform;
+        transition: transform .08s linear;
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    #image-modal-stage.cursor-grabbing #image-modal-img,
+    #image-modal-img:active {
+        cursor: grabbing;
+    }
+
+    .section-image-empty {
+        display: flex;
+    }
+
+    .image-load-failed .section-image-empty {
+        display: flex;
+    }
+
+    @media (max-width:768px){
+
+        /* hide preview image on phones */
+        .ticket-preview-image{
+            display:none;
         }
 
-        .rotate-180 {
-            transform: rotate(180deg);
+        #image-modal{
+            padding:.5rem;
         }
 
-        .seat-btn {
-            transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+        .modal-tool-btn{
+            width:2.2rem;
+            height:2.2rem;
+            border-radius:.65rem;
         }
 
-        .modal-tool-btn {
-            display: inline-flex;
-            width: 2.5rem;
-            height: 2.5rem;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.75rem;
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-            transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+        #image-modal-title{
+            font-size:.8rem;
         }
 
-        .modal-tool-btn:hover {
-            background: rgba(255, 255, 255, 0.16);
-            transform: translateY(-1px);
+        #image-modal-zoom-label{
+            font-size:.7rem;
         }
 
-        .modal-tool-btn.bg-white {
-            background: #fff;
-            color: #0f172a;
+    }
+
+    @media (max-width:640px){
+
+        .modal-tool-btn{
+            width:2rem;
+            height:2rem;
         }
 
-        .section-image-empty {
-            display: flex;
-        }
-
-        .relative:has(img) .section-image-empty {
-            display: none;
-        }
-
-        .relative.image-load-failed .section-image-empty {
-            display: flex;
-        }
-
-        @media (max-width: 640px) {
-            .modal-tool-btn {
-                width: 2.25rem;
-                height: 2.25rem;
-                border-radius: 0.65rem;
-            }
-        }
-    </style>
+    }
+</style>
 </body>
 </html>
