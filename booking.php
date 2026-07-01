@@ -130,7 +130,7 @@ if ($concert_not_found) {
 
         <div class="w-full bg-black relative h-[260px] md:h-[420px] overflow-hidden select-none shadow-inner">
             <img src="<?php echo e($stadium_map_image); ?>"
-                 onerror="this.src='https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1600&q=80';"
+                 onerror="this.onerror=null; this.src='assets/images/stadium-map.jpg';"
                  alt="Stadium Grid Mapping Layout"
                  class="w-full h-full object-cover opacity-90 object-center">
             <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
