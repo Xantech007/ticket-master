@@ -83,6 +83,34 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
                 throw new Exception("Invalid event type.");
             }
 
+            $map_view = null;
+            
+            if(
+                isset($_FILES['map_view']) &&
+                $_FILES['map_view']['error'] === UPLOAD_ERR_OK
+            ){
+            
+                $uploadDir = "../uploads/concerts/";
+            
+                if(!is_dir($uploadDir)){
+                    mkdir($uploadDir,0755,true);
+                }
+            
+                $extension = strtolower(
+                    pathinfo(
+                        $_FILES['map_view']['name'],
+                        PATHINFO_EXTENSION
+                    )
+                );
+            
+                $map_view = uniqid("map_").".".$extension;
+            
+                move_uploaded_file(
+                    $_FILES['map_view']['tmp_name'],
+                    $uploadDir.$map_view
+                );
+            }
+
             $stmt=$pdo->prepare("
             INSERT INTO concerts
             (
@@ -92,10 +120,11 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
                 venue,
                 location,
                 title,
-                index_type
+                index_type,
+                map_view
             )
             VALUES
-            (?,?,?,?,?,?,?)
+            (?,?,?,?,?,?,?,?)
             ");
 
             $stmt->execute([
@@ -105,7 +134,8 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
                 $venue,
                 $location,
                 $title,
-                $index_type
+                $index_type,
+                $map_view
             ]);
 
             $_SESSION['success']="Concert added.";
@@ -275,6 +305,7 @@ Add Concert
 <th>Location</th>
 <th>Title</th>
 <th>Section</th>
+<th>Map View</th>
 <th>Action</th>
 
 </tr>
@@ -329,6 +360,22 @@ No concerts found.
     ?>
 </td>
 
+<td style="padding:12px;text-align:center;">
+
+<?php if(!empty($concert['map_view'])){ ?>
+
+<img
+src="../uploads/concerts/<?= htmlspecialchars($concert['map_view']) ?>"
+style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
+
+<?php }else{ ?>
+
+<span style="color:#888;">No Map</span>
+
+<?php } ?>
+
+</td>
+
 <td style="padding:12px;">
 
 <div style="display:flex;gap:8px;align-items:center;">
@@ -377,7 +424,7 @@ No concerts found.
 
 <h2>Add Concert</h2>
 
-<form method="POST">
+<form method="POST" enctype="multipart/form-data">
 
 <input type="hidden" name="action" value="add">
 
@@ -412,6 +459,14 @@ style="width:100%;padding:10px;margin:10px 0 20px;">
     <option value="sponsored">Sponsored Presales & Offers</option>
 
 </select>
+
+<label>Venue Map</label>
+
+<input
+type="file"
+name="map_view"
+accept="image/*"
+style="width:100%;padding:10px;margin:10px 0 20px;">
 
 <button class="btn" style="width:100%;">
 
