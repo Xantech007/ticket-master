@@ -199,3 +199,6 @@ const countryCodes = {
   "Zambia": "+260",
   "Zimbabwe": "+263"
 };
+document.getElementById("countrySelect").addEventListener("change", function () {
+    document.getElementById("codeSelect").innerHTML =
+        `<option>${countryCodes[this.value] || ""}</option>`;
