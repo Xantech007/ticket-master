@@ -148,7 +148,7 @@ try {
         <div class="w-full bg-black relative h-[260px] md:h-[420px] overflow-hidden select-none shadow-inner">
             <img
                 src="<?php echo htmlspecialchars($stadium_map_image); ?>"
-                onclick="openImageModal('<?php echo htmlspecialchars($stadium_map_image); ?>')"
+                onclick="openImageModal('<?php echo htmlspecialchars($stadium_map_image); ?>','map')"
                 class="w-full h-full object-cover opacity-90 object-center cursor-zoom-in"
                  onerror="this.src='https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1600&q=80';" 
                  alt="Stadium Grid Mapping Layout" 
@@ -190,7 +190,8 @@ try {
                                         <?php if(!empty($sec['view'])): ?>
                                         <button
                                             type="button"
-                                            onclick="event.stopPropagation();openImageModal('<?php echo htmlspecialchars($sec['view']); ?>')"
+                                            onclick="event.stopPropagation();
+                                            openImageModal('<?php echo htmlspecialchars($sec['view']); ?>','section')"
                                             class="text-[10px] font-black uppercase bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded hover:bg-blue-100 transition-colors">
                                             <i class="fas fa-image mr-1"></i>
                                             Section View
@@ -266,50 +267,85 @@ try {
         <!-- Image Viewer -->
         <div
             id="imageModal"
-            class="fixed inset-0 bg-black/90 z-[9999] hidden items-center justify-center">
+            class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4">
         
-            <button
-                onclick="closeImageModal()"
-                class="absolute top-5 right-5 text-white text-4xl">
-                &times;
-            </button>
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
         
-            <div class="absolute top-5 left-5 flex gap-3">
+                <!-- Header -->
+                <div class="flex items-center justify-between border-b px-6 py-4">
+                    <div>
+                        <h3 id="modalTitle" class="text-xl font-black text-gray-900">
+                            Venue Map
+                        </h3>
+                        <p id="modalDescription" class="text-sm text-gray-500 mt-1">
+                            Use this image as a reference while selecting your seats.
+                        </p>
+                    </div>
         
-                <button
-                    onclick="zoomIn()"
-                    class="bg-white rounded-lg px-4 py-2 font-bold">
-                    +
-                </button>
+                    <button
+                        onclick="closeImageModal()"
+                        class="text-gray-500 hover:text-black text-3xl leading-none">
+                        &times;
+                    </button>
+                </div>
         
-                <button
-                    onclick="zoomOut()"
-                    class="bg-white rounded-lg px-4 py-2 font-bold">
-                    −
-                </button>
+                <!-- Controls -->
+                <div class="flex items-center gap-3 px-6 py-3 bg-gray-50 border-b">
         
-                <button
-                    onclick="resetZoom()"
-                    class="bg-white rounded-lg px-4 py-2 font-bold">
-                    Reset
-                </button>
+                    <button
+                        onclick="zoomIn()"
+                        class="bg-white border rounded-lg px-4 py-2 font-semibold hover:bg-gray-100">
+                        +
+                    </button>
         
-            </div>
+                    <button
+                        onclick="zoomOut()"
+                        class="bg-white border rounded-lg px-4 py-2 font-semibold hover:bg-gray-100">
+                        −
+                    </button>
         
-            <div class="overflow-auto w-full h-full flex justify-center items-center">
+                    <button
+                        onclick="resetZoom()"
+                        class="bg-white border rounded-lg px-4 py-2 font-semibold hover:bg-gray-100">
+                        Reset
+                    </button>
         
-                <img
-                    id="modalImage"
-                    src=""
-                    class="max-w-none transition-transform duration-200 select-none"
-                    style="transform:scale(1);">
+                </div>
+        
+                <!-- Image -->
+                <div class="flex-1 overflow-auto bg-gray-100 flex justify-center items-center p-6">
+        
+                    <img
+                        id="modalImage"
+                        src=""
+                        class="max-w-none transition-transform duration-200 rounded-lg shadow-lg"
+                        style="transform:scale(1);">
+        
+                </div>
+        
+                <!-- Footer Information -->
+                <div class="border-t bg-white px-6 py-4">
+        
+                    <div id="modalInfo"
+                         class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+        
+                        <h4 class="font-bold text-blue-800 mb-2">
+                            Viewing Instructions
+                        </h4>
+        
+                        <ul class="text-sm text-gray-600 space-y-1 list-disc pl-5">
+                            <li>Use the zoom controls to inspect the seating layout.</li>
+                            <li>Compare this image with the available seating list.</li>
+                            <li>Seat availability is determined by the booking list, not the image.</li>
+                        </ul>
+        
+                    </div>
+        
+                </div>
         
             </div>
         
         </div>
-
-        <?php include "inc/footer.php"; ?>
-    </div>
 
     <script>
         // Track globally selected seat nodes data matrix array
@@ -405,7 +441,7 @@ try {
 
         let currentZoom = 1;
         
-        function openImageModal(image) {
+        function openImageModal(image, type = "map") {
         
             currentZoom = 1;
         
@@ -415,51 +451,52 @@ try {
             img.src = image;
             img.style.transform = "scale(1)";
         
+            const title = document.getElementById("modalTitle");
+            const desc = document.getElementById("modalDescription");
+            const info = document.getElementById("modalInfo");
+        
+            if(type === "section"){
+        
+                title.innerText = "Section View";
+        
+                desc.innerText =
+                    "Preview the perspective from this seating section before selecting your seats.";
+        
+                info.innerHTML = `
+                    <h4 class="font-bold text-blue-800 mb-2">
+                        Before You Book
+                    </h4>
+        
+                    <ul class="text-sm text-gray-600 space-y-1 list-disc pl-5">
+                        <li>This is an approximate view from the selected section.</li>
+                        <li>Your exact experience may vary depending on your row and seat.</li>
+                        <li>Use this preview together with the venue map.</li>
+                    </ul>
+                `;
+        
+            }else{
+        
+                title.innerText = "Venue Seating Map";
+        
+                desc.innerText =
+                    "Reference map showing the location of each seating section inside the venue.";
+        
+                info.innerHTML = `
+                    <h4 class="font-bold text-blue-800 mb-2">
+                        How to Use This Map
+                    </h4>
+        
+                    <ul class="text-sm text-gray-600 space-y-1 list-disc pl-5">
+                        <li>Locate the section you intend to purchase.</li>
+                        <li>Expand the matching section below to choose available seats.</li>
+                        <li>Click any Section View button to preview the stage angle.</li>
+                    </ul>
+                `;
+            }
+        
             modal.classList.remove("hidden");
             modal.classList.add("flex");
         }
-        
-        function closeImageModal() {
-        
-            const modal = document.getElementById("imageModal");
-        
-            modal.classList.remove("flex");
-            modal.classList.add("hidden");
-        }
-        
-        function zoomIn() {
-        
-            currentZoom += 0.2;
-        
-            document.getElementById("modalImage").style.transform =
-                `scale(${currentZoom})`;
-        }
-        
-        function zoomOut() {
-        
-            currentZoom = Math.max(0.2, currentZoom - 0.2);
-        
-            document.getElementById("modalImage").style.transform =
-                `scale(${currentZoom})`;
-        }
-        
-        function resetZoom() {
-        
-            currentZoom = 1;
-        
-            document.getElementById("modalImage").style.transform =
-                "scale(1)";
-        }
-        
-        document.getElementById("imageModal").addEventListener("click", function(e){
-        
-            if(e.target === this){
-        
-                closeImageModal();
-        
-            }
-        
-        });
     </script>
 
     <style>
