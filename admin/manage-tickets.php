@@ -85,11 +85,11 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
             
             }
 
-            $seat_view = null;
+            $section_view = null;
             
             if (
-                isset($_FILES['seat_view']) &&
-                $_FILES['seat_view']['error'] === UPLOAD_ERR_OK
+                isset($_FILES['section_view']) &&
+                $_FILES['section_view']['error'] === UPLOAD_ERR_OK
             ) {
             
                 $uploadDir = "../uploads/tickets/";
@@ -98,16 +98,16 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
                     mkdir($uploadDir, 0755, true);
                 }
             
-                $ext = strtolower(pathinfo($_FILES['seat_view']['name'], PATHINFO_EXTENSION));
+                $ext = strtolower(pathinfo($_FILES['section_view']['name'], PATHINFO_EXTENSION));
             
                 $filename = uniqid('seat_') . "." . $ext;
             
                 move_uploaded_file(
-                    $_FILES['seat_view']['tmp_name'],
+                    $_FILES['section_view']['tmp_name'],
                     $uploadDir . $filename
                 );
             
-                $seat_view = $filename;
+                $section_view = $filename;
             }
 
             $stmt=$pdo->prepare("
@@ -119,7 +119,7 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
             row_name,
             seat_name,
             price,
-            seat_view
+            section_view
             )
             VALUES
             (?,?,?,?,?,?,?)
@@ -132,7 +132,7 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
                 $row_name,
                 $seat_name,
                 $price,
-                $seat_view
+                $section_view
             ]);
 
             $_SESSION['success']="Ticket added.";
@@ -374,9 +374,9 @@ $<?= number_format($ticket['price'],2) ?>
 </td>
 
 <td style="padding:12px;">
-    <?php if (!empty($ticket['seat_view'])): ?>
+    <?php if (!empty($ticket['section_view'])): ?>
         <img
-        src="../uploads/tickets/<?= htmlspecialchars($ticket['seat_view']) ?>"
+        src="../uploads/tickets/<?= htmlspecialchars($ticket['section_view']) ?>"
         style="width:55px;height:55px;object-fit:cover;border-radius:8px;">
     <?php else: ?>
         <span style="color:#888;">N/A</span>
@@ -444,7 +444,7 @@ Delete
 <input type="number" step="0.01" name="price" required style="width:100%;padding:10px;margin:10px 0 20px;">
 
 <label>Image</label>
-<input type="file" name="seat_view" required style="width:100%;padding:10px;margin:10px 0 20px;">
+<input type="file" name="section_view" required style="width:100%;padding:10px;margin:10px 0 20px;">
 
 <button class="btn" style="width:100%;">
 
