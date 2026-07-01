@@ -172,7 +172,7 @@ border-radius:10px;
 <input type="file" name="map_view" accept="image/*" style="width:100%;padding:10px;margin:10px 0 20px;">
 
 <button class="btn" style="width:100%;">
-    Update Concert
+    <i class="fas fa-save"></i> Save Changes
 </button>
 
 </form>
