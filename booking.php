@@ -10,12 +10,22 @@ try {
         $dbInstance = new Database();
         $pdo = $dbInstance->connect();
     }
-} catch (Exception $e) {}
+} catch (Exception $e) {
+    // Keep the page renderable; the fallback UI below handles missing data.
+}
+
+function e($value) {
+    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+}
+
+function js($value) {
+    return json_encode((string)$value, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+}
 
 $concert_not_found = false;
 $concert_id = null;
 
-if (!isset($_GET['concert_id'])) {
+if (!isset($_GET['concert_id']) || !ctype_digit((string)$_GET['concert_id'])) {
     $concert_not_found = true;
 } else {
     $concert_id = (int)$_GET['concert_id'];
@@ -28,10 +38,7 @@ $stadium_map_image = "";
 $ticket_sections = [];
 
 try {
-
     if (!$concert_not_found && $pdo) {
-
-        // Concert
         $stmt = $pdo->prepare("SELECT * FROM concerts WHERE concert_id = ? LIMIT 1");
         $stmt->execute([$concert_id]);
         $concert = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -39,61 +46,58 @@ try {
         if (!$concert) {
             $concert_not_found = true;
         } else {
-
-            // Artist
             $stmt = $pdo->prepare("SELECT artist_name FROM artists WHERE artist_id = ? LIMIT 1");
             $stmt->execute([$concert['artist_id']]);
             $artist = $stmt->fetch(PDO::FETCH_ASSOC);
 
             $artist_name = $artist['artist_name'] ?? '';
-            $concert_title = $concert['title'];
+            $concert_title = $concert['title'] ?? '';
 
-            $concert_details =
-                $concert['concert_date'] . " • " .
-                $concert['day_time'] . " • " .
-                $concert['venue'] . " • " .
-                $concert['location'];
+            $concert_details = implode(" • ", array_filter([
+                $concert['concert_date'] ?? '',
+                $concert['day_time'] ?? '',
+                $concert['venue'] ?? '',
+                $concert['location'] ?? '',
+            ]));
 
             $stadium_map_image = !empty($concert['map_view'])
-                ? "uploads/concerts/" . $concert['map_view']
+                ? "uploads/concerts/" . basename($concert['map_view'])
                 : "assets/images/stadium-map.jpg";
 
-            // Tickets
             $stmt = $pdo->prepare("
                 SELECT * FROM tickets
                 WHERE concert_id = ?
-                ORDER BY section_name,row_name,seat_name
+                ORDER BY section_name, row_name, seat_name
             ");
             $stmt->execute([$concert_id]);
 
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-
-                $key = $row['section_name'].'_'.$row['row_name'];
+                $section = $row['section_name'] ?? '';
+                $row_name = $row['row_name'] ?? '';
+                $key = md5($section . '|' . $row_name);
 
                 if (!isset($ticket_sections[$key])) {
                     $ticket_sections[$key] = [
                         'id' => $key,
-                        'section' => $row['section_name'],
-                        'row' => $row['row_name'],
-                        'type' => $row['ticket_name'],
-                        'price' => $row['price'],
+                        'section' => $section,
+                        'row' => $row_name,
+                        'type' => $row['ticket_name'] ?? '',
+                        'price' => (float)($row['price'] ?? 0),
                         'entry' => 'Mobile Entry',
                         'seats' => []
                     ];
                 }
 
-                $ticket_sections[$key]['seats'][] = $row['seat_name'];
+                $ticket_sections[$key]['seats'][] = $row['seat_name'] ?? '';
             }
 
             $ticket_sections = array_values($ticket_sections);
         }
     }
-
 } catch (PDOException $e) {
-    die("Database error: " . $e->getMessage());
+    die("Database error: " . e($e->getMessage()));
 }
 
-// fallback UI values
 if ($concert_not_found) {
     $artist_name = "Unavailable";
     $concert_title = "Concert Not Found";
@@ -106,28 +110,28 @@ if ($concert_not_found) {
 <html lang="en">
 
 <?php include "inc/head.php"; ?>
-<?php include "inc/navbar.php"; ?> 
 
 <body class="bg-gray-50 text-gray-900 font-sans antialiased">
     <div id="__next">
+        <?php include "inc/navbar.php"; ?>
         <?php include "inc/header.php"; ?>
 
         <div class="bg-white border-b border-gray-200 py-6 px-4 md:px-8 shadow-sm">
             <div class="max-w-7xl mx-auto">
                 <span class="text-xs font-black uppercase tracking-wider text-[#024DDF] bg-blue-50 px-2.5 py-1 rounded">Selected Concert Node</span>
                 <h1 class="text-2xl md:text-4xl font-black text-gray-900 tracking-tight mt-2">
-                    <?php echo htmlspecialchars($artist_name); ?> — <span class="font-bold text-gray-700"><?php echo htmlspecialchars($concert_title); ?></span>
+                    <?php echo e($artist_name); ?> — <span class="font-bold text-gray-700"><?php echo e($concert_title); ?></span>
                 </h1>
                 <p class="text-sm md:text-base font-medium text-gray-500 mt-1 flex items-center gap-2">
-                    <i class="far fa-calendar-check text-blue-600"></i> <?php echo htmlspecialchars($concert_details); ?>
+                    <i class="far fa-calendar-check text-blue-600"></i> <?php echo e($concert_details); ?>
                 </p>
             </div>
         </div>
 
         <div class="w-full bg-black relative h-[260px] md:h-[420px] overflow-hidden select-none shadow-inner">
-            <img src="<?php echo htmlspecialchars($stadium_map_image); ?>" 
-                 onerror="this.src='https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1600&q=80';" 
-                 alt="Stadium Grid Mapping Layout" 
+            <img src="<?php echo e($stadium_map_image); ?>"
+                 onerror="this.src='https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1600&q=80';"
+                 alt="Stadium Grid Mapping Layout"
                  class="w-full h-full object-cover opacity-90 object-center">
             <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
             <div class="absolute bottom-4 left-4 md:left-8 bg-black/70 backdrop-blur-md border border-gray-700 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest">
@@ -138,67 +142,70 @@ if ($concert_not_found) {
         <?php if ($concert_not_found): ?>
             <div class="max-w-7xl mx-auto px-4 md:px-8 mt-6">
                 <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg font-bold">
-                    ⚠️ Sorry, the concert you are looking for was not found or is no longer available.
+                    Sorry, the concert you are looking for was not found or is no longer available.
                 </div>
             </div>
         <?php endif; ?>
 
         <main class="max-w-7xl mx-auto px-4 md:px-8 py-8">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                
                 <div class="lg:col-span-7 space-y-4">
                     <h2 class="text-lg font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
                         <i class="fas fa-list-ol text-[#024DDF]"></i> Available Seating Entries
                     </h2>
-                    
+
+                    <?php if (empty($ticket_sections) && !$concert_not_found): ?>
+                        <div class="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm text-sm font-bold text-gray-500">
+                            No tickets are currently available for this concert.
+                        </div>
+                    <?php endif; ?>
+
                     <?php foreach ($ticket_sections as $sec): ?>
-                        <div class="bg-white border-2 border-gray-200 rounded-xl transition-all shadow-sm overflow-hidden" id="card-<?php echo $sec['id']; ?>">
-                            
-                            <div onclick="toggleSectionDisplay('<?php echo $sec['id']; ?>')" 
+                        <div class="bg-white border-2 border-gray-200 rounded-xl transition-all shadow-sm overflow-hidden" id="card-<?php echo e($sec['id']); ?>">
+                            <div onclick="toggleSectionDisplay(<?php echo js($sec['id']); ?>)"
                                  class="p-4 md:p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50/80 transition-colors select-none">
                                 <div>
                                     <h3 class="text-base md:text-lg font-black text-gray-900 tracking-tight">
-                                        <?php echo htmlspecialchars($sec['section']); ?> • <?php echo htmlspecialchars($sec['row']); ?>
+                                        <?php echo e($sec['section']); ?> • <?php echo e($sec['row']); ?>
                                     </h3>
                                     <p class="text-xs font-bold text-gray-400 uppercase mt-0.5 tracking-wide">
                                         Total available seats: <span class="text-gray-700 font-extrabold"><?php echo count($sec['seats']); ?> entries</span>
                                     </p>
                                     <div class="flex items-center gap-2 mt-2">
                                         <span class="text-[10px] font-black uppercase bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded">
-                                            <?php echo htmlspecialchars($sec['type']); ?>
+                                            <?php echo e($sec['type']); ?>
                                         </span>
                                         <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded flex items-center gap-1">
-                                            <i class="fas fa-mobile-alt"></i> <?php echo htmlspecialchars($sec['entry']); ?>
+                                            <i class="fas fa-mobile-alt"></i> <?php echo e($sec['entry']); ?>
                                         </span>
                                     </div>
                                 </div>
                                 <div class="text-right flex items-center gap-4">
                                     <div>
                                         <span class="block text-xl font-black text-[#024DDF] tracking-tight">
-                                            $<?php echo number_format($sec['price'], 2); ?>
+                                            $<?php echo number_format((float)$sec['price'], 2); ?>
                                         </span>
                                         <span class="text-[10px] text-gray-400 block font-medium">ea + transaction fees</span>
                                     </div>
-                                    <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 transform" id="icon-<?php echo $sec['id']; ?>"></i>
+                                    <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 transform" id="icon-<?php echo e($sec['id']); ?>"></i>
                                 </div>
                             </div>
 
-                            <div id="drawer-<?php echo $sec['id']; ?>" class="hidden border-t border-gray-100 bg-gray-50/50 p-4">
+                            <div id="drawer-<?php echo e($sec['id']); ?>" class="hidden border-t border-gray-100 bg-gray-50/50 p-4">
                                 <p class="text-xs font-bold text-gray-500 uppercase tracking-tight mb-3">
                                     Select desired seat positions from the manifest layout below:
                                 </p>
                                 <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                                     <?php foreach ($sec['seats'] as $seat): ?>
                                         <button type="button"
-                                                onclick="toggleSeatSelection(this, '<?php echo $sec['id']; ?>', '<?php echo htmlspecialchars($seat); ?>', <?php echo $sec['price']; ?>)"
+                                                onclick="toggleSeatSelection(this, <?php echo js($sec['id']); ?>, <?php echo js($seat); ?>, <?php echo json_encode((float)$sec['price']); ?>, <?php echo js($sec['section']); ?>, <?php echo js($sec['row']); ?>)"
                                                 class="seat-btn bg-white border border-gray-300 rounded-lg py-2.5 px-2 text-xs font-bold text-gray-700 hover:border-[#024DDF] hover:bg-blue-50/50 transition-all text-center focus:outline-none select-none">
                                             <i class="fas fa-chair text-[10px] opacity-40 mr-1"></i>
-                                            <?php echo htmlspecialchars($seat); ?>
+                                            <?php echo e($seat); ?>
                                         </button>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
-
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -208,7 +215,7 @@ if ($concert_not_found) {
                         <h3 class="text-base font-black uppercase tracking-wider text-gray-800 border-b border-gray-100 pb-3 mb-4 flex items-center gap-2">
                             <i class="fas fa-shopping-basket text-[#024DDF]"></i> Order Review Summary
                         </h3>
-                        
+
                         <div id="selected-seats-container" class="space-y-2 max-h-[180px] overflow-y-auto mb-4 pr-1">
                             <p class="text-xs font-bold text-gray-400 italic py-2">No active seat nodes locked yet.</p>
                         </div>
@@ -226,32 +233,41 @@ if ($concert_not_found) {
 
                         <form action="checkout.php" method="POST" class="mt-6">
                             <input type="hidden" name="serialized_seat_payload" id="serialized-seat-payload" value="">
-                            <button type="submit" 
+                            <button type="submit"
                                     class="w-full bg-[#024DDF] hover:bg-blue-800 text-white font-black text-sm uppercase tracking-widest py-4 px-6 rounded-xl transition-all shadow focus:outline-none flex items-center justify-center gap-2">
                                 Proceed to Checkout <i class="fas fa-arrow-right text-xs"></i>
                             </button>
                         </form>
                     </div>
                 </div>
-
             </div>
         </main>
-
-        <?php endif; ?>
 
         <?php include "inc/footer.php"; ?>
     </div>
 
     <script>
-        // Track globally selected seat nodes data matrix array
         let pickedSeatsRegister = [];
 
-        // Dynamic interface controller to slide open corresponding seat drawers
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[char]));
+        }
+
         function toggleSectionDisplay(sectionId) {
             const drawer = document.getElementById('drawer-' + sectionId);
             const icon = document.getElementById('icon-' + sectionId);
             const card = document.getElementById('card-' + sectionId);
-            
+
+            if (!drawer || !icon || !card) {
+                return;
+            }
+
             if (drawer.classList.contains('hidden')) {
                 drawer.classList.remove('hidden');
                 icon.classList.add('rotate-180');
@@ -265,23 +281,22 @@ if ($concert_not_found) {
             }
         }
 
-        // Handles multi-seat picking state management logic loop
-        function toggleSeatSelection(buttonElement, sectionId, seatName, priceMetric) {
+        function toggleSeatSelection(buttonElement, sectionId, seatName, priceMetric, sectionName, rowName) {
             const compositeKeyId = `${sectionId}_${seatName}`;
             const searchIndex = pickedSeatsRegister.findIndex(item => item.id === compositeKeyId);
 
             if (searchIndex > -1) {
-                // If already selected, delete the registration lock structure (unhighlight state)
                 pickedSeatsRegister.splice(searchIndex, 1);
                 buttonElement.classList.remove('bg-[#024DDF]', 'text-white', 'border-[#024DDF]', 'shadow-inner');
                 buttonElement.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
             } else {
-                // If completely new allocation, append and inject to tracking ledger array (highlight state)
                 pickedSeatsRegister.push({
                     id: compositeKeyId,
-                    section: sectionId.replace('_r20', '').replace('sec_', 'Section ').toUpperCase(),
+                    section_id: sectionId,
+                    section: sectionName,
+                    row: rowName,
                     seat: seatName,
-                    price: parseFloat(priceMetric)
+                    price: parseFloat(priceMetric) || 0
                 });
                 buttonElement.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
                 buttonElement.classList.add('bg-[#024DDF]', 'text-white', 'border-[#024DDF]', 'shadow-inner');
@@ -290,7 +305,6 @@ if ($concert_not_found) {
             refreshSidebarStateView();
         }
 
-        // Synchronization routine updating calculations and conditional sidebar checkout visibility 
         function refreshSidebarStateView() {
             const sidebarPanel = document.getElementById('checkout-sidebar-panel');
             const container = document.getElementById('selected-seats-container');
@@ -299,39 +313,36 @@ if ($concert_not_found) {
             const hiddenPayloadInput = document.getElementById('serialized-seat-payload');
 
             if (pickedSeatsRegister.length === 0) {
-                // If no seats selected, disable visibility configuration states completely
                 sidebarPanel.classList.add('opacity-40', 'pointer-events-none', 'select-none');
                 container.innerHTML = `<p class="text-xs font-bold text-gray-400 italic py-2">No active seat nodes locked yet.</p>`;
                 countLabel.innerText = "0 seats";
                 priceLabel.innerText = "$0.00";
                 hiddenPayloadInput.value = "";
-            } else {
-                // Remove disabling overlay configurations, enable immediate side panel execution triggers
-                sidebarPanel.classList.remove('opacity-40', 'pointer-events-none', 'select-none');
-                
-                let cumulativeTotalSum = 0;
-                let injectionHtmlBuffer = "";
-
-                pickedSeatsRegister.forEach(seatNode => {
-                    cumulativeTotalSum += seatNode.price;
-                    injectionHtmlBuffer += `
-                        <div class="flex items-center justify-between bg-blue-50/60 border border-blue-100 rounded-lg p-2.5 text-xs animate-fade-in">
-                            <div>
-                                <span class="font-black text-gray-900 block">${seatNode.section}</span>
-                                <span class="font-bold text-gray-500">${seatNode.seat}</span>
-                            </div>
-                            <span class="font-extrabold text-[#024DDF]">$${seatNode.price.toFixed(2)}</span>
-                        </div>
-                    `;
-                });
-
-                container.innerHTML = injectionHtmlBuffer;
-                countLabel.innerText = `${pickedSeatsRegister.length} position(s) locked`;
-                priceLabel.innerText = `$${cumulativeTotalSum.toFixed(2)}`;
-                
-                // Pack chosen attributes sequence payload data safely into form structure field
-                hiddenPayloadInput.value = JSON.stringify(pickedSeatsRegister);
+                return;
             }
+
+            sidebarPanel.classList.remove('opacity-40', 'pointer-events-none', 'select-none');
+
+            let cumulativeTotalSum = 0;
+            let injectionHtmlBuffer = "";
+
+            pickedSeatsRegister.forEach(seatNode => {
+                cumulativeTotalSum += seatNode.price;
+                injectionHtmlBuffer += `
+                    <div class="flex items-center justify-between bg-blue-50/60 border border-blue-100 rounded-lg p-2.5 text-xs animate-fade-in">
+                        <div>
+                            <span class="font-black text-gray-900 block">${escapeHtml(seatNode.section)} • ${escapeHtml(seatNode.row)}</span>
+                            <span class="font-bold text-gray-500">${escapeHtml(seatNode.seat)}</span>
+                        </div>
+                        <span class="font-extrabold text-[#024DDF]">$${seatNode.price.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = injectionHtmlBuffer;
+            countLabel.innerText = `${pickedSeatsRegister.length} position(s) locked`;
+            priceLabel.innerText = `$${cumulativeTotalSum.toFixed(2)}`;
+            hiddenPayloadInput.value = JSON.stringify(pickedSeatsRegister);
         }
     </script>
 
