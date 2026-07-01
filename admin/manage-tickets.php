@@ -85,6 +85,31 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
             
             }
 
+            $seat_view = null;
+            
+            if (
+                isset($_FILES['seat_view']) &&
+                $_FILES['seat_view']['error'] === UPLOAD_ERR_OK
+            ) {
+            
+                $uploadDir = "../uploads/tickets/";
+            
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+            
+                $ext = strtolower(pathinfo($_FILES['seat_view']['name'], PATHINFO_EXTENSION));
+            
+                $filename = uniqid('seat_') . "." . $ext;
+            
+                move_uploaded_file(
+                    $_FILES['seat_view']['tmp_name'],
+                    $uploadDir . $filename
+                );
+            
+                $seat_view = $filename;
+            }
+
             $stmt=$pdo->prepare("
             INSERT INTO tickets
             (
@@ -93,26 +118,21 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
             section_name,
             row_name,
             seat_name,
-            price
+            price,
+            seat_view
             )
             VALUES
-            (?,?,?,?,?,?)
+            (?,?,?,?,?,?,?)
             ");
 
             $stmt->execute([
-            
-            $concert_id,
-            
-            $ticket_name,
-            
-            $section_name,
-            
-            $row_name,
-            
-            $seat_name,
-            
-            $price
-            
+                $concert_id,
+                $ticket_name,
+                $section_name,
+                $row_name,
+                $seat_name,
+                $price,
+                $seat_view
             ]);
 
             $_SESSION['success']="Ticket added.";
