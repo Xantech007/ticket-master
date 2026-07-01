@@ -162,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
            style="width:100%;margin-bottom:1.5rem;">
 
     <button type="submit" class="btn" style="width:100%;">
-        Save Changes
+        <i class="fas fa-save"></i> Save Changes
     </button>
 
 </form>
