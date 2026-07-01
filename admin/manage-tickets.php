@@ -7,26 +7,10 @@ error_reporting(E_ALL);
 require_once __DIR__.'/inc/header.php';
 
 /*----------------------------------------------------
-GET ARTIST
+GET CONCERT
 ----------------------------------------------------*/
 
 $concert_id = isset($_GET['concert_id']) ? (int)$_GET['concert_id'] : 0;
-$concert = null;
-
-/*----------------------------------------------------
-GET CONCERT
-----------------------------------------------------*/
-$stmt = $pdo->prepare("
-SELECT
-    concerts.*,
-    artists.artist_name,
-    artists.artist_image
-FROM concerts
-JOIN artists
-ON concerts.artist_id=artists.artist_id
-WHERE concert_id=?
-");
-
 $concert = null;
 
 if($concert_id){
@@ -43,10 +27,9 @@ if($concert_id){
     ");
 
     $stmt->execute([$concert_id]);
-
     $concert=$stmt->fetch(PDO::FETCH_ASSOC);
-
 }
+
 /*----------------------------------------------------
 HANDLE POST
 ----------------------------------------------------*/
@@ -56,7 +39,6 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
     try{
 
         $action=$_POST['action'];
-
         $concert_id=(int)$_POST['concert_id'];
 
         if($action=="add"){
@@ -67,62 +49,32 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
             $seat_name=trim($_POST['seat_name']);
             $price=(float)$_POST['price'];
 
-            if(
-            
-            empty($ticket_name) ||
-            
-            empty($section_name) ||
-            
-            empty($row_name) ||
-            
-            empty($seat_name) ||
-            
-            $price<=0
-            
-            ){
-            
-            throw new Exception("All fields are required.");
-            
+            if(empty($ticket_name) || empty($section_name) || empty($row_name) || empty($seat_name) || $price<=0){
+                throw new Exception("All fields are required.");
             }
 
             $section_view = null;
-            
-            if (
-                isset($_FILES['section_view']) &&
-                $_FILES['section_view']['error'] === UPLOAD_ERR_OK
-            ) {
-            
+
+            if(isset($_FILES['section_view']) && $_FILES['section_view']['error'] === UPLOAD_ERR_OK){
+
                 $uploadDir = "../uploads/tickets/";
-            
+
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0755, true);
                 }
-            
+
                 $ext = strtolower(pathinfo($_FILES['section_view']['name'], PATHINFO_EXTENSION));
-            
                 $filename = uniqid('seat_') . "." . $ext;
-            
-                move_uploaded_file(
-                    $_FILES['section_view']['tmp_name'],
-                    $uploadDir . $filename
-                );
-            
+
+                move_uploaded_file($_FILES['section_view']['tmp_name'], $uploadDir . $filename);
+
                 $section_view = $filename;
             }
 
             $stmt=$pdo->prepare("
-            INSERT INTO tickets
-            (
-            concert_id,
-            ticket_name,
-            section_name,
-            row_name,
-            seat_name,
-            price,
-            section_view
-            )
-            VALUES
-            (?,?,?,?,?,?,?)
+                INSERT INTO tickets
+                (concert_id, ticket_name, section_name, row_name, seat_name, price, section_view)
+                VALUES (?,?,?,?,?,?,?)
             ");
 
             $stmt->execute([
@@ -136,53 +88,36 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
             ]);
 
             $_SESSION['success']="Ticket added.";
-
         }
 
         if($action=="delete"){
 
             $ticket_id=(int)$_POST['ticket_id'];
 
-            $stmt=$pdo->prepare("
-            DELETE FROM tickets
-            WHERE ticket_id=?
-            ");
-
+            $stmt=$pdo->prepare("DELETE FROM tickets WHERE ticket_id=?");
             $stmt->execute([$ticket_id]);
 
             $_SESSION['success']="Ticket deleted.";
-
         }
 
         header("Location: manage-tickets.php?concert_id=".$concert_id);
         exit;
 
     }catch(Exception $e){
-
         $_SESSION['error']=$e->getMessage();
-
         header("Location: manage-tickets.php?concert_id=".$concert_id);
         exit;
-
     }
-
 }
 
 /*----------------------------------------------------
-FETCH CONCERTS
+FETCH DATA
 ----------------------------------------------------*/
 
-$concerts=[];
-
 $stmt=$pdo->query("
-SELECT
-    concerts.concert_id,
-    concerts.title,
-    concerts.concert_date,
-    artists.artist_name
+SELECT concerts.concert_id, concerts.title, concerts.concert_date, artists.artist_name
 FROM concerts
-JOIN artists
-ON concerts.artist_id=artists.artist_id
+JOIN artists ON concerts.artist_id=artists.artist_id
 ORDER BY concerts.concert_date DESC
 ");
 
@@ -191,81 +126,48 @@ $concerts=$stmt->fetchAll(PDO::FETCH_ASSOC);
 $tickets=[];
 
 if($concert_id){
-
-$stmt=$pdo->prepare("
-SELECT *
-FROM tickets
-WHERE concert_id=?
-ORDER BY price
-");
-
+$stmt=$pdo->prepare("SELECT * FROM tickets WHERE concert_id=? ORDER BY price");
 $stmt->execute([$concert_id]);
-
 $tickets=$stmt->fetchAll(PDO::FETCH_ASSOC);
-
 }
-
 ?>
 
-<main style="max-width:1100px;margin:auto;">
+<main style="max-width:1000px;margin:2rem auto;">
 
-<h1 style="margin-bottom:25px;">Manage Tickets</h1>
+<h1 style="text-align:center;margin-bottom:1rem;">Tickets</h1>
 
-<?php
-if(isset($_SESSION['success'])){
-?>
-<div style="background:#238636;color:#fff;padding:15px;border-radius:8px;margin-bottom:20px;">
-<?= $_SESSION['success']; unset($_SESSION['success']);?>
+<!-- ALERTS -->
+<?php if(isset($_SESSION['success'])): ?>
+<div style="background:#238636;color:#fff;padding:15px;border-radius:10px;margin-bottom:1rem;">
+<?= $_SESSION['success']; unset($_SESSION['success']); ?>
 </div>
-<?php
-}
-?>
+<?php endif; ?>
 
-<?php
-if(isset($_SESSION['error'])){
-?>
-<div style="background:#f85149;color:#fff;padding:15px;border-radius:8px;margin-bottom:20px;">
-<?= $_SESSION['error']; unset($_SESSION['error']);?>
+<?php if(isset($_SESSION['error'])): ?>
+<div style="background:#f85149;color:#fff;padding:15px;border-radius:10px;margin-bottom:1rem;">
+<?= $_SESSION['error']; unset($_SESSION['error']); ?>
 </div>
-<?php
-}
-?>
+<?php endif; ?>
 
-<?php if(!$concert_id){ ?>
+<!-- SELECT CONCERT -->
+<?php if(!$concert_id): ?>
 
-<div style="background:var(--card);padding:25px;border-radius:10px;max-width:700px;margin:auto;">
+<div style="background:var(--card);padding:20px;border-radius:10px;border:1px solid var(--border);max-width:700px;margin:auto;">
 
-<h2>Select Concert</h2>
+<h2 style="margin-bottom:10px;">Select Concert</h2>
 
 <form method="GET">
 
-<select
-name="concert_id"
-required
-onchange="this.form.submit()"
-style="width:100%;padding:12px;">
+<select name="concert_id" required onchange="this.form.submit()"
+style="width:100%;padding:.8rem;">
 
 <option value="">Choose Concert</option>
 
-<?php foreach($concerts as $c){ ?>
-
+<?php foreach($concerts as $c): ?>
 <option value="<?= $c['concert_id'] ?>">
-
-<?= htmlspecialchars($c['artist_name']) ?>
-
--
-
-<?= htmlspecialchars($c['title']) ?>
-
-(
-
-<?= $c['concert_date'] ?>
-
-)
-
+<?= htmlspecialchars($c['artist_name']) ?> - <?= htmlspecialchars($c['title']) ?> (<?= $c['concert_date'] ?>)
 </option>
-
-<?php } ?>
+<?php endforeach; ?>
 
 </select>
 
@@ -273,133 +175,85 @@ style="width:100%;padding:12px;">
 
 </div>
 
-<?php return; } ?>
+</main>
+<?php require_once __DIR__.'/inc/footer.php'; ?>
+<?php return; endif; ?>
 
-<div style="display:flex;align-items:center;gap:15px;background:var(--card);padding:20px;border-radius:10px;margin-bottom:25px;">
+<!-- CONCERT HEADER -->
+<div style="display:flex;align-items:center;gap:15px;background:var(--card);padding:15px;border-radius:10px;border:1px solid var(--border);margin-bottom:2rem;">
 
-<?php if($concert['artist_image']){ ?>
-
-<img
-src="../uploads/artists/<?= htmlspecialchars($concert['artist_image']) ?>"
-style="width:70px;height:70px;border-radius:10px;object-fit:cover;">
-
-<?php } ?>
+<img src="../uploads/artists/<?= htmlspecialchars($concert['artist_image']) ?>"
+style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
 
 <div>
-
-<h2><?= htmlspecialchars($concert['artist_name']) ?></h2>
-
-<small>
-
-<?= htmlspecialchars($concert['title']) ?>
-<br>
-<?= htmlspecialchars($concert['concert_date']) ?>
-
+<h3 style="margin:0;"><?= htmlspecialchars($concert['artist_name']) ?></h3>
+<small style="color:#888;">
+<?= htmlspecialchars($concert['title']) ?> • <?= htmlspecialchars($concert['concert_date']) ?>
 </small>
-
 </div>
 
 </div>
 
-<div style="text-align:right;margin-bottom:20px;">
-
-<button class="btn" onclick="openModal()">
-
-<i class="fas fa-plus"></i>
-
-Add Ticket
-
-</button>
-
+<!-- ADD BUTTON -->
+<div style="text-align:right;margin-bottom:1rem;">
+<button class="btn" onclick="openModal()">+ Add Ticket</button>
 </div>
 
-<div style="overflow:auto;">
+<!-- TABLE CARD -->
+<div style="background:#111827;border:1px solid var(--border);border-radius:10px;overflow:auto;">
 
 <table style="width:100%;border-collapse:collapse;">
 
 <thead>
-
-<tr style="background:#111827;">
-
-<th>Ticket</th>
-<th>Section</th>
-<th>Row</th>
-<th>Seat</th>
-<th>Price</th>
-<th>Section View</th>
-<th>Action</th>
-
+<tr style="background:#0f172a;">
+<th style="padding:12px;text-align:left;">Ticket</th>
+<th style="padding:12px;text-align:left;">Section</th>
+<th style="padding:12px;text-align:left;">Row</th>
+<th style="padding:12px;text-align:left;">Seat</th>
+<th style="padding:12px;text-align:left;">Price</th>
+<th style="padding:12px;text-align:left;">View</th>
+<th style="padding:12px;text-align:left;">Action</th>
 </tr>
-
 </thead>
 
 <tbody>
 
-<?php if(empty($tickets)){ ?>
-
+<?php if(empty($tickets)): ?>
 <tr>
-
-<td colspan="7" style="padding:20px;text-align:center;">
-
+<td colspan="7" style="padding:20px;text-align:center;color:#888;">
 No tickets found.
-
 </td>
-
 </tr>
+<?php endif; ?>
 
-<?php } ?>
+<?php foreach($tickets as $ticket): ?>
+<tr style="border-top:1px solid var(--border);">
 
-<?php foreach($tickets as $ticket){ ?>
-
-<tr style="border-bottom:1px solid var(--border);">
+<td style="padding:12px;"><?= htmlspecialchars($ticket['ticket_name']) ?></td>
+<td style="padding:12px;"><?= htmlspecialchars($ticket['section_name']) ?></td>
+<td style="padding:12px;"><?= htmlspecialchars($ticket['row_name']) ?></td>
+<td style="padding:12px;"><?= htmlspecialchars($ticket['seat_name']) ?></td>
+<td style="padding:12px;">$<?= number_format($ticket['price'],2) ?></td>
 
 <td style="padding:12px;">
-<?= htmlspecialchars($ticket['ticket_name']) ?>
+<?php if(!empty($ticket['section_view'])): ?>
+<img src="../uploads/tickets/<?= htmlspecialchars($ticket['section_view']) ?>"
+style="width:50px;height:50px;object-fit:cover;border-radius:8px;">
+<?php else: ?>
+<span style="color:#888;">N/A</span>
+<?php endif; ?>
 </td>
 
 <td style="padding:12px;">
-<?= htmlspecialchars($ticket['section_name']) ?>
-</td>
 
-<td style="padding:12px;">
-<?= htmlspecialchars($ticket['row_name']) ?>
-</td>
-
-<td style="padding:12px;">
-<?= htmlspecialchars($ticket['seat_name']) ?>
-</td>
-
-<td style="padding:12px;">
-$<?= number_format($ticket['price'],2) ?>
-</td>
-
-<td style="padding:12px;">
-    <?php if (!empty($ticket['section_view'])): ?>
-        <img
-        src="../uploads/tickets/<?= htmlspecialchars($ticket['section_view']) ?>"
-        style="width:55px;height:55px;object-fit:cover;border-radius:8px;">
-    <?php else: ?>
-        <span style="color:#888;">N/A</span>
-    <?php endif; ?>
-</td>
-
-
-<td style="padding:12px;">
-
-<form method="POST" onsubmit="return confirm('Delete concert?');">
+<form method="POST" onsubmit="return confirm('Delete this ticket?');">
 
 <input type="hidden" name="action" value="delete">
-
 <input type="hidden" name="concert_id" value="<?= $concert_id ?>">
-
 <input type="hidden" name="ticket_id" value="<?= $ticket['ticket_id'] ?>">
 
-<button class="btn red">
-
-<i class="fas fa-trash"></i>
-
+<button class="btn red" style="padding:6px 10px;font-size:13px;">
 Delete
-
 </button>
 
 </form>
@@ -407,77 +261,45 @@ Delete
 </td>
 
 </tr>
-
-<?php } ?>
+<?php endforeach; ?>
 
 </tbody>
-
 </table>
-
 </div>
 
-<div id="modal" style="display:none;position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.7);">
+<!-- MODAL -->
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);">
 
-<div style="background:#111827;max-width:600px;margin:5% auto;padding:25px;border-radius:10px;">
+<div style="background:#111827;max-width:600px;margin:5% auto;padding:20px;border-radius:10px;border:1px solid var(--border);">
 
-<h2>Add Ticket</h2>
+<h2 style="margin-bottom:10px;">Add Ticket</h2>
 
 <form method="POST" enctype="multipart/form-data">
 
 <input type="hidden" name="action" value="add">
-
 <input type="hidden" name="concert_id" value="<?= $concert_id ?>">
 
-<label>Ticket Name</label>
-<input type="text" name="ticket_name" required style="width:100%;padding:10px;margin:10px 0 20px;">
+<input type="text" name="ticket_name" placeholder="Ticket Name" required style="width:100%;padding:.7rem;margin-bottom:10px;">
+<input type="text" name="section_name" placeholder="Section" required style="width:100%;padding:.7rem;margin-bottom:10px;">
+<input type="text" name="row_name" placeholder="Row" required style="width:100%;padding:.7rem;margin-bottom:10px;">
+<input type="text" name="seat_name" placeholder="Seat" required style="width:100%;padding:.7rem;margin-bottom:10px;">
+<input type="number" step="0.01" name="price" placeholder="Price" required style="width:100%;padding:.7rem;margin-bottom:10px;">
+<input type="file" name="section_view" style="width:100%;padding:.7rem;margin-bottom:10px;">
 
-<label>Section</label>
-<input type="text" name="section_name" required style="width:100%;padding:10px;margin:10px 0 20px;">
-
-<label>Row</label>
-<input type="text" name="row_name" required style="width:100%;padding:10px;margin:10px 0 20px;">
-
-<label>Seat</label>
-<input type="text" name="seat_name" required style="width:100%;padding:10px;margin:10px 0 20px;">
-
-<label>Price</label>
-<input type="number" step="0.01" name="price" required style="width:100%;padding:10px;margin:10px 0 20px;">
-
-<label>Image</label>
-<input type="file" name="section_view" required style="width:100%;padding:10px;margin:10px 0 20px;">
-
-<button class="btn" style="width:100%;">
-
-<i class="fas fa-save"></i>
-
-Save Concert
-
-</button>
+<button class="btn" style="width:100%;">Save Ticket</button>
 
 </form>
 
 <br>
 
-<button class="btn red" style="width:100%;" onclick="closeModal()">
-
-Close
-
-</button>
+<button class="btn red" style="width:100%;" onclick="closeModal()">Close</button>
 
 </div>
-
 </div>
 
 <script>
-
-function openModal(){
-document.getElementById("modal").style.display="block";
-}
-
-function closeModal(){
-document.getElementById("modal").style.display="none";
-}
-
+function openModal(){ document.getElementById("modal").style.display="block"; }
+function closeModal(){ document.getElementById("modal").style.display="none"; }
 </script>
 
 </main>
