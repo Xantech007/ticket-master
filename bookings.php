@@ -104,7 +104,7 @@ try {
 
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
-        $key = $row['section_name'].'_'.$row['row_name'];
+        $key = $row['section_name'].' • '.$row['row_name'];
 
         if (!isset($ticket_sections[$key])) {
 
