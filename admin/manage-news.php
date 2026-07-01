@@ -246,18 +246,36 @@ style="width:60px;height:60px;border-radius:8px;object-fit:cover;">
 <?= htmlspecialchars(mb_strimwidth($item['description'],0,80,'...')) ?>
 </td>
 
-<td style="padding:12px;">
+<td style="padding:12px;white-space:nowrap;">
 
-<form method="POST" onsubmit="return confirm('Delete this news?');">
+    <!-- EDIT -->
+    <a href="edit-news.php?news_id=<?= $item['news_id'] ?>&artist_id=<?= $artist_id ?>"
+       class="btn green"
+       style="padding:6px 10px;font-size:13px;">
+        Edit
+    </a>
 
-<input type="hidden" name="action" value="delete">
-<input type="hidden" name="news_id" value="<?= $item['news_id'] ?>">
+    <!-- VIEW (optional extras-style button) -->
+    <a href="view-news.php?news_id=<?= $item['news_id'] ?>"
+       class="btn"
+       style="padding:6px 10px;font-size:13px;background:#6f42c1;color:#fff;margin-left:5px;">
+        View
+    </a>
 
-<button class="btn red">
-<i class="fas fa-trash"></i> Delete
-</button>
+    <!-- DELETE -->
+    <form method="POST"
+          onsubmit="return confirm('Delete this news?');"
+          style="display:inline-block;margin-left:5px;">
 
-</form>
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="news_id" value="<?= $item['news_id'] ?>">
+
+        <button class="btn red"
+                style="padding:6px 10px;font-size:13px;">
+            Delete
+        </button>
+
+    </form>
 
 </td>
 
