@@ -45,7 +45,7 @@
           <ul class="hidden md:flex items-center gap-8 lg:gap-5 text-base lg:text-1.5xl font-bold">
             <li><a href="search.php?q=Concerts" class="nav-link">Concerts</a></li>
             <li><a href="search.php?q=Sports" class="nav-link">Sports</a></li>
-            <li><a href="search.php?q=Arts" class="nav-link">Arts, Theater &amp; Comedy</a></li>
+            <li><a href="search.php?q=Art" class="nav-link">Arts, Theater &amp; Comedy</a></li>
             <li><a href="search.php?q=Family" class="nav-link">Family</a></li>
             <li><a href="search.php?q=Cities" class="nav-link">Cities</a></li>
           </ul>
