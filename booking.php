@@ -62,7 +62,7 @@ try {
 
             $stadium_map_image = !empty($concert['map_view'])
                 ? "uploads/concerts/" . basename($concert['map_view'])
-                : "assets/images/stadium-map.jpg";
+                : "assets/images/theatre.jpg";
 
             $stmt = $pdo->prepare("
                 SELECT * FROM tickets
@@ -102,7 +102,7 @@ if ($concert_not_found) {
     $artist_name = "Unavailable";
     $concert_title = "Concert Not Found";
     $concert_details = "The selected concert does not exist or has been removed.";
-    $stadium_map_image = "assets/images/stadium-map.jpg";
+    $stadium_map_image = "assets/images/theatre.jpg";
     $ticket_sections = [];
 }
 ?>
@@ -130,7 +130,7 @@ if ($concert_not_found) {
 
         <div class="w-full bg-black relative h-[260px] md:h-[420px] overflow-hidden select-none shadow-inner">
             <img src="<?php echo e($stadium_map_image); ?>"
-                 onerror="this.onerror=null; this.src='assets/images/stadium-map.jpg';"
+                 onerror="this.onerror=null; this.src='assets/images/theatre.jpg';"
                  alt="Stadium Grid Mapping Layout"
                  class="w-full h-full object-cover opacity-90 object-center">
             <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
