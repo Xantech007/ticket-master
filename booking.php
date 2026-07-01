@@ -154,8 +154,11 @@ try {
                  alt="Stadium Grid Mapping Layout" 
                  class="w-full h-full object-cover opacity-90 object-center">
             <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-            <div class="absolute bottom-4 left-4 md:left-8 bg-black/70 backdrop-blur-md border border-gray-700 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest">
-                <i class="fas fa-map-marked-alt mr-1.5 text-blue-400"></i> Map Reference Vector
+            <div
+                onclick="openImageModal('<?php echo htmlspecialchars($stadium_map_image, ENT_QUOTES); ?>')"
+                class="absolute bottom-4 left-4 md:left-8 bg-black/70 backdrop-blur-md border border-gray-700 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-black/80 transition">
+                <i class="fas fa-map-marked-alt mr-1.5 text-blue-400"></i>
+                Map Reference Vector
             </div>
         </div>
 
