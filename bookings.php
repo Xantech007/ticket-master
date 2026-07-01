@@ -263,11 +263,15 @@ try {
                         </div>
 
                         <form action="checkout.php" method="POST" class="mt-6">
+                        
                             <input type="hidden" name="serialized_seat_payload" id="serialized-seat-payload" value="">
-                            <button type="submit" 
-                                    class="w-full bg-[#024DDF] hover:bg-blue-800 text-white font-black text-sm uppercase tracking-widest py-4 px-6 rounded-xl transition-all shadow focus:outline-none flex items-center justify-center gap-2">
+                            <input type="hidden" name="concert_id" value="<?= $concert_id ?>">
+                        
+                            <button type="submit"
+                                class="w-full bg-[#024DDF] hover:bg-blue-800 text-white font-black text-sm uppercase tracking-widest py-4 px-6 rounded-xl transition-all shadow focus:outline-none flex items-center justify-center gap-2">
                                 Proceed to Checkout <i class="fas fa-arrow-right text-xs"></i>
                             </button>
+                        
                         </form>
                     </div>
                 </div>
