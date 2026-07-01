@@ -257,16 +257,20 @@ style="width:55px;height:55px;object-fit:cover;border-radius:8px;">
 <td style="padding:12px;display:flex;gap:8px;">
 
 <!-- EDIT -->
-<button class="btn" onclick='openEditModal(<?= json_encode($ticket) ?>)'>
-<i class="fas fa-edit"></i> Edit
-</button>
+<a
+    href="edit-tickets.php?ticket_id=<?= $ticket['ticket_id'] ?>"
+    class="btn"
+    style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;"
+>
+    Edit
+</a>
 
 <!-- DELETE -->
 <form method="POST" onsubmit="return confirm('Delete ticket?');">
 <input type="hidden" name="action" value="delete">
 <input type="hidden" name="concert_id" value="<?= $concert_id ?>">
 <input type="hidden" name="ticket_id" value="<?= $ticket['ticket_id'] ?>">
-<button class="btn red"><i class="fas fa-trash"></i></button>
+<button class="btn red"></i></button>
 </form>
 
 </td>
