@@ -179,7 +179,7 @@ WHERE concert_id=?
 ORDER BY price
 ");
 
-$stmt->execute([$ticket_id]);
+$stmt->execute([$concert_id]);
 
 $tickets=$stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -260,14 +260,14 @@ style="width:100%;padding:12px;">
 <?php if($concert['artist_image']){ ?>
 
 <img
-src="../uploads/artists/<?= htmlspecialchars($concert['artist_name']) ?>"
+src="../uploads/artists/<?= htmlspecialchars($concert['artist_image']) ?>"
 style="width:70px;height:70px;border-radius:10px;object-fit:cover;">
 
 <?php } ?>
 
 <div>
 
-<h2><?= htmlspecialchars($artist['artist_name']) ?></h2>
+<h2><?= htmlspecialchars($concert['artist_name']) ?></h2>
 
 <small>
 
