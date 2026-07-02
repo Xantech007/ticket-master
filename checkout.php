@@ -9,6 +9,12 @@ require_once 'config/db.php';
 // Mock active session user identifier if auth context isn't fully initialized
 $user_id = 1; 
 
+$order_id = isset($_GET['order_id']) ? (int) $_GET['order_id'] : 0;
+
+if ($order_id <= 0) {
+    die("Invalid order reference.");
+}
+
 $pdo = null;
 try {
     if (class_exists('Database')) {
@@ -26,7 +32,17 @@ try {
 $support = ['whatsapp' => '+1555000000', 'telegram' => 'PlatformSupportTextBot', 'email' => 'support@ticketmaster.xo.je'];
 $cryptos = [];
 $giftcards = [];
-$order_item = ['title' => 'The Eras World Tour Live Finale Pass', 'base_price' => 150.00, 'qty' => 1];
+$order_item = null;
+
+if ($pdo) {
+    $stmt = $pdo->prepare("SELECT * FROM orders WHERE order_id = ? AND user_id = ?");
+    $stmt->execute([$order_id, $user_id]);
+    $order_item = $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+if (!$order_item) {
+    die("Order not found.");
+}
 
 if ($pdo !== null) {
     try {
@@ -64,7 +80,7 @@ $currency = isset($_GET['currency']) ? $_GET['currency'] : 'USD';
 $exchange_rates = ['USD' => ['symbol' => '$', 'rate' => 1.0], 'EUR' => ['symbol' => '€', 'rate' => 0.92], 'GBP' => ['symbol' => '£', 'rate' => 0.78]];
 $curr_meta = isset($exchange_rates[$currency]) ? $exchange_rates[$currency] : $exchange_rates['USD'];
 
-$converted_total = $order_item['base_price'] * $curr_meta['rate'];
+$converted_total = $order_item['amount'] * $curr_meta['rate'];
 
 // -------------------------------------------------------------------------
 // FORM SUBMISSION HANDLER PIPELINE (Saves orders to User Dashboard)
@@ -94,10 +110,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo !== null) {
         }
         $images_json = json_encode($uploaded_images_urls);
 
-        // Commit order entry parameters to the DB ledger architecture safely
-        $stmt = $pdo->prepare("INSERT INTO user_orders (user_id, item_title, amount, currency, payment_method, proof_images, description, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'processing', NOW())");
-        $stmt->execute([$user_id, $order_item['title'], $converted_total, $currency, $payment_method, $images_json, $meta_description]);
+        $stmt = $pdo->prepare("
+        $stmt = $pdo->prepare("
+        INSERT INTO deposits
+        (
+            order_id,
+            user_id,
+            payment_method,
+            proof_images,
+            description,
+            status,
+            created_at,
+            updated_at
+        )
+        VALUES
+        (
+            ?, ?, ?, ?, ?, 'processing', NOW(), NOW()
+        )
+        ");
+        
+        $stmt->execute([
+            $order_id,
+            $user_id,
+            $payment_method,
+            $images_json,
+            $meta_description
+        ]);
 
+        $update = $pdo->prepare("
+        UPDATE deposits
+        SET status='processing', updated_at=NOW()
+        WHERE order_id = ?
+        ");
+        $update->execute([$order_id]);
+                
         echo "<script>alert('Receipt submitted! Your order is now processing pending administrator confirmation.'); window.location.href='dashboard.php';</script>";
         exit;
     } catch (Exception $e) {
@@ -124,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo !== null) {
                     <i class="fas fa-headset text-amber-400"></i> Contact Live Support Desk <i class="fas fa-chevron-down text-[10px]"></i>
                 </button>
                 <div class="absolute right-0 w-52 bg-white border border-gray-200 rounded-xl shadow-xl py-1 mt-1 hidden group-hover:block z-50">
-                    <a href="https://wa.me/<?php echo $support['whatsapp']; ?>?text=Hello%20Support,%20I%20am%20checking%20out%20for%20<?php echo urlencode($order_item['title']); ?>.%" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                    <a href="https://wa.me/<?php echo $support['whatsapp']; ?>?text=Hello%20Support,%20I%20am%20checking%20out%20for%20<?php echo urlencode($order_item['title']); ?>." target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
                         <i class="fab fa-whatsapp text-base"></i> WhatsApp Live Desk
                     </a>
                     <a href="https://t.me/<?php echo $support['telegram']; ?>?start=order_info" target="_blank" class="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-gray-700 hover:bg-sky-50 hover:text-sky-600 transition-colors">
