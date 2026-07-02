@@ -53,7 +53,7 @@ try {
     foreach ($data['seats'] as $seat) {
 
         // Use whatever uniquely identifies a seat
-        $ticket_id = $seat['id'];
+        $ticket_id = $seat['ticket_id'];
 
         $insert->execute([
             $user_id,
