@@ -4,7 +4,7 @@ session_start();
 require_once 'config/db.php';
 
 // ---------------------------------------------
-// AUTH CHECK (MATCHING YOUR SYSTEM)
+// AUTH CHECK
 // ---------------------------------------------
 if (!isset($_SESSION['user_id'])) {
 
@@ -17,13 +17,15 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = (int) $_SESSION['user_id'];
 
-// Enable error reporting (dev only)
+// ---------------------------------------------
+// ERROR REPORTING (DEV ONLY)
+// ---------------------------------------------
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 // ---------------------------------------------
-// GET ORDER IDS FROM SESSION
+// GET ORDER IDS
 // ---------------------------------------------
 if (
     !isset($_SESSION['checkout_order_ids']) ||
@@ -36,32 +38,37 @@ if (
 $order_ids = array_map('intval', $_SESSION['checkout_order_ids']);
 
 // ---------------------------------------------
-// DB CONNECTION
+// DATABASE
 // ---------------------------------------------
-$pdo = null;
-
 try {
-    if (class_exists('Database')) {
-        $pdo = (new Database())->connect();
-    }
+
+    $pdo = (new Database())->connect();
+
 } catch (Exception $e) {
+
     die("Database connection failed.");
+
 }
 
 // ---------------------------------------------
-// FETCH ORDERS (SECURED)
+// FETCH ORDERS
 // ---------------------------------------------
 $placeholders = implode(',', array_fill(0, count($order_ids), '?'));
 
 $stmt = $pdo->prepare("
-    SELECT o.*, t.ticket_name, t.price, c.title
+    SELECT
+        o.*,
+        t.ticket_name,
+        t.price,
+        c.title
     FROM orders o
-    JOIN tickets t ON o.ticket_id = t.ticket_id
-    JOIN concerts c ON t.concert_id = c.concert_id
+    INNER JOIN tickets t ON o.ticket_id=t.ticket_id
+    INNER JOIN concerts c ON t.concert_id=c.concert_id
     WHERE o.order_id IN ($placeholders)
 ");
 
 $stmt->execute($order_ids);
+
 $all_orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if (!$all_orders) {
@@ -69,271 +76,489 @@ if (!$all_orders) {
 }
 
 // ---------------------------------------------
-// SECURITY CHECK: ENSURE OWNERSHIP
+// SECURITY CHECK
 // ---------------------------------------------
 foreach ($all_orders as $order) {
+
     if ((int)$order['user_id'] !== $user_id) {
-        die("Unauthorized access: order does not belong to this user.");
+        die("Unauthorized access.");
     }
+
 }
 
+$order_items = $all_orders;
+
 // ---------------------------------------------
-// USER COUNTRY
+// USER INFORMATION
 // ---------------------------------------------
 $stmt = $pdo->prepare("
-    SELECT country
-    FROM users
-    WHERE id = ?
-    LIMIT 1
+SELECT
+    country
+FROM users
+WHERE id=?
+LIMIT 1
 ");
 
 $stmt->execute([$user_id]);
 
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-$user_country = $user['country'] ?? '';
+$user_country = trim($user['country'] ?? '');
 
 // ---------------------------------------------
 // REGION SETTINGS
 // ---------------------------------------------
 $stmt = $pdo->prepare("
-    SELECT currency, exchange_rates
-    FROM region_settings
-    WHERE country = ?
-    LIMIT 1
+SELECT
+    currency,
+    exchange_rates
+FROM region_settings
+WHERE country=?
+LIMIT 1
 ");
 
 $stmt->execute([$user_country]);
 
 $region = $stmt->fetch(PDO::FETCH_ASSOC);
 
-$currency = $region['currency'] ?? 'USD';
+$localCurrency = $region['currency'] ?? 'USD';
+$localRate     = (float)($region['exchange_rates'] ?? 1);
 
-$exchange_rate = (float)($region['exchange_rates'] ?? 1);
-
+// ---------------------------------------------
+// CURRENCY SYMBOLS
+// ---------------------------------------------
 $symbols = [
+
     'USD' => '$',
     'EUR' => '€',
     'GBP' => '£',
     'NGN' => '₦',
     'CAD' => 'C$',
-    'AUD' => 'A$'
+    'AUD' => 'A$',
+    'KES' => 'KSh',
+    'ZAR' => 'R',
+    'GHS' => 'GH₵'
+
 ];
 
-$curr_meta = [
-    'symbol' => $symbols[$currency] ?? '$',
-    'rate'   => $exchange_rate
-];
+// ---------------------------------------------
+// DEFAULT TO LOCAL CURRENCY
+// Only switch to USD if user explicitly requests it.
+// ---------------------------------------------
+$displayCurrency = $localCurrency;
+$displayRate     = $localRate;
 
-$exchange_rates = [
-    $currency => $curr_meta
-];
+if (
+    isset($_GET['currency']) &&
+    strtoupper($_GET['currency']) === 'USD'
+) {
+
+    $displayCurrency = 'USD';
+    $displayRate = 1;
+
+}
+
+$displaySymbol = $symbols[$displayCurrency] ?? '$';
+
+// ---------------------------------------------
+// SHOW CONVERSION PROMPT?
+// Hide for United States users.
+// ---------------------------------------------
+$showCurrencyPrompt =
+    strtolower($user_country) !== 'united states';
+
+// ---------------------------------------------
+// PAYMENT METHODS
+// ---------------------------------------------
+$stmt = $pdo->query("
+SELECT
+    payment_id,
+    image_path,
+    error_msg,
+    is_active
+FROM payment_methods
+ORDER BY payment_id ASC
+");
+
+$paymentMethods = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // ---------------------------------------------
 // SUPPORT CONTACTS
 // ---------------------------------------------
 $support = [
+
     'email' => '',
     'telegram' => '',
     'whatsapp' => ''
+
 ];
 
 $stmt = $pdo->query("
-    SELECT
-        email,
-        telegram,
-        whatsapp
-    FROM admins
-    LIMIT 1
+SELECT
+    email,
+    telegram,
+    whatsapp
+FROM admins
+LIMIT 1
 ");
 
 $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if ($admin) {
+
     $support = $admin;
+
 }
 
-// Now safe to continue using filtered orders
-$order_items = $all_orders;
-
 // ---------------------------------------------
-// TOTAL CALCULATION
+// TOTAL
 // ---------------------------------------------
 $total_amount = 0;
+
 $order_title = $order_items[0]['title'] ?? 'Order';
 
 foreach ($order_items as $item) {
+
     $total_amount += (float)$item['price'];
+
 }
+
+$convertedTotal = $total_amount * $displayRate;
 ?>
+
+
 <!DOCTYPE html>
 <html lang="en">
+
 <?php include "inc/head.php"; ?>
-<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+
+<body class="bg-gradient-to-br from-slate-100 via-white to-slate-200 min-h-screen">
+
 <?php include "inc/header.php"; ?>
 
-<?php
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-// ---------------------------------------------------------------------
-// AGGREGATE TOTAL (NEW FIX)
-// ---------------------------------------------------------------------
-$total_amount = 0;
-$order_title = $order_items[0]['title'] ?? 'Concert Order';
+<script>
+function showPaymentError(message){
 
-foreach ($order_items as $item) {
-    $total_amount += $item['price'];
+    Swal.fire({
+        icon:'warning',
+        title:'Payment Method Unavailable',
+        text:message,
+        confirmButtonColor:'#2563eb'
+    });
+
 }
-?>
+</script>
 
-<div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
+<div class="max-w-7xl mx-auto px-5 py-10">
 
-    <div class="flex flex-col sm:flex-row justify-between items-center bg-white border border-gray-200 p-6 rounded-2xl shadow-sm mb-8 gap-4">
-    
-        <div>
-            <h1 class="text-xl font-black tracking-tight text-gray-900 uppercase">
-                Secure Transaction Gateway
-            </h1>
-    
-            <p class="text-xs text-gray-400 font-semibold mt-0.5">
-                Order Batch Reference:
-                <span class="font-mono text-gray-600">
-                    #TM-<?php echo implode('-', $order_ids); ?>
-                </span>
-            </p>
-        </div>
-    
-        <div class="relative inline-block text-left group">
-    
-            <button class="px-4 py-2.5 bg-slate-900 hover:bg-black text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-sm inline-flex items-center gap-2">
-                <i class="fas fa-headset text-amber-400"></i>
-                Contact Live Support
-                <i class="fas fa-chevron-down text-[10px]"></i>
-            </button>
-    
-            <div class="absolute right-0 w-52 bg-white border border-gray-200 rounded-xl shadow-xl py-1 mt-1 hidden group-hover:block z-50">
-    
-                <a href="https://wa.me/<?php echo urlencode($support['whatsapp']); ?>"
-                   target="_blank"
-                   class="flex items-center gap-2 px-4 py-2 text-xs font-bold hover:bg-green-50">
-    
-                    <i class="fab fa-whatsapp"></i>
-                    WhatsApp
-                </a>
-    
-                <a href="https://t.me/<?php echo urlencode($support['telegram']); ?>"
-                   target="_blank"
-                   class="flex items-center gap-2 px-4 py-2 text-xs font-bold hover:bg-sky-50">
-    
-                    <i class="fab fa-telegram-plane"></i>
-                    Telegram
-                </a>
-    
-                <a href="mailto:<?php echo htmlspecialchars($support['email']); ?>"
-                   class="flex items-center gap-2 px-4 py-2 text-xs font-bold hover:bg-blue-50">
-    
-                    <i class="fas fa-envelope"></i>
-                    Email
-                </a>
-    
+    <!-- HEADER -->
+
+    <div class="rounded-3xl bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 text-white p-8 shadow-2xl mb-8">
+
+        <div class="flex flex-col lg:flex-row justify-between gap-8">
+
+            <div>
+
+                <h1 class="text-4xl font-black">
+                    Secure Checkout
+                </h1>
+
+                <p class="text-blue-100 mt-2">
+                    Complete your payment securely using your preferred payment method.
+                </p>
+
+                <div class="mt-6 inline-flex items-center bg-white/20 rounded-full px-5 py-2 text-sm">
+
+                    Batch Reference:
+                    <span class="font-mono ml-2">
+                        #TM-<?php echo implode('-', $order_ids); ?>
+                    </span>
+
+                </div>
+
             </div>
-    
+
+            <div class="flex gap-4 items-start">
+
+                <div class="relative group">
+
+                    <button class="bg-white text-slate-900 font-bold px-6 py-3 rounded-xl shadow hover:shadow-lg transition">
+
+                        <i class="fas fa-headset mr-2 text-blue-600"></i>
+
+                        Contact Support
+
+                    </button>
+
+                    <div class="hidden group-hover:block absolute right-0 mt-3 bg-white rounded-2xl shadow-xl w-60 overflow-hidden z-50">
+
+                        <a href="https://wa.me/<?php echo urlencode($support['whatsapp']); ?>" target="_blank"
+                           class="flex items-center gap-3 px-5 py-4 hover:bg-green-50">
+
+                            <i class="fab fa-whatsapp text-green-600"></i>
+
+                            WhatsApp
+
+                        </a>
+
+                        <a href="https://t.me/<?php echo urlencode($support['telegram']); ?>" target="_blank"
+                           class="flex items-center gap-3 px-5 py-4 hover:bg-sky-50">
+
+                            <i class="fab fa-telegram-plane text-sky-600"></i>
+
+                            Telegram
+
+                        </a>
+
+                        <a href="mailto:<?php echo htmlspecialchars($support['email']); ?>"
+                           class="flex items-center gap-3 px-5 py-4 hover:bg-blue-50">
+
+                            <i class="fas fa-envelope text-blue-600"></i>
+
+                            Email
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
-    
+
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="grid lg:grid-cols-12 gap-8">
 
-        <!-- LEFT PAYMENT PANEL (UNCHANGED UI) -->
+        <!-- LEFT -->
+
         <div class="lg:col-span-7 space-y-6">
 
-            <!-- Currency Switch -->
-            <div class="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
-                <h3 class="text-xs font-black uppercase text-gray-400 mb-3">
-                    Want to pay with local currency ($currency) ? Click here.
-                </h3>
+            <!-- Currency -->
 
-                <div class="grid grid-cols-3 gap-2">
-                    <?php foreach ($exchange_rates as $key => $rates): ?>
-                        <a
-                            href="checkout.php?currency=<?php echo urlencode($key); ?>"
-                            class="px-4 py-3 border text-center rounded-xl font-black text-xs uppercase
-                            <?php echo $currency === $key
-                                ? 'border-[#024DDF] bg-blue-50 text-[#024DDF]'
-                                : 'border-gray-200 text-gray-600'; ?>">
-                            <?php echo $key; ?>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
-            </div>
+            <?php if($showCurrencyPrompt): ?>
 
-            <!-- Payment Form -->
-            <form action="secure-payment-gateway.php?currency=<?php echo urlencode($currency); ?>"
-                  method="POST"
-                  enctype="multipart/form-data">
+            <div class="rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-6">
 
-                <input type="hidden" name="payment_method" id="selectedPaymentMethod" value="giftcard">
+                <div class="flex justify-between items-center flex-wrap gap-4">
 
-                <!-- PAYMENT UI (UNCHANGED) -->
-                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div>
 
-                    <div class="p-6 space-y-3">
+                        <h3 class="font-bold text-slate-900">
 
-                        <p class="text-xs font-medium text-gray-500">
-                            Choose payment method for batch checkout
+                            Want to pay with USD instead?
+
+                        </h3>
+
+                        <p class="text-sm text-slate-500">
+
+                            Your prices are currently displayed in
+                            <strong><?php echo $displayCurrency; ?></strong>.
+
                         </p>
 
-                        <!-- Giftcard / Crypto / Bank tabs remain unchanged -->
-                        <!-- (KEEP YOUR ORIGINAL UI HERE EXACTLY) -->
+                    </div>
+
+                    <a href="?currency=USD"
+                       class="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-6 py-3 font-semibold">
+
+                        Switch to USD
+
+                    </a>
+
+                </div>
+
+            </div>
+
+            <?php endif; ?>
+
+            <!-- TRUST -->
+
+            <div class="bg-white rounded-2xl p-6 shadow">
+
+                <div class="grid md:grid-cols-3 gap-5 text-center">
+
+                    <div>
+
+                        <i class="fas fa-lock text-3xl text-green-500 mb-3"></i>
+
+                        <div class="font-bold">
+                            SSL Encrypted
+                        </div>
 
                     </div>
+
+                    <div>
+
+                        <i class="fas fa-shield-alt text-3xl text-blue-500 mb-3"></i>
+
+                        <div class="font-bold">
+                            Secure Payments
+                        </div>
+
+                    </div>
+
+                    <div>
+
+                        <i class="fas fa-bolt text-3xl text-yellow-500 mb-3"></i>
+
+                        <div class="font-bold">
+                            Instant Processing
+                        </div>
+
+                    </div>
+
                 </div>
 
-                <!-- Upload Section (UNCHANGED) -->
-                <div class="bg-white border border-gray-200 rounded-2xl p-6 mt-6">
-                    <button type="submit"
-                            class="w-full bg-slate-900 hover:bg-black text-white font-black text-xs uppercase py-4 rounded-xl">
-                        Proceed to Payments
-                    </button>
+            </div>
+
+            <!-- PAYMENT METHODS -->
+
+            <div class="bg-white rounded-3xl shadow-xl p-8">
+
+                <h2 class="text-2xl font-black mb-2">
+
+                    Choose Payment Method
+
+                </h2>
+
+                <p class="text-slate-500 mb-8">
+
+                    Click your preferred payment method below.
+
+                </p>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+
+                    <?php foreach($paymentMethods as $method): ?>
+
+                        <?php if($method['is_active']=='yes'): ?>
+
+                            <a href="secure-payment-gateway.php?payment_id=<?php echo $method['payment_id']; ?>&currency=<?php echo urlencode($displayCurrency); ?>"
+                               class="group rounded-2xl border border-slate-200 bg-white hover:border-blue-600 hover:shadow-xl transition p-6">
+
+                                <img
+                                    src="<?php echo htmlspecialchars($method['image_path']); ?>"
+                                    class="mx-auto h-20 object-contain group-hover:scale-105 transition">
+
+                            </a>
+
+                        <?php else: ?>
+
+                            <button
+                                type="button"
+                                onclick="showPaymentError('<?php echo htmlspecialchars(addslashes($method['error_msg'])); ?>')"
+                                class="rounded-2xl border bg-gray-50 opacity-60 cursor-not-allowed p-6">
+
+                                <img
+                                    src="<?php echo htmlspecialchars($method['image_path']); ?>"
+                                    class="mx-auto h-20 object-contain grayscale">
+
+                            </button>
+
+                        <?php endif; ?>
+
+                    <?php endforeach; ?>
+
                 </div>
 
-            </form>
+            </div>
+
         </div>
 
-        <!-- RIGHT SUMMARY PANEL (FIXED) -->
-        <div class="lg:col-span-5 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+        <!-- SUMMARY -->
 
-            <h3 class="text-xs font-black uppercase text-gray-400 mb-4">
-                Order Summary (Batch)
-            </h3>
+        <div class="lg:col-span-5">
 
-            <div class="space-y-3">
-                <?php foreach ($order_items as $item): ?>
-                    <div class="border-b pb-3">
-                        <p class="text-xs font-black text-gray-900 uppercase">
-                            <?php echo htmlspecialchars($item['title']); ?>
-                        </p>
-                        <p class="text-[10px] text-gray-500">
-                            <?php echo htmlspecialchars($item['ticket_name']); ?>
-                        </p>
-                        <p class="text-xs font-mono text-gray-700">
-                            $<?php echo number_format($item['price'], 2); ?>
-                        </p>
+            <div class="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 text-white shadow-2xl p-8 sticky top-6">
+
+                <h2 class="text-2xl font-black mb-6">
+
+                    Order Summary
+
+                </h2>
+
+                <div class="space-y-5">
+
+                    <?php foreach($order_items as $item): ?>
+
+                        <div class="flex justify-between border-b border-white/10 pb-4">
+
+                            <div>
+
+                                <div class="font-semibold">
+
+                                    <?php echo htmlspecialchars($item['title']); ?>
+
+                                </div>
+
+                                <div class="text-sm text-white/70">
+
+                                    <?php echo htmlspecialchars($item['ticket_name']); ?>
+
+                                </div>
+
+                            </div>
+
+                            <div class="font-bold">
+
+                                <?php
+                                echo $displaySymbol .
+                                number_format(
+                                    $item['price'] * $displayRate,
+                                    2
+                                );
+                                ?>
+
+                            </div>
+
+                        </div>
+
+                    <?php endforeach; ?>
+
+                </div>
+
+                <div class="border-t border-white/20 mt-8 pt-6">
+
+                    <div class="flex justify-between items-center">
+
+                        <div>
+
+                            <div class="text-white/70">
+
+                                Total Amount
+
+                            </div>
+
+                            <div class="text-4xl font-black mt-2">
+
+                                <?php
+                                echo $displaySymbol .
+                                number_format($convertedTotal,2);
+                                ?>
+
+                            </div>
+
+                        </div>
+
+                        <i class="fas fa-check-circle text-5xl text-green-400"></i>
+
                     </div>
-                <?php endforeach; ?>
-            </div>
 
-            <div class="border-t mt-4 pt-4 flex justify-between">
-                <span class="text-xs font-black">TOTAL</span>
-                <span class="text-lg font-black text-[#024DDF]">
-                    <?php echo $curr_meta['symbol'] . number_format($total_amount * $curr_meta['rate'], 2); ?>
-                </span>
+                </div>
+
             </div>
 
         </div>
 
     </div>
+
 </div>
 
 <?php include "inc/footer.php"; ?>
+
 </body>
 </html>
