@@ -23,19 +23,17 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 // ---------------------------------------------
-// GET ORDER IDS FROM URL
+// GET ORDER IDS FROM SESSION
 // ---------------------------------------------
-$orders_param = $_GET['orders'] ?? '';
-
-if (empty($orders_param)) {
+if (
+    !isset($_SESSION['checkout_order_ids']) ||
+    !is_array($_SESSION['checkout_order_ids']) ||
+    empty($_SESSION['checkout_order_ids'])
+) {
     die("Invalid order reference.");
 }
 
-$order_ids = array_values(array_filter(array_map('intval', explode(',', $orders_param))));
-
-if (empty($order_ids)) {
-    die("Invalid order reference.");
-}
+$order_ids = array_map('intval', $_SESSION['checkout_order_ids']);
 
 // ---------------------------------------------
 // DB CONNECTION
@@ -103,18 +101,6 @@ foreach ($order_items as $item) {
 // FIX: MULTI ORDER SUPPORT (from save_order.php redirect)
 // ---------------------------------------------------------------------
 
-$orders_param = isset($_GET['orders']) ? $_GET['orders'] : '';
-
-if (empty($orders_param)) {
-    die("Invalid order reference.");
-}
-
-$order_ids = array_filter(array_map('intval', explode(',', $orders_param)));
-
-if (empty($order_ids)) {
-    die("Invalid order reference.");
-}
-
 // Load DB
 $pdo = (new Database())->connect();
 
@@ -178,7 +164,7 @@ foreach ($order_items as $item) {
 
                 <div class="grid grid-cols-3 gap-2">
                     <?php foreach ($exchange_rates as $key => $rates): ?>
-                        <a href="checkout.php?orders=<?php echo urlencode($orders_param); ?>&currency=<?php echo $key; ?>"
+                        <a href="checkout.php?currency=<?php echo urlencode($key); ?>">
                            class="px-4 py-3 border text-center rounded-xl font-black text-xs uppercase
                            <?php echo $currency === $key ? 'border-[#024DDF] bg-blue-50 text-[#024DDF]' : 'border-gray-200 text-gray-600'; ?>">
                             <?php echo $key; ?>
@@ -188,7 +174,7 @@ foreach ($order_items as $item) {
             </div>
 
             <!-- Payment Form -->
-            <form action="checkout.php?orders=<?php echo urlencode($orders_param); ?>&currency=<?php echo $currency; ?>"
+            <form action="checkout.php?currency=<?php echo urlencode($currency); ?>"
                   method="POST"
                   enctype="multipart/form-data">
 
