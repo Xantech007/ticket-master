@@ -638,13 +638,7 @@ try {
         
                 }
         
-                const orderIds = response.orders
-                    .map(o => o.order_id)
-                    .join(",");
-                
-                window.location =
-                    "checkout.php?orders=" +
-                    encodeURIComponent(orderIds);
+                window.location = "checkout.php";
         
             })
             .catch(err=>{
