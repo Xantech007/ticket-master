@@ -83,7 +83,7 @@ foreach ($all_orders as $order) {
 $stmt = $pdo->prepare("
     SELECT country
     FROM users
-    id = ?
+    WHERE id = ?
     LIMIT 1
 ");
 
