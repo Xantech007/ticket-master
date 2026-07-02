@@ -64,9 +64,11 @@ try {
 
     $pdo->commit();
 
+    // Store all order IDs in the session
+    $_SESSION['checkout_order_ids'] = $orderIds;
+
     echo json_encode([
-        'success' => true,
-        'orders'  => $orderIds
+        'success' => true
     ]);
 
 } catch (Exception $e) {
