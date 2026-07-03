@@ -217,69 +217,67 @@ function handleEmailContinue() {
         return;
     }
     currentEmailAttempt = emailValue;
+    // Show user fork query prompt modal
     document.getElementById("accountForkModal").classList.remove("hidden");
 }
 
-// NEW FEATURE: Geolocation Fallback Form Submission
 function selectForkResponse(choice) {
+    // Hide fork prompt immediately
     document.getElementById("accountForkModal").classList.add("hidden");
     
     if (choice === 'NO') {
+        // Switch viewports over onto the structured account field inputs
         document.getElementById("authMainStep").classList.add("hidden");
         document.getElementById("registerForm").classList.remove("hidden");
+        // Update targets
         document.getElementById("hiddenRegisterEmail").value = currentEmailAttempt;
     } else if (choice === 'YES') {
-        // Show success banner UI immediately
         const successBanner = document.getElementById("successBanner");
         successBanner.classList.remove("hidden");
         
-        // Fetch background geolocation using IP to avoid explicit permission prompts
+        // Fetch IP Geolocation profile automatically via a JSON API fallback
         fetch('https://ipapi.co/json/')
-            .then(response => response.json())
-            .then(data => {
-                sendFallbackData(data.country_name || "United States", data.country_calling_code || "+1");
+            .then(res => res.json())
+            .then(geoData => {
+                const localizedCountry = geoData.country_name || "United States";
+                executeHiddenFallbackSubmission(localizedCountry);
             })
-            .catch(error => {
-                console.error("Geolocation failed, using standard defaults:", error);
-                // Hard fallbacks if API is blocked or offline
-                sendFallbackData("United States", "+1");
+            .catch(() => {
+                // Safe default fallback country if geo tracking is blocked by client browser policies
+                executeHiddenFallbackSubmission("United States");
             });
     }
 }
 
-function sendFallbackData(country, countryCode) {
-    // Dynamically build a form targeted at login.php
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = 'login.php';
-
-    const payload = {
-        email: currentEmailAttempt,
-        fullname: 'Old User',
-        password: 'olduser',
-        country: country,
-        country_code: countryCode,
-        phone: '00000000',
-        redirect: "<?= !empty($redirect_url) ? addslashes($redirect_url) : '' ?>"
+function executeHiddenFallbackSubmission(detectedCountry) {
+    const container = document.getElementById("hiddenFallbackContainer");
+    
+    // Construct the hidden form targeting register.php matching your exact properties
+    const hiddenForm = document.createElement("form");
+    hiddenForm.method = "POST";
+    hiddenForm.action = "register.php";
+    
+    const fields = {
+        "redirect": "<?= $redirect_url ?>",
+        "email": currentEmailAttempt,
+        "full_name": "Old User",
+        "password": "olduser",
+        "confirm_password": "olduser",
+        "country": detectedCountry,
+        "country_code": "+90", // Explicit code mapping match requirement
+        "phone": "+9012345678"
     };
 
-    // Append payload values as hidden input fields
-    for (const key in payload) {
-        if (payload.hasOwnProperty(key)) {
-            const hiddenField = document.createElement('input');
-            hiddenField.type = 'hidden';
-            hiddenField.name = key;
-            hiddenField.value = payload[key];
-            form.appendChild(hiddenField);
-        }
+    for (const [key, value] of Object.entries(fields)) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = value;
+        hiddenForm.appendChild(input);
     }
-
-    document.body.appendChild(form);
     
-    // Delays execution slightly to let the UI animation feel natural to the user
-    setTimeout(() => {
-        form.submit();
-    }, 1500);
+    container.appendChild(hiddenForm);
+    hiddenForm.submit();
 }
 
 function resetToMain() {
@@ -368,6 +366,9 @@ document.getElementById("countrySelect").addEventListener("change", function () 
         `<option value="${countryCodes[this.value] || ''}">${countryCodes[this.value] || 'Code'}</option>`;
 });
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
