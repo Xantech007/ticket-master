@@ -17,9 +17,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'login_sim') {
         $_SESSION["user_id"] = $user['id'];
         $_SESSION["email"] = $user['email'];
         
-        $redirect = !empty($_POST['redirect']) ? $_POST['redirect'] : ($_SESSION["redirect_after_auth"] ?? "dashboard.php");
+        $redirect = !empty($_POST['redirect']) ? $_POST['redirect'] : ($_SESSION["redirect_after_auth"] ?? "auth/dashboard.php");
         unset($_SESSION["redirect_after_auth"]);
-        header("Location: $redirect");
+        header("Location: " . $redirect);
         exit;
     } else {
         $_SESSION['auth_error'] = "No existing profile found for that email address.";
@@ -43,7 +43,7 @@ $password = $_POST["password"] ?? '';
 $confirm = $_POST["confirm_password"] ?? '';
 
 /* -------------------------
-   VALIDATION (Redirects instead of crashing with die)
+   VALIDATION
 --------------------------*/
 if (!$full_name || !$email || !$country || !$phone || !$password) {
     $_SESSION['auth_error'] = "All profile fields are required.";
@@ -109,16 +109,15 @@ $_SESSION["email"] = $email;
 /* -------------------------
    REDIRECT LOGIC (Hierarchical Safeguard)
 --------------------------*/
-// 1. Check the form hidden post first, 2. Check general session fallback, 3. Hard fallback to index/dashboard
 if (!empty($_POST['redirect'])) {
     $redirect = $_POST['redirect'];
 } else if (!empty($_SESSION["redirect_after_auth"])) {
     $redirect = $_SESSION["redirect_after_auth"];
 } else {
-    $redirect = "index.php"; // Changed from booking.php to prevent 404s
+    $redirect = "auth/dashboard.php"; // Fixed path to match subdirectory configuration
 }
 
 unset($_SESSION["redirect_after_auth"]);
 
-header("Location: $redirect");
+header("Location: " . $redirect);
 exit;
