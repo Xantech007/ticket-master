@@ -47,6 +47,10 @@ try {
     $stmt = $pdo->query("SELECT COUNT(*) FROM tickets");
     $total_tickets = (int)$stmt->fetchColumn();
 
+    /* NEW: payment_methods count */
+    $stmt = $pdo->query("SELECT COUNT(*) FROM payment_methods");
+    $total_payments_methods = (int)$stmt->fetchColumn();
+    
 } catch (PDOException $e) {
 
     echo '<div style="background:#f85149;color:#fff;padding:15px;border-radius:8px;margin-bottom:20px;">';
@@ -57,6 +61,7 @@ try {
     $total_artists = 0;
     $total_concerts = 0;
     $total_tickets = 0;
+    $total_payments_methods = 0;
 }
 ?>
 
@@ -171,6 +176,15 @@ border:1px solid #30363d;
         <div class="card-label">Tickets</div>
     </div>
 
+    <!-- NEW TICKETS CARD -->
+    <div class="card">
+        <div class="card-icon" style="color:#d29922;">
+            <i class="fas fa-credit-card"></i>
+        </div>
+        <div class="card-value"><?= number_format($total_payment_methods) ?></div>
+        <div class="card-label">Payment Methods</div>
+    </div>
+
 </div>
 
 <!-- MANAGEMENT -->
@@ -194,6 +208,10 @@ Management Sections
 
     <a href="manage-tickets.php" class="btn">
         <i class="fas fa-ticket"></i> Manage Tickets
+    </a>
+
+    <a href="manage-payment-methods.php" class="btn">
+        <i class="fas fa-ticket"></i> Manage Payment Methods
     </a>
 
 </div>
