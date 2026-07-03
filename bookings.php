@@ -636,7 +636,7 @@ try {
         
                 }
         
-                window.location = "checkout.php";
+                window.location = "auth/checkout.php";
         
             })
             .catch(err=>{
