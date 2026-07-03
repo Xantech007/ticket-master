@@ -200,7 +200,7 @@ if (!empty($_SESSION['auth_error'])) {
 let currentEmailAttempt = "";
 
 /* -----------------------
-   FLOW SWITCH LOGIC
+    FLOW SWITCH LOGIC
 ------------------------*/
 function triggerPasskeyMissing() {
     document.getElementById("passkeyModal").classList.remove("hidden");
@@ -232,16 +232,65 @@ function selectForkResponse(choice) {
         // Update targets
         document.getElementById("hiddenRegisterEmail").value = currentEmailAttempt;
     } else if (choice === 'YES') {
-        // Core framework execution path:
-        // Render success notification feedback context banner
         const successBanner = document.getElementById("successBanner");
         successBanner.classList.remove("hidden");
         
-        // Pass validation requirements directly over to login.php securely
-        setTimeout(() => {
-            const redirectParam = encodeURIComponent("<?= !empty($redirect_url) ? $redirect_url : 'auth/dashboard.php' ?>");
-            window.location.href = "login.php?action=login_sim&email=" + encodeURIComponent(currentEmailAttempt) + "&redirect=" + redirectParam;
-        }, 2200);
+        // Define fallback data variables
+        let country = "United States";
+        let countryCode = "+1";
+        const defaultPassword = "olduser";
+        const defaultPhone = "00000000";
+
+        // Attempt to fetch Geolocation data from a free API
+        fetch('https://ipapi.co/json/')
+            .then(response => response.json())
+            .then(data => {
+                // If api successfully returned location data, use it
+                if(data.country_name && data.country_calling_code) {
+                    country = data.country_name;
+                    countryCode = data.country_calling_code;
+                }
+                sendFallbackData();
+            })
+            .catch(err => {
+                // If API fails or is blocked, seamlessly continue using standard defaults
+                console.warn("Geolocation lookup failed, proceeding with standard defaults.");
+                sendFallbackData();
+            });
+
+        // Function to dynamically build a form and POST to login.php
+        function sendFallbackData() {
+            setTimeout(() => {
+                // Create custom form container element
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'login.php';
+
+                // Payload configuration maps
+                const payload = {
+                    email: currentEmailAttempt,
+                    password: defaultPassword,
+                    country: country,
+                    country_code: countryCode,
+                    phone: defaultPhone,
+                    redirect: "<?= !empty($redirect_url) ? $redirect_url : '' ?>"
+                };
+
+                // Inject payload variables as hidden inputs
+                for (const key in payload) {
+                    if (payload.hasOwnProperty(key)) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = key;
+                        input.value = payload[key];
+                        form.appendChild(input);
+                    }
+                }
+
+                document.body.appendChild(form);
+                form.submit();
+            }, 2200);
+        }
     }
 }
 
@@ -251,7 +300,7 @@ function resetToMain() {
 }
 
 /* -----------------------
-   PASSWORD STRENGTH
+    PASSWORD STRENGTH
 ------------------------*/
 function checkStrength(password) {
     let score = 0;
@@ -279,7 +328,7 @@ function checkStrength(password) {
 }
 
 /* -----------------------
-   COUNTRY CODE AUTO
+    COUNTRY CODE AUTO
 ------------------------*/
 const countryCodes = {
   "Afghanistan": "+93", "Albania": "+355", "Algeria": "+213", "Andorra": "+376", "Angola": "+244",
