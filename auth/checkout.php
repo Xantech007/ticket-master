@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-require_once 'config/db.php';
+require_once '../config/db.php';
 
 // ---------------------------------------------
 // AUTH CHECK
@@ -230,11 +230,11 @@ $convertedTotal = $total_amount * $displayRate;
 <!DOCTYPE html>
 <html lang="en">
 
-<?php include "inc/head.php"; ?>
+<?php include "../inc/head.php"; ?>
 
 <body class="bg-gradient-to-br from-slate-100 via-white to-slate-200 min-h-screen">
 
-<?php include "inc/header.php"; ?>
+<?php include "../inc/header.php"; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -558,7 +558,7 @@ function showPaymentError(message){
 
 </div>
 
-<?php include "inc/footer.php"; ?>
+<?php include "../inc/footer.php"; ?>
 
 </body>
 </html>
