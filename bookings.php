@@ -1,6 +1,12 @@
 <?php
 
-include "inc/session.php";
+// inc/header.php - Global Navigation Component with Session-Safe Initialization
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Check if a user is actively authenticated to toggle view state layouts
+$is_logged_in = isset($_SESSION['user_id']);
 
 // Enable error displaying so we can pinpoint issues if database structural details are missing
 ini_set('display_errors', 1);
