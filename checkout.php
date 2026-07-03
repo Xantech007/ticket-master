@@ -455,7 +455,7 @@ function showPaymentError(message){
 
                                 <img
                                     src="../uploads/payment-methods/<?php echo htmlspecialchars($method['image_path']); ?>"
-                                    class="mx-auto h-20 object-contain grayscale">
+                                    class="mx-auto h-20 object-contain">
 
                             </button>
 
