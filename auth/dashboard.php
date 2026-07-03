@@ -9,7 +9,7 @@ require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
 
-    $_SESSION['auth_error'] = "Please login to continue checkout.";
+    $_SESSION['auth_error'] = "Please login to access dashboard.";
     $_SESSION['redirect_after_auth'] = $_SERVER['REQUEST_URI'];
 
     header("Location: ../auth.php");
