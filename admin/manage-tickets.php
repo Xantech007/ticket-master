@@ -329,17 +329,6 @@ style="width:70px;height:70px;border-radius:10px;object-fit:cover;">
     Add Ticket
 </button>
 
-</div>
-
-    <button class="btn" onclick="openBulkModal()">
-        <i class="fas fa-upload"></i> Bulk Upload
-    </button>
-
-    <button class="btn" onclick="openAddModal()">
-        <i class="fas fa-plus"></i> Add Ticket
-    </button>
-
-</div>
 
 <!-- TABLE -->
 <div style="overflow:auto;">
