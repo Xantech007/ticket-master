@@ -168,6 +168,9 @@ if (!empty($artist_id) && $pdo) {
         $gallery_items[] = $row;
     }
 }
+
+// FIX: Run the header file here before ANY HTML output so session_start() works flawlessly
+include "inc/header.php"; 
     
 ?>
 <!DOCTYPE html>
@@ -191,11 +194,8 @@ if (!empty($artist_id) && $pdo) {
          </a>
         </section>    
         
-        <?php include "inc/header.php"; ?>
-
         <div class="relative w-full h-[420px] md:h-[500px] overflow-hidden bg-black">
         
-            <!-- Banner -->
             <img
                 src="<?= htmlspecialchars($event_banner_image); ?>"
                 onerror="this.src='https://picsum.photos/2000/900';"
@@ -203,13 +203,10 @@ if (!empty($artist_id) && $pdo) {
                 alt="<?= htmlspecialchars($artist_name); ?>"
             >
         
-            <!-- Dark Overlay -->
             <div class="absolute inset-0 bg-black/45"></div>
         
-            <!-- Bottom Gradient -->
             <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
         
-            <!-- Breadcrumb -->
             <div class="absolute top-8 left-8 md:left-12 text-white text-sm">
         
                 <span class="text-white/80">Home</span>
@@ -232,52 +229,48 @@ if (!empty($artist_id) && $pdo) {
         
             </div>
         
-            <!-- Content -->
             <div class="absolute bottom-12 left-8 md:left-12 text-white">
         
-                <!-- Genre -->
                 <p class="text-xl font-semibold mb-2">
                     <?= htmlspecialchars($genre); ?>
                 </p>
         
-                <!-- Artist -->
                 <h1 class="text-4xl md:text-4xl font-black leading-none">
                     <?= htmlspecialchars($artist_name); ?> Tickets
                 </h1>
         
-                <!-- Rating -->
                 <div class="flex items-center gap-3 mt-6">
         
                     <div class="w-11 h-11 rounded-full border border-white flex items-center justify-center cursor-pointer hover:bg-white/10 transition">
-                    
+        
                         <svg xmlns="http://www.w3.org/2000/svg"
                              class="w-5 h-5"
                              fill="none"
                              viewBox="0 0 24 24"
                              stroke="currentColor">
-                    
+        
                             <path stroke-linecap="round"
                                   stroke-linejoin="round"
                                   stroke-width="2"
                                   d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                    
+        
                         </svg>
-                    
+        
                     </div>
         
                     <div class="px-4 py-2 rounded-full border border-white/70 bg-transparent backdrop-blur-sm text-white font-bold flex items-center gap-2">
-                    
+        
                         <svg xmlns="http://www.w3.org/2000/svg"
                             class="w-5 h-5 text-yellow-400"
                             fill="currentColor"
                             viewBox="0 0 20 20">
-                    
+        
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.783.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.363-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.95-.69z"/>
-                    
+        
                         </svg>
-                    
+        
                         <span><?= htmlspecialchars($rating); ?></span>
-                    
+        
                     </div>
         
                 </div>
@@ -361,7 +354,6 @@ if (!empty($artist_id) && $pdo) {
                         </h2>
                     </div>
             
-                    <!-- Left Arrow -->
                     <button
                         id="vipPrev"
                         class="absolute left-5 top-1/2 -translate-y-1/2 z-20 bg-white text-gray-700 w-10 h-10 rounded flex items-center justify-center shadow hover:bg-gray-200">
@@ -370,7 +362,6 @@ if (!empty($artist_id) && $pdo) {
             
                     </button>
             
-                    <!-- Right Arrow -->
                     <button
                         id="vipNext"
                         class="absolute right-5 top-1/2 -translate-y-1/2 z-20 bg-[#0256ff] text-white w-10 h-10 rounded flex items-center justify-center shadow hover:bg-blue-700">
@@ -440,7 +431,6 @@ if (!empty($artist_id) && $pdo) {
             
                 <div class="relative">
             
-                    <!-- Left -->
                     <button id="galleryPrev"
                         class="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white shadow w-10 h-10 rounded flex items-center justify-center">
             
@@ -448,7 +438,6 @@ if (!empty($artist_id) && $pdo) {
             
                     </button>
             
-                    <!-- Right -->
                     <button id="galleryNext"
                         class="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-[#0256ff] text-white shadow w-10 h-10 rounded flex items-center justify-center">
             
@@ -473,7 +462,6 @@ if (!empty($artist_id) && $pdo) {
             
                                 <div class="absolute inset-0 bg-black/40"></div>
             
-                                <!-- Play Icon -->
                                 <div class="absolute inset-0 flex items-center justify-center">
             
                                     <div class="w-14 h-14 rounded-full border-2 border-white flex items-center justify-center">
@@ -484,7 +472,6 @@ if (!empty($artist_id) && $pdo) {
             
                                 </div>
             
-                                <!-- Title -->
                                 <div class="absolute bottom-4 left-4 right-4">
             
                                     <p class="text-white font-bold leading-6 text-lg drop-shadow">
