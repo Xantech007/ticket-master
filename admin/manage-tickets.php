@@ -83,6 +83,77 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
         }
 
 
+        /*---------------- BULK UPLOAD ----------------*/
+        if($action=="bulk_upload"){
+        
+            $bulk = trim($_POST['bulk_data']);
+        
+            if(empty($bulk)){
+                throw new Exception("No ticket data supplied.");
+            }
+        
+            // Split into ticket blocks separated by blank lines
+            $blocks = preg_split("/\R\s*\R/", $bulk);
+        
+            $stmt = $pdo->prepare("
+                INSERT INTO tickets
+                (
+                    concert_id,
+                    ticket_name,
+                    section_name,
+                    row_name,
+                    seat_name,
+                    price,
+                    section_view
+                )
+                VALUES
+                (?,?,?,?,?,?,NULL)
+            ");
+        
+            $count = 0;
+        
+            foreach($blocks as $block){
+        
+                $lines = array_values(array_filter(array_map('trim', preg_split("/\R/", trim($block)))));
+        
+                if(count($lines) < 5){
+                    continue;
+                }
+        
+                $ticket_name = $lines[0];
+                $section_name = $lines[1];
+                $row_name = $lines[2];
+                $seat_name = $lines[3];
+        
+                $price = str_replace(
+                    ["$", ","],
+                    "",
+                    $lines[4]
+                );
+        
+                $price = (float)$price;
+        
+                if($price <= 0){
+                    continue;
+                }
+        
+                $stmt->execute([
+                    $concert_id,
+                    $ticket_name,
+                    $section_name,
+                    $row_name,
+                    $seat_name,
+                    $price
+                ]);
+        
+                $count++;
+            }
+        
+            $_SESSION['success'] = $count . " tickets uploaded successfully.";
+        }
+        
+
+
         /*---------------- DELETE ----------------*/
         if($action=="delete"){
 
@@ -179,8 +250,16 @@ style="width:70px;height:70px;border-radius:10px;object-fit:cover;">
 
 </div>
 
-<div style="text-align:right;margin-bottom:20px;">
-<button class="btn" onclick="openAddModal()"><i class="fas fa-plus"></i> Add Ticket</button>
+<div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:20px;">
+
+    <button class="btn" onclick="openBulkModal()">
+        <i class="fas fa-upload"></i> Bulk Upload
+    </button>
+
+    <button class="btn" onclick="openAddModal()">
+        <i class="fas fa-plus"></i> Add Ticket
+    </button>
+
 </div>
 
 <!-- TABLE -->
@@ -279,6 +358,60 @@ style="width:55px;height:55px;object-fit:cover;border-radius:8px;">
 </div>
 </div>
 
+<div id="bulkModal"
+style="display:none;position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.7);">
+
+<div style="background:#111827;max-width:700px;margin:5% auto;padding:25px;border-radius:10px;">
+
+<h2>Bulk Ticket Upload</h2>
+
+<p>
+Paste tickets in this format:
+</p>
+
+<pre style="background:#000;padding:15px;color:#0f0;border-radius:6px;">
+Standard Ticket
+Sec 222
+Row 7
+Seat 13
+$75.55
+
+Premium Ticket
+Sec 203
+Row 2
+Seat 14
+$112.50
+</pre>
+
+<form method="POST">
+
+<input type="hidden" name="action" value="bulk_upload">
+<input type="hidden" name="concert_id" value="<?= $concert_id ?>">
+
+<textarea
+name="bulk_data"
+required
+style="width:100%;height:320px;padding:12px;"></textarea>
+
+<br><br>
+
+<button class="btn" style="width:100%;">
+Upload Tickets
+</button>
+
+</form>
+
+<br>
+
+<button class="btn red"
+onclick="closeBulkModal()"
+style="width:100%;">
+Close
+</button>
+
+</div>
+</div>
+
 
 <script>
 
@@ -290,6 +423,13 @@ function closeAddModal(){
 document.getElementById("addModal").style.display="none";
 }
 
+function openBulkModal(){
+    document.getElementById("bulkModal").style.display = "block";
+}
+
+function closeBulkModal(){
+    document.getElementById("bulkModal").style.display = "none";
+}
 
 </script>
 
