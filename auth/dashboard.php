@@ -5,7 +5,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 // 1. Initialize access validations & database components
-require_once 'config/db.php';
+require_once '../config/db.php';
 
 $pdo = null;
 try {
@@ -134,16 +134,16 @@ if (empty($admin_messages)) {
 }
 
 // CRITICAL DATA LAYER INJECTION: Run include down here out of view so session_start() never complains
-include "inc/header.php"; 
+include "../inc/header.php"; 
 ?>
 <!DOCTYPE html>
 <html lang="en">
 
-<?php include "inc/head.php"; ?>
+<?php include "../inc/head.php"; ?>
 
 <body class="bg-gray-100 text-gray-900 font-sans antialiased">
 
-    <?php include "inc/navbar.php"; ?>
+    <?php include "../inc/navbar.php"; ?>
 
     <div id="__next" class="min-h-screen flex flex-col justify-between">
 
@@ -350,7 +350,7 @@ include "inc/header.php";
             
         </main>
 
-        <?php include "inc/footer.php"; ?>
+        <?php include "../inc/footer.php"; ?>
     </div>
 
     <style>
