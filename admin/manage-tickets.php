@@ -329,6 +329,8 @@ style="width:70px;height:70px;border-radius:10px;object-fit:cover;">
     Add Ticket
 </button>
 
+</div>
+
 
 <!-- TABLE -->
 <div style="overflow:auto;">
