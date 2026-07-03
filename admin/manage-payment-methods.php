@@ -1,337 +1,304 @@
 <?php
-session_start();
 
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 require_once __DIR__ . '/inc/header.php';
 
-$payment = null;
+$message = '';
+$error   = '';
 
 /* --------------------------------------------------
-   GET PAYMENT ID
--------------------------------------------------- */
-$id = (int)($_GET['id'] ?? 0);
-
-if ($id <= 0) {
-    $_SESSION['error'] = "Invalid payment method.";
-    header("Location: payment-methods.php");
-    exit;
-}
-
-/* --------------------------------------------------
-   FETCH PAYMENT METHOD
+   FETCH PAYMENT METHODS
 -------------------------------------------------- */
 try {
-
-    $stmt = $pdo->prepare("
-        SELECT *
-        FROM payment_methods
-        WHERE payment_id = ?
-    ");
-
-    $stmt->execute([$id]);
-
-    $payment = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$payment) {
-
-        $_SESSION['error'] = "Payment method not found.";
-
-        header("Location: payment-methods.php");
-
-        exit;
-
-    }
-
+    $stmt = $pdo->query("SELECT * FROM payment_methods ORDER BY payment_id DESC");
+    $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-
-    $_SESSION['error'] = $e->getMessage();
-
-    header("Location: payment-methods.php");
-
-    exit;
-
+    $error = "Database error: " . $e->getMessage();
+    $payments = [];
 }
 
 /* --------------------------------------------------
-   UPDATE
+   HANDLE ACTIONS
 -------------------------------------------------- */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
 
     try {
 
-        $type = trim($_POST['type'] ?? '');
+        /* ---------------- ADD PAYMENT METHOD ---------------- */
+        if ($action === 'add') {
 
-        $is_active = $_POST['is_active'] ?? 'yes';
+            $type      = $_POST['type'] ?? '';
+            $error_msg = trim($_POST['error_msg'] ?? '');
+            $is_active = $_POST['is_active'] ?? 'yes';
 
-        $error_msg = trim($_POST['error_msg'] ?? '');
-
-        if (!in_array($type, ['bank','gift_card','crypto'])) {
-
-            throw new Exception("Invalid payment type.");
-
-        }
-
-        if (!in_array($is_active, ['yes','no'])) {
-
-            throw new Exception("Invalid status.");
-
-        }
-
-        $image = $payment['image_path'];
-
-        /* IMAGE */
-
-        if (!empty($_FILES['payment_image']['name'])) {
-
-            $uploadDir = __DIR__ . '/../uploads/payment-methods/';
-
-            if (!is_dir($uploadDir)) {
-
-                mkdir($uploadDir,0777,true);
-
+            if (!in_array($type, ['bank', 'gift_card', 'crypto'])) {
+                throw new Exception("Invalid payment type.");
             }
 
-            $filename = time().'_'.basename($_FILES['payment_image']['name']);
+            if (!in_array($is_active, ['yes', 'no'])) {
+                $is_active = 'yes';
+            }
 
-            move_uploaded_file(
+            if (empty($_FILES['image']['name'])) {
+                throw new Exception("Please upload an image.");
+            }
 
-                $_FILES['payment_image']['tmp_name'],
+            $uploadDir = __DIR__ . "/../uploads/payment-methods/";
 
-                $uploadDir.$filename
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
 
-            );
+            $imageName = time() . '_' . basename($_FILES['image']['name']);
+            $target = $uploadDir . $imageName;
 
-            $image = $filename;
+            move_uploaded_file($_FILES['image']['tmp_name'], $target);
 
+            $stmt = $pdo->prepare("
+                INSERT INTO payment_methods
+                (image_path, error_msg, is_active, type)
+                VALUES (?, ?, ?, ?)
+            ");
+
+            $stmt->execute([
+                $imageName,
+                $error_msg,
+                $is_active,
+                $type
+            ]);
+
+            $_SESSION['success'] = "Payment method added successfully.";
+
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
         }
 
-        /* UPDATE */
+        /* ---------------- DELETE PAYMENT METHOD ---------------- */
+        if ($action === 'delete') {
 
-        $stmt = $pdo->prepare("
+            $id = (int)($_POST['id'] ?? 0);
 
-            UPDATE payment_methods
+            if ($id <= 0) {
+                throw new Exception("Invalid payment ID.");
+            }
 
-            SET
+            $stmt = $pdo->prepare("DELETE FROM payment_methods WHERE payment_id=?");
+            $stmt->execute([$id]);
 
-                image_path=?,
+            $_SESSION['success'] = "Payment method deleted successfully.";
 
-                error_msg=?,
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+        }
 
-                is_active=?,
+    } catch (Exception $e) {
 
-                type=?
+        $_SESSION['error'] = $e->getMessage();
 
-            WHERE payment_id=?
-
-        ");
-
-        $stmt->execute([
-
-            $image,
-
-            $error_msg,
-
-            $is_active,
-
-            $type,
-
-            $id
-
-        ]);
-
-        $_SESSION['success']="Payment method updated successfully.";
-
-        header("Location: payment-methods.php");
-
+        header("Location: " . $_SERVER['PHP_SELF']);
         exit;
-
     }
-
-    catch(Exception $e){
-
-        $_SESSION['error']=$e->getMessage();
-
-        header("Location: manage-payment-methods.php?id=".$id);
-
-        exit;
-
-    }
-
 }
 
 ?>
 
-<main style="max-width:700px;margin:2rem auto;padding:0 15px;">
+<main>
 
-<h1 style="text-align:center;margin-bottom:2rem;">
+<h1 style="text-align:center;margin:2rem 0;">Manage Payment Methods</h1>
 
-Edit Payment Method
-
-</h1>
-
-<?php if(!empty($_SESSION['error'])): ?>
-
-<div style="background:#dc2626;color:#fff;padding:1rem;border-radius:8px;margin-bottom:1rem;">
-
-<?= htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
-
+<?php if (!empty($_SESSION['success'])): ?>
+<div style="background:#238636;color:#fff;padding:1rem;border-radius:8px;text-align:center;max-width:900px;margin:1rem auto;">
+    <?= htmlspecialchars($_SESSION['success']) ?>
 </div>
-
+<?php unset($_SESSION['success']); ?>
 <?php endif; ?>
 
-<?php if(!empty($_SESSION['success'])): ?>
-
-<div style="background:#16a34a;color:#fff;padding:1rem;border-radius:8px;margin-bottom:1rem;">
-
-<?= htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
-
+<?php if (!empty($_SESSION['error'])): ?>
+<div style="background:#f85149;color:#fff;padding:1rem;border-radius:8px;text-align:center;max-width:900px;margin:1rem auto;">
+    <?= htmlspecialchars($_SESSION['error']) ?>
 </div>
-
+<?php unset($_SESSION['error']); ?>
 <?php endif; ?>
 
-<form method="POST"
+<div style="text-align:center;margin-bottom:2rem;">
+    <button onclick="openModal()" class="btn">
+        + Add Payment Method
+    </button>
+</div>
 
-      enctype="multipart/form-data"
+<div style="max-width:1100px;margin:0 auto;overflow-x:auto;padding:0 10px;">
 
-      style="background:var(--card);padding:2rem;border-radius:10px;border:1px solid var(--border);">
+<table style="width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:10px;min-width:850px;">
 
-<label>
+<thead>
+<tr style="background:#111827;text-align:left;">
+    <th style="padding:12px;">Image</th>
+    <th style="padding:12px;">Type</th>
+    <th style="padding:12px;">Error Message</th>
+    <th style="padding:12px;">Status</th>
+    <th style="padding:12px;">Actions</th>
+</tr>
+</thead>
 
-Payment Type
+<tbody>
 
-</label>
+<?php foreach($payments as $payment): ?>
 
-<select
+<tr style="border-top:1px solid var(--border);">
 
-name="type"
+<td style="padding:12px;">
+    <img src="../uploads/payment-methods/<?= htmlspecialchars($payment['image_path']) ?>"
+         style="width:70px;height:50px;object-fit:contain;border-radius:6px;">
+</td>
 
-style="width:100%;padding:.8rem;margin-bottom:1rem;">
+<td style="padding:12px;">
+    <?= ucfirst(htmlspecialchars($payment['type'])) ?>
+</td>
 
-<option value="bank"
+<td style="padding:12px;max-width:300px;">
+    <?= htmlspecialchars(mb_strimwidth($payment['error_msg'],0,60,'...')) ?>
+</td>
 
-<?= $payment['type']=='bank'?'selected':'' ?>>
+<td style="padding:12px;">
 
-Bank
+<?php if($payment['is_active']=='yes'): ?>
 
-</option>
-
-<option value="gift_card"
-
-<?= $payment['type']=='gift_card'?'selected':'' ?>>
-
-Gift Card
-
-</option>
-
-<option value="crypto"
-
-<?= $payment['type']=='crypto'?'selected':'' ?>>
-
-Crypto
-
-</option>
-
-</select>
-
-<label>
-
-Status
-
-</label>
-
-<select
-
-name="is_active"
-
-style="width:100%;padding:.8rem;margin-bottom:1rem;">
-
-<option value="yes"
-
-<?= $payment['is_active']=='yes'?'selected':'' ?>>
-
+<span style="background:#238636;padding:5px 10px;border-radius:20px;color:#fff;">
 Active
-
-</option>
-
-<option value="no"
-
-<?= $payment['is_active']=='no'?'selected':'' ?>>
-
-Disabled
-
-</option>
-
-</select>
-
-<label>
-
-Disabled Message
-
-</label>
-
-<textarea
-
-name="error_msg"
-
-style="width:100%;height:120px;padding:.8rem;margin-bottom:1rem;resize:vertical;"><?= htmlspecialchars($payment['error_msg']) ?></textarea>
-
-<label>
-
-Current Image
-
-</label>
-
-<div style="margin:15px 0;">
-
-<?php if(!empty($payment['image_path'])): ?>
-
-<img
-
-src="../uploads/payment-methods/<?= htmlspecialchars($payment['image_path']) ?>"
-
-style="width:140px;height:140px;object-fit:contain;border:1px solid #ddd;border-radius:10px;padding:10px;background:#fff;">
+</span>
 
 <?php else: ?>
 
-<span style="color:#777;">No image uploaded.</span>
+<span style="background:#dc3545;padding:5px 10px;border-radius:20px;color:#fff;">
+Inactive
+</span>
 
 <?php endif; ?>
 
-</div>
+</td>
 
-<label>
+<td style="padding:12px;white-space:nowrap;">
 
-Replace Image
+<a href="edit-payment-method.php?id=<?= $payment['payment_id'] ?>"
+   class="btn green"
+   style="padding:6px 10px;font-size:13px;">
+    Edit
+</a>
 
-</label>
+<form method="POST"
+      style="display:inline-block;margin-left:5px;"
+      onsubmit="return confirm('Delete this payment method?');">
 
-<input
+<input type="hidden" name="action" value="delete">
+<input type="hidden" name="id" value="<?= $payment['payment_id'] ?>">
 
-type="file"
-
-name="payment_image"
-
-style="width:100%;margin-bottom:1.5rem;">
-
-<button
-
-type="submit"
-
-class="btn"
-
-style="width:100%;">
-
-<i class="fas fa-save"></i>
-
-Save Changes
-
+<button class="btn red"
+        style="padding:6px 10px;font-size:13px;">
+Delete
 </button>
 
 </form>
 
+</td>
+
+</tr>
+
+<?php endforeach; ?>
+
+</tbody>
+
+</table>
+
+</div>
+
+<!-- MODAL -->
+
+<div id="paymentModal"
+style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,.7);overflow-y:auto;padding:20px;">
+
+<div style="
+background:#0d1117;
+max-width:500px;
+margin:40px auto;
+padding:2rem;
+border-radius:10px;
+max-height:90vh;
+overflow-y:auto;
+">
+
+<h2>Add Payment Method</h2>
+
+<form method="POST" enctype="multipart/form-data">
+
+<input type="hidden" name="action" value="add">
+
+<label>Type</label>
+
+<select name="type"
+style="width:100%;padding:.7rem;margin-bottom:1rem;">
+
+<option value="bank">Bank</option>
+<option value="gift_card">Gift Card</option>
+<option value="crypto">Crypto</option>
+
+</select>
+
+<label>Error Message</label>
+
+<textarea name="error_msg"
+style="width:100%;padding:.7rem;margin-bottom:1rem;"
+rows="4"></textarea>
+
+<label>Status</label>
+
+<select name="is_active"
+style="width:100%;padding:.7rem;margin-bottom:1rem;">
+
+<option value="yes">Active</option>
+<option value="no">Inactive</option>
+
+</select>
+
+<label>Image</label>
+
+<input type="file"
+name="image"
+required
+style="margin-bottom:1rem;">
+
+<button class="btn" style="width:100%;">
+Save
+</button>
+
+</form>
+
+<br>
+
+<button onclick="closeModal()" class="btn red" style="width:100%;">
+Close
+</button>
+
+</div>
+
+</div>
+
+<script>
+
+function openModal(){
+    document.getElementById('paymentModal').style.display='block';
+}
+
+function closeModal(){
+    document.getElementById('paymentModal').style.display='none';
+}
+
+</script>
+
 </main>
 
-<?php require_once __DIR__.'/inc/footer.php'; ?>
+<?php require_once __DIR__ . '/inc/footer.php'; ?>
