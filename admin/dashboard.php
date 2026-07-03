@@ -49,7 +49,7 @@ try {
 
     /* NEW: payment_methods count */
     $stmt = $pdo->query("SELECT COUNT(*) FROM payment_methods");
-    $total_payments_methods = (int)$stmt->fetchColumn();
+    $total_payment_methods = (int)$stmt->fetchColumn();
 
     /* NEW: region_settings count */
     $stmt = $pdo->query("SELECT COUNT(*) FROM region_settings");
