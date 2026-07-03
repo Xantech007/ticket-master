@@ -1,8 +1,6 @@
 <?php
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+include "inc/session.php";
 
 // Enable error displaying so we can pinpoint issues if database structural details are missing
 ini_set('display_errors', 1);
