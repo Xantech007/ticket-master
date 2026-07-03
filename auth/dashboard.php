@@ -5,6 +5,17 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+if (!isset($_SESSION['user_id'])) {
+
+    $_SESSION['auth_error'] = "Please login to continue checkout.";
+    $_SESSION['redirect_after_auth'] = $_SERVER['REQUEST_URI'];
+
+    header("Location: ../auth.php");
+    exit;
+}
+
+$user_id = (int) $_SESSION['user_id'];
+
 // 1. Initialize access validations & database components
 require_once '../config/db.php';
 
