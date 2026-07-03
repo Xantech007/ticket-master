@@ -284,14 +284,12 @@ try {
 
             </div>
         </main>
-        <!-- Image Viewer -->
         <div
             id="imageModal"
             class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4">
         
             <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
         
-                <!-- Header -->
                 <div class="flex items-center justify-between border-b px-6 py-4">
                     <div>
                         <h3 id="modalTitle" class="text-xl font-black text-gray-900">
@@ -309,7 +307,6 @@ try {
                     </button>
                 </div>
         
-                <!-- Controls -->
                 <div class="flex items-center gap-3 px-6 py-3 bg-gray-50 border-b">
         
                     <button
@@ -332,7 +329,6 @@ try {
         
                 </div>
         
-                <!-- Image -->
                 <div class="flex-1 overflow-auto bg-gray-900 p-6">
                     <div class="min-w-max min-h-full flex items-center justify-center">
                         <img
@@ -343,7 +339,6 @@ try {
                     </div>
                 </div>
         
-                <!-- Footer Information -->
                 <div class="border-t bg-white px-6 py-4">
         
                     <div id="modalInfo"
@@ -622,10 +617,9 @@ try {
                 if (!response.success) {
                     // Check if backend flagged this as an authentication block
                     if (response.auth_required) {
-                        // Redirect user to login portal
-                        // Optional: Pass the return URL so they return seamlessly after login
+                        // Redirect user to login portal with the error and return parameters
                         const returnUrl = encodeURIComponent(window.location.href);
-                        window.location = "auth.php?redirect=" + returnUrl;
+                        window.location = "auth.php?error=auth_required&redirect=" + returnUrl;
                         return;
                     }
         
