@@ -255,7 +255,7 @@ $top_searches_list = [
                                 </div>
 
                                 <div class="shrink-0 text-right">
-                                    <a href="booking.php?concert_id=<?php echo $event['concert_id']; ?>"
+                                    <a href="bookings.php?concert_id=<?php echo $event['concert_id']; ?>"
                                        class="block text-center w-full md:w-auto bg-[#024DDF] hover:bg-blue-800 text-white font-bold text-xs uppercase tracking-wider py-3 px-6 rounded-lg transition-colors shadow focus:outline-none">
                                         Find Tickets
                                     </a>
