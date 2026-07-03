@@ -34,7 +34,7 @@ $is_logged_in = isset($_SESSION['user_id']);
       <div class="flex items-center">
         <?php if ($is_logged_in): ?>
           <a href="dashboard.php" class="flex items-center gap-2 lg:gap-3 text-white hover:text-gray-200 transition-colors duration-200" title="Access Dashboard Portfolio">
-            <i class="fa-regular fa-user text-xl bg-blue-800 p-2 rounded-full border border-blue-700 shadow-sm"></i>
+            <i class="fa-regular fa-user text-xl"></i>
             <span class="hidden md:inline font-bold text-sm lg:text-base">Dashboard</span>
           </a>
         <?php else: ?>
