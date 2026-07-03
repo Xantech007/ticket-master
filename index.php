@@ -1,8 +1,4 @@
-<?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-?>
+<?php include "inc/session.php"; ?>
 
 
 <!DOCTYPE html>
