@@ -614,42 +614,36 @@ try {
                 return;
             }
         
-            fetch("save_order.php",{
-        
-                method:"POST",
-        
-                headers:{
-                    "Content-Type":"application/json"
+            if (!isLoggedIn) {
+                window.location =
+                    "auth/auth.php?redirect=" +
+                    encodeURIComponent("auth/checkout.php");
+                return;
+            }
+            
+            fetch("save_order.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
                 },
-        
-                body:JSON.stringify({
-        
-                    seats:pickedSeatsRegister
-        
+                body: JSON.stringify({
+                    seats: pickedSeatsRegister
                 })
-        
             })
-            .then(res=>res.json())
-            .then(response=>{
-        
-                if(!response.success){
-        
+            .then(res => res.json())
+            .then(response => {
+            
+                if (!response.success) {
                     alert(response.message);
-        
-                    return;
-        
-                }
-        
-                if (!isLoggedIn) {
-                    window.location =
-                        "auth/auth.php?redirect=" +
-                        encodeURIComponent("auth/checkout.php");
                     return;
                 }
-                
+            
                 window.location = "auth/checkout.php";
-        
             })
+            .catch(err => {
+                console.log(err);
+                alert("Unable to create order.");
+            });
             .catch(err=>{
         
                 console.log(err);
