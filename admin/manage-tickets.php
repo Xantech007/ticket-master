@@ -166,6 +166,28 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
         }
 
 
+        /*---------------- BULK DELETE ----------------*/
+        if($action=="bulk_delete"){
+        
+            $section_name = trim($_POST['section_name']);
+        
+            if(empty($section_name)){
+                throw new Exception("Please select a section.");
+            }
+        
+            $stmt = $pdo->prepare("
+                DELETE FROM tickets
+                WHERE concert_id=?
+                AND section_name=?
+            ");
+        
+            $stmt->execute([$concert_id, $section_name]);
+        
+            $_SESSION['success'] =
+                $stmt->rowCount() . " tickets deleted from " . $section_name;
+        }
+
+
         /*---------------- BULK SECTION VIEW ----------------*/
         if($action=="bulk_section_view"){
         
@@ -327,6 +349,11 @@ style="width:70px;height:70px;border-radius:10px;object-fit:cover;">
 <button class="btn" onclick="openAddModal()">
     <i class="fas fa-plus"></i>
     Add Ticket
+</button>
+
+<button class="btn red" onclick="openDeleteModal()">
+    <i class="fas fa-trash"></i>
+    Bulk Delete Section
 </button>
 
 </div>
@@ -561,6 +588,73 @@ Close
 
 </div>
 
+<div id="deleteModal"
+style="
+display:none;
+position:fixed;
+left:0;
+top:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.7);
+overflow-y:auto;
+padding:40px 20px;
+z-index:9999;
+">
+
+<div style="
+background:#111827;
+max-width:600px;
+margin:auto;
+padding:25px;
+border-radius:10px;
+max-height:90vh;
+overflow-y:auto;
+">
+
+<h2>Bulk Delete Tickets</h2>
+
+<p style="color:#fca5a5;">
+This will permanently delete all tickets in the selected section.
+</p>
+
+<form method="POST">
+
+<input type="hidden" name="action" value="bulk_delete">
+<input type="hidden" name="concert_id" value="<?= $concert_id ?>">
+
+<label>Select Section</label>
+
+<select
+name="section_name"
+required
+style="width:100%;padding:12px;margin:10px 0;">
+
+<option value="">Choose Section</option>
+
+<?php foreach($sections as $section){ ?>
+<option value="<?= htmlspecialchars($section) ?>">
+<?= htmlspecialchars($section) ?>
+</option>
+<?php } ?>
+
+</select>
+
+<button class="btn red" style="width:100%;">
+Delete All Tickets
+</button>
+
+</form>
+
+<br>
+
+<button class="btn" onclick="closeDeleteModal()" style="width:100%;">
+Cancel
+</button>
+
+</div>
+</div>
+
 
 <script>
 
@@ -586,6 +680,14 @@ function openSectionModal(){
 
 function closeSectionModal(){
     document.getElementById("sectionModal").style.display="none";
+}
+
+function openDeleteModal(){
+    document.getElementById("deleteModal").style.display="block";
+}
+
+function closeDeleteModal(){
+    document.getElementById("deleteModal").style.display="none";
 }
 
 </script>
