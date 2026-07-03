@@ -50,6 +50,10 @@ try {
     /* NEW: payment_methods count */
     $stmt = $pdo->query("SELECT COUNT(*) FROM payment_methods");
     $total_payments_methods = (int)$stmt->fetchColumn();
+
+    /* NEW: region_settings count */
+    $stmt = $pdo->query("SELECT COUNT(*) FROM region_settings");
+    $total_region_settings = (int)$stmt->fetchColumn();
     
 } catch (PDOException $e) {
 
@@ -62,6 +66,7 @@ try {
     $total_concerts = 0;
     $total_tickets = 0;
     $total_payments_methods = 0;
+    $total_region_settings = 0;
 }
 ?>
 
@@ -178,11 +183,20 @@ border:1px solid #30363d;
 
     <!-- NEW TICKETS CARD -->
     <div class="card">
-        <div class="card-icon" style="color:#d29922;">
+        <div class="card-icon" style="color:#272673;">
             <i class="fas fa-credit-card"></i>
         </div>
         <div class="card-value"><?= number_format($total_payment_methods) ?></div>
         <div class="card-label">Payment Methods</div>
+    </div>
+
+    <!-- NEW TICKETS CARD -->
+    <div class="card">
+        <div class="card-icon" style="color:#fff;">
+            <i class="fas fa-globe"></i>
+        </div>
+        <div class="card-value"><?= number_format($total_region_settings) ?></div>
+        <div class="card-label">Region Settings</div>
     </div>
 
 </div>
@@ -211,7 +225,11 @@ Management Sections
     </a>
 
     <a href="manage-payment-methods.php" class="btn">
-        <i class="fas fa-ticket"></i> Manage Payment Methods
+        <i class="fas fa-credit-card"></i> Manage Payment Methods
+    </a>
+
+    <a href="manage-region-settings.php" class="btn">
+        <i class="fas fa-globe"></i> Manage Region Settings
     </a>
 
 </div>
