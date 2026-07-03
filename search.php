@@ -198,7 +198,7 @@ $top_searches_list = [
                                      class="w-20 h-20 rounded-full object-cover border border-gray-100 shadow-sm mb-3">
                                 <h4 class="text-sm font-black text-gray-900 tracking-tight truncate w-full"><?php echo htmlspecialchars($artist['artist_name']); ?></h4>
                                 
-                                <a href="artist.php?artist_id=<?php echo $artist['artist_id']; ?>" 
+                                <a href="events.php?artist_id=<?php echo $artist['artist_id']; ?>" 
                                    class="mt-3 text-[11px] font-bold text-white bg-[#024DDF] hover:bg-blue-800 px-3 py-1.5 rounded-md transition-all uppercase tracking-wider w-full text-center block shadow-sm">
                                     View Artist
                                 </a>
