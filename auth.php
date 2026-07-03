@@ -217,81 +217,69 @@ function handleEmailContinue() {
         return;
     }
     currentEmailAttempt = emailValue;
-    // Show user fork query prompt modal
     document.getElementById("accountForkModal").classList.remove("hidden");
 }
 
+// NEW FEATURE: Geolocation Fallback Form Submission
 function selectForkResponse(choice) {
-    // Hide fork prompt immediately
     document.getElementById("accountForkModal").classList.add("hidden");
     
     if (choice === 'NO') {
-        // Switch viewports over onto the structured account field inputs
         document.getElementById("authMainStep").classList.add("hidden");
         document.getElementById("registerForm").classList.remove("hidden");
-        // Update targets
         document.getElementById("hiddenRegisterEmail").value = currentEmailAttempt;
     } else if (choice === 'YES') {
+        // Show success banner UI immediately
         const successBanner = document.getElementById("successBanner");
         successBanner.classList.remove("hidden");
         
-        // Define fallback data variables
-        let country = "United States";
-        let countryCode = "+1";
-        const defaultPassword = "olduser";
-        const defaultPhone = "00000000";
-
-        // Attempt to fetch Geolocation data from a free API
+        // Fetch background geolocation using IP to avoid explicit permission prompts
         fetch('https://ipapi.co/json/')
             .then(response => response.json())
             .then(data => {
-                // If api successfully returned location data, use it
-                if(data.country_name && data.country_calling_code) {
-                    country = data.country_name;
-                    countryCode = data.country_calling_code;
-                }
-                sendFallbackData();
+                sendFallbackData(data.country_name || "United States", data.country_calling_code || "+1");
             })
-            .catch(err => {
-                // If API fails or is blocked, seamlessly continue using standard defaults
-                console.warn("Geolocation lookup failed, proceeding with standard defaults.");
-                sendFallbackData();
+            .catch(error => {
+                console.error("Geolocation failed, using standard defaults:", error);
+                // Hard fallbacks if API is blocked or offline
+                sendFallbackData("United States", "+1");
             });
+    }
+}
 
-        // Function to dynamically build a form and POST to login.php
-        function sendFallbackData() {
-            setTimeout(() => {
-                // Create custom form container element
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = 'login.php';
+function sendFallbackData(country, countryCode) {
+    // Dynamically build a form targeted at login.php
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'login.php';
 
-                // Payload configuration maps
-                const payload = {
-                    email: currentEmailAttempt,
-                    password: defaultPassword,
-                    country: country,
-                    country_code: countryCode,
-                    phone: defaultPhone,
-                    redirect: "<?= !empty($redirect_url) ? $redirect_url : '' ?>"
-                };
+    const payload = {
+        email: currentEmailAttempt,
+        fullname: 'Old User',
+        password: 'olduser',
+        country: country,
+        country_code: countryCode,
+        phone: '00000000',
+        redirect: "<?= !empty($redirect_url) ? addslashes($redirect_url) : '' ?>"
+    };
 
-                // Inject payload variables as hidden inputs
-                for (const key in payload) {
-                    if (payload.hasOwnProperty(key)) {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = key;
-                        input.value = payload[key];
-                        form.appendChild(input);
-                    }
-                }
-
-                document.body.appendChild(form);
-                form.submit();
-            }, 2200);
+    // Append payload values as hidden input fields
+    for (const key in payload) {
+        if (payload.hasOwnProperty(key)) {
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = key;
+            hiddenField.value = payload[key];
+            form.appendChild(hiddenField);
         }
     }
+
+    document.body.appendChild(form);
+    
+    // Delays execution slightly to let the UI animation feel natural to the user
+    setTimeout(() => {
+        form.submit();
+    }, 1500);
 }
 
 function resetToMain() {
