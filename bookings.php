@@ -608,40 +608,38 @@ try {
             }
         
             fetch("save_order.php",{
-        
                 method:"POST",
-        
                 headers:{
                     "Content-Type":"application/json"
                 },
-        
                 body:JSON.stringify({
-        
                     seats:pickedSeatsRegister
-        
                 })
-        
             })
-            .then(res=>res.json())
-            .then(response=>{
+            .then(res => res.json())
+            .then(response => {
         
-                if(!response.success){
+                if (!response.success) {
+                    // Check if backend flagged this as an authentication block
+                    if (response.auth_required) {
+                        // Redirect user to login portal
+                        // Optional: Pass the return URL so they return seamlessly after login
+                        const returnUrl = encodeURIComponent(window.location.href);
+                        window.location = "auth.php?redirect=" + returnUrl;
+                        return;
+                    }
         
                     alert(response.message);
-        
                     return;
-        
                 }
         
+                // Proceed to checkout if order generation succeeded 
                 window.location = "auth/checkout.php";
         
             })
-            .catch(err=>{
-        
+            .catch(err => {
                 console.log(err);
-        
                 alert("Unable to create order.");
-        
             });
         
         });
