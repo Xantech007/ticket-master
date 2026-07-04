@@ -2,64 +2,101 @@
 // get_order_details.php
 header('Content-Type: application/json');
 
-// Disable internal HTML rendering of header files if they contain visual layouts
-// Ensure this script only manages database connectivity definitions
+// Include your database setup file containing $pdo object
 require_once __DIR__ . '/inc/header.php'; 
 
-$deposit_id = isset($_GET['deposit_id']) ? (int)$_GET['deposit_id'] : 0;
-$order_id   = isset($_GET['order_id'])   ? trim($_GET['order_id']) : '';
+if (!isset($_GET['order_ids']) || empty(trim($_GET['order_ids']))) {
+    echo json_encode(['success' => false, 'message' => 'Missing order identification sequence.']);
+    exit;
+}
 
-if ($deposit_id <= 0) {
-    echo json_encode(['success' => false, 'message' => 'Invalid Deposit Reference ID.']);
+// Explode comma-separated order IDs and filter out empty elements or spaces
+$orderIdsArray = array_filter(array_map('intval', explode(',', $_GET['order_ids'])));
+
+if (empty($orderIdsArray)) {
+    echo json_encode(['success' => false, 'message' => 'No valid order numbers parsed.']);
     exit;
 }
 
 try {
-    /* Step 1: Fetch the precise deposit row to secure the true user_id 
-       and verified order context links saved in the ledger.
-    */
-    $depStmt = $pdo->prepare("SELECT user_id, order_ids FROM deposits WHERE deposit_id = ?");
-    $depStmt->execute([$deposit_id]);
-    $depositRecord = $depStmt->fetch(PDO::FETCH_ASSOC);
+    // Generate secure dynamic placeholders for the SQL IN clause (e.g. ?, ?, ?)
+    $placeholders = implode(',', array_fill(0, count($orderIdsArray), '?'));
+    
+    // Construct the query linking tickets -> concerts -> artists -> users
+    $query = "
+        SELECT 
+            t.ticket_id,
+            t.ticket_name,
+            t.section_name,
+            t.row_name,
+            t.price,
+            c.concert_id,
+            c.title AS concert_title,
+            c.concert_date,
+            c.day_time,
+            c.venue,
+            c.location,
+            a.artist_id,
+            a.artist_name,
+            a.artist_image,
+            u.id AS user_id,
+            u.full_name,
+            u.email,
+            u.country
+        FROM tickets t
+        LEFT JOIN concerts c ON t.concert_id = c.concert_id
+        LEFT JOIN artists a ON c.artist_id = a.artist_id
+        LEFT JOIN users u ON t.user_id = u.id
+        WHERE t.ticket_id IN ($placeholders)
+        ORDER BY t.ticket_id ASC
+    ";
 
-    if (!$depositRecord) {
-        echo json_encode(['success' => false, 'message' => 'Deposit record tracking log not found.']);
+    $stmt = $pdo->prepare($query);
+    $stmt->execute(array_values($orderIdsArray));
+    $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (empty($records)) {
+        echo json_encode(['success' => false, 'message' => 'No matching data logs found in database.']);
         exit;
     }
 
-    $userId = $depositRecord['user_id'];
-    // Parse order fallback targets if query string argument did not transfer correctly
-    $targetTicketId = !empty($order_id) ? $order_id : $depositRecord['order_ids'];
+    // Extract User parameters from the initial reference row found
+    $userData = [
+        'full_name' => $records[0]['full_name'] ?? 'N/A',
+        'email'     => $records[0]['email'] ?? 'N/A',
+        'country'   => $records[0]['country'] ?? 'N/A'
+    ];
 
-    /* Step 2: Pull corresponding user profile data details
-    */
-    $userStmt = $pdo->prepare("SELECT full_name, email FROM users WHERE id = ?");
-    $userStmt->execute([$userId]);
-    $userData = $userStmt->fetch(PDO::FETCH_ASSOC) ?: ['full_name' => 'Unknown User', 'email' => 'N/A'];
+    // Build the sub-items dictionary lists grouping ticket parameters independently
+    $items = [];
+    foreach ($records as $row) {
+        $items[] = [
+            'ticket_id'    => $row['ticket_id'],
+            'ticket_name'  => $row['ticket_name'] ?? 'General Entry',
+            'section_name' => $row['section_name'] ?? 'N/A',
+            'row_name'     => $row['row_name'] ?? 'N/A',
+            'price'        => $row['price'],
+            'concert'      => [
+                'title'   => $row['concert_title'] ?? 'N/A',
+                'date'    => $row['concert_date'] ?? 'N/A',
+                'time'    => $row['day_time'] ?? 'N/A',
+                'venue'   => $row['venue'] ?? 'N/A',
+                'location'=> $row['location'] ?? 'N/A'
+            ],
+            'artist'       => [
+                'name'    => $row['artist_name'] ?? 'N/A',
+                'image'   => $row['artist_image'] ?? ''
+            ]
+        ];
+    }
 
-    /* Step 3: Pull matching ticket/order specifications directly via ticket_id primary index
-    */
-    $ticketStmt = $pdo->prepare("SELECT ticket_id, event_title, ticket_type, quantity, total_price, status, created_at FROM tickets WHERE ticket_id = ?");
-    $ticketStmt->execute([$targetTicketId]);
-    $ticketData = $ticketStmt->fetch(PDO::FETCH_ASSOC) ?: null;
-
-    // Package compound metrics safely into one clean object mapping
     echo json_encode([
         'success' => true,
-        'data' => [
-            'full_name'     => $userData['full_name'],
-            'email'         => $userData['email'],
-            'ticket_id'     => $ticketData ? $ticketData['ticket_id'] : $targetTicketId,
-            'event_title'   => $ticketData ? $ticketData['event_title'] : 'Custom Purchase Entry',
-            'ticket_type'   => $ticketData ? $ticketData['ticket_type'] : 'N/A',
-            'quantity'      => $ticketData ? $ticketData['quantity'] : '1',
-            'total_price'   => $ticketData ? $ticketData['total_price'] : '0.00',
-            'ticket_status' => $ticketData ? $ticketData['status'] : 'pending',
-            'purchase_date' => $ticketData ? $ticketData['created_at'] : 'N/A'
-        ]
+        'user'    => $userData,
+        'items'   => $items
     ]);
 
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Database exception layout error: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Database exception: ' . $e->getMessage()]);
 }
 exit;
