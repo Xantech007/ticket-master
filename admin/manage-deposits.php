@@ -48,15 +48,18 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_order_details') {
         // Prepare dynamic in-clause placeholder string for processing ticket parameters
         $placeholders = implode(',', array_fill(0, count($order_ids), '?'));
         
+        // CORRECTED INTERMEDIARY LAYER JOIN ROUTE
         $stmt = $pdo->prepare("
             SELECT 
                 t.ticket_id, t.ticket_name, t.section_name, t.row_name, t.price,
                 c.concert_id, c.concert_date, c.day_time, c.venue, c.location, c.title AS concert_title,
-                a.artist_id, a.artist_name, a.artist_image
-            FROM tickets t
+                a.artist_id, a.artist_name, a.artist_image,
+                o.order_id
+            FROM orders o
+            INNER JOIN tickets t ON o.ticket_id = t.ticket_id
             LEFT JOIN concerts c ON t.concert_id = c.concert_id
             LEFT JOIN artists a ON c.artist_id = a.artist_id
-            WHERE t.ticket_id IN ($placeholders)
+            WHERE o.order_id IN ($placeholders)
         ");
         $stmt->execute($order_ids);
         $tickets_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -399,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                             html += `
                                 <div style="background:#1e293b; border:1px solid #334155; padding:16px; border-radius:8px; margin-bottom:15px; position:relative;">
-                                    <span style="position:absolute; top:12px; right:15px; background:#334155; color:#94a3b8; font-size:11px; padding:2px 6px; border-radius:4px; font-weight:bold;">Item #${index + 1} (Ticket ID: ${item.ticket_id})</span>
+                                    <span style="position:absolute; top:12px; right:15px; background:#334155; color:#94a3b8; font-size:11px; padding:2px 6px; border-radius:4px; font-weight:bold;">Item #${index + 1} (Order ID: ${item.order_id})</span>
                                     
                                     <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px; border-bottom:1px dashed #334155; padding-bottom:10px;">
                                         ${artistImgHtml}
