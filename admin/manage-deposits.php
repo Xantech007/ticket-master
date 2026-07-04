@@ -17,6 +17,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_order_details') {
         ob_clean(); 
 
         $order_string = trim($_GET['order_ids'] ?? '');
+        $target_user_id = (int)($_GET['user_id'] ?? 0);
         
         if (empty($order_string)) {
             echo json_encode(['success' => false, 'error' => 'No order IDs supplied']);
@@ -31,14 +32,27 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_order_details') {
             exit;
         }
 
-        // Prepare dynamic in-clause placeholder string
+        // Fetch corresponding User data directly matching the specified criteria
+        $user_stmt = $pdo->prepare("SELECT full_name, email, country FROM users WHERE id = ?");
+        $user_stmt->execute([$target_user_id]);
+        $user_data = $user_stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$user_data) {
+            $user_data = [
+                'full_name' => 'Unknown User', 
+                'email' => 'N/A', 
+                'country' => 'N/A'
+            ];
+        }
+
+        // Prepare dynamic in-clause placeholder string for processing ticket parameters
         $placeholders = implode(',', array_fill(0, count($order_ids), '?'));
         
         $stmt = $pdo->prepare("
             SELECT 
                 t.ticket_id, t.ticket_name, t.section_name, t.row_name, t.price,
-                c.concert_date, c.day_time, c.venue, c.location, c.title AS concert_title,
-                a.artist_name, a.artist_image
+                c.concert_id, c.concert_date, c.day_time, c.venue, c.location, c.title AS concert_title,
+                a.artist_id, a.artist_name, a.artist_image
             FROM tickets t
             LEFT JOIN concerts c ON t.concert_id = c.concert_id
             LEFT JOIN artists a ON c.artist_id = a.artist_id
@@ -46,16 +60,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_order_details') {
         ");
         $stmt->execute($order_ids);
         $tickets_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Fetch corresponding User data using targeted user context parameter
-        $target_user_id = (int)($_GET['user_id'] ?? 0);
-        $user_stmt = $pdo->prepare("SELECT full_name, email, country FROM users WHERE id = ?");
-        $user_stmt->execute([$target_user_id]);
-        $user_data = $user_stmt->fetch(PDO::FETCH_ASSOC) ?: [
-            'full_name' => 'Unknown User', 
-            'email' => 'N/A', 
-            'country' => 'N/A'
-        ];
 
         echo json_encode([
             'success' => true,
@@ -373,17 +377,18 @@ document.addEventListener('DOMContentLoaded', function() {
                         return;
                     }
 
-                    // 1. Structural Order Profile: User Details Section
+                    // 1. User Details Section (Rendered at the Top)
                     let html = `
                         <div style="background:#0f172a; padding:16px; border-radius:8px; margin-bottom:20px; border-left:4px solid #38bdf8;">
-                            <h3 style="margin:0 0 8px 0; color:#38bdf8; font-size:15px; text-transform:uppercase; letter-spacing:0.5px;">Client Information</h3>
-                            <p style="margin:4px 0; font-size:14px;"><strong>Name:</strong> ${escapeHtml(data.user.full_name)}</p>
+                            <h3 style="margin:0 0 8px 0; color:#38bdf8; font-size:15px; text-transform:uppercase; letter-spacing:0.5px;">User Details</h3>
+                            <p style="margin:4px 0; font-size:14px;"><strong>Full Name:</strong> ${escapeHtml(data.user.full_name)}</p>
                             <p style="margin:4px 0; font-size:14px;"><strong>Email:</strong> ${escapeHtml(data.user.email)}</p>
                             <p style="margin:4px 0; font-size:14px;"><strong>Country:</strong> ${escapeHtml(data.user.country)}</p>
                         </div>
+                        <h3 style="margin:20px 0 10px 0; color:#cbd5e1; font-size:16px; font-weight:600;">Purchased Item Details</h3>
                     `;
 
-                    // 2. Structural Line Items Loop (Artist, Concert & Ticket details grouped dynamically)
+                    // 2. Structural Line Items Loop (Artist, Concert & Ticket details displayed below)
                     if (data.items.length === 0) {
                         html += '<p style="color:#94a3b8; text-align:center;">No valid ticket records matched to these criteria.</p>';
                     } else {
@@ -394,30 +399,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
                             html += `
                                 <div style="background:#1e293b; border:1px solid #334155; padding:16px; border-radius:8px; margin-bottom:15px; position:relative;">
-                                    <span style="position:absolute; top:12px; right:15px; background:#334155; color:#94a3b8; font-size:11px; padding:2px 6px; border-radius:4px; font-weight:bold;">Item #${index + 1} (ID: ${item.ticket_id})</span>
+                                    <span style="position:absolute; top:12px; right:15px; background:#334155; color:#94a3b8; font-size:11px; padding:2px 6px; border-radius:4px; font-weight:bold;">Item #${index + 1} (Ticket ID: ${item.ticket_id})</span>
                                     
                                     <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px; border-bottom:1px dashed #334155; padding-bottom:10px;">
                                         ${artistImgHtml}
                                         <div>
-                                            <small style="color:#94a3b8; display:block; text-transform:uppercase; font-size:10px;">Performer</small>
+                                            <small style="color:#94a3b8; display:block; text-transform:uppercase; font-size:10px;">Artist</small>
                                             <strong style="color:#f1f5f9; font-size:16px;">${escapeHtml(item.artist_name || 'Unknown Artist')}</strong>
                                         </div>
                                     </div>
 
                                     <div style="margin-bottom:12px;">
-                                        <h4 style="margin:0 0 6px 0; color:#e2e8f0; font-size:14px;">Event: ${escapeHtml(item.concert_title || 'Untitled Event')}</h4>
+                                        <h4 style="margin:0 0 6px 0; color:#e2e8f0; font-size:14px;">Concert Title: ${escapeHtml(item.concert_title || 'Untitled Event')}</h4>
                                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; font-size:12px; color:#94a3b8;">
-                                            <div><strong>Schedule:</strong> ${escapeHtml(item.concert_date)} @ ${escapeHtml(item.day_time)}</div>
+                                            <div><strong>Concert Date:</strong> ${escapeHtml(item.concert_date)}</div>
+                                            <div><strong>Day Time:</strong> ${escapeHtml(item.day_time)}</div>
                                             <div><strong>Venue:</strong> ${escapeHtml(item.venue)}</div>
-                                            <div style="grid-column: span 2;"><strong>Location:</strong> ${escapeHtml(item.location)}</div>
+                                            <div><strong>Location:</strong> ${escapeHtml(item.location)}</div>
                                         </div>
                                     </div>
 
                                     <div style="background:#0f172a; padding:10px; border-radius:6px; display:flex; justify-content:between; align-items:center; flex-wrap:wrap; gap:10px;">
                                         <div style="font-size:13px;">
-                                            <span style="color:#38bdf8; font-weight:bold;">${escapeHtml(item.ticket_name)}</span> 
+                                            <strong style="color:#38bdf8;">${escapeHtml(item.ticket_name)}</strong> 
                                             <span style="color:#64748b; margin:0 4px;">|</span> 
-                                            <span style="color:#cbd5e1;">Sec: ${escapeHtml(item.section_name)}</span> 
+                                            <span style="color:#cbd5e1;">Section: ${escapeHtml(item.section_name)}</span> 
                                             <span style="color:#64748b; margin:0 4px;">|</span> 
                                             <span style="color:#cbd5e1;">Row: ${escapeHtml(item.row_name)}</span>
                                         </div>
