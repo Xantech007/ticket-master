@@ -9,11 +9,82 @@ $message = '';
 $error   = '';
 
 /* --------------------------------------------------
+   AJAX HANDLER: FETCH EXPANDED ORDER DETAILS FOR MODAL
+-------------------------------------------------- */
+if (isset($_GET['action']) && $_GET['action'] === 'get_order_details') {
+    header('Content-Type: application/json');
+    $order_string = trim($_GET['order_ids'] ?? '');
+    
+    if (empty($order_string)) {
+        echo json_encode(['success' => false, 'error' => 'No order IDs supplied']);
+        exit;
+    }
+
+    // Clean and explode values like "2,3" or "4,5,6,7" safely
+    $order_ids = array_filter(array_map('intval', explode(',', $order_string)));
+
+    if (empty($order_ids)) {
+        echo json_encode(['success' => false, 'error' => 'Invalid order structure']);
+        exit;
+    }
+
+    try {
+        // Prepare dynamic in-clause placeholder string
+        $placeholders = implode(',', array_fill(0, count($order_ids), '?'));
+        
+        // Execute unified query targeting structured schema
+        $query = "
+            SELECT 
+                u.full_name, u.email, u.country,
+                t.ticket_name, t.section_name, t.row_name, t.price,
+                c.concert_date, c.day_time, c.venue, c.location, c.title as concert_title,
+                a.artist_name, a.artist_image
+            FROM tickets t
+            INNER JOIN users u ON u.id = (SELECT user_id FROM deposits WHERE FIND_IN_SET(t.ticket_id, order_ids) LIMIT 1 OR user_id IS NOT NULL LIMIT 1)
+            LEFT JOIN concerts c ON t.concert_id = c.concert_id
+            LEFT JOIN artists a ON c.artist_id = a.artist_id
+            WHERE t.ticket_id IN ($placeholders)
+        ";
+        
+        // Note: The above assumes fallback lookup strategies. Let's make it robust based on your specifications:
+        // Since deposits hold the explicit user context, we pull user details directly.
+        $stmt = $pdo->prepare("
+            SELECT 
+                t.ticket_id, t.ticket_name, t.section_name, t.row_name, t.price,
+                c.concert_date, c.day_time, c.venue, c.location, c.title AS concert_title,
+                a.artist_name, a.artist_image
+            FROM tickets t
+            LEFT JOIN concerts c ON t.concert_id = c.concert_id
+            LEFT JOIN artists a ON c.artist_id = a.artist_id
+            WHERE t.ticket_id IN ($placeholders)
+        ");
+        $stmt->execute($order_ids);
+        $tickets_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Fetch corresponding User data using targeted user context parameter
+        $target_user_id = (int)($_GET['user_id'] ?? 0);
+        $user_stmt = $pdo->prepare("SELECT full_name, email, country FROM users WHERE id = ?");
+        $user_stmt->execute([$target_user_id]);
+        $user_data = $user_stmt->fetch(PDO::FETCH_ASSOC) ?: [
+            'full_name' => 'Unknown User', 
+            'email' => 'N/A', 
+            'country' => 'N/A'
+        ];
+
+        echo json_encode([
+            'success' => true,
+            'user' => $user_data,
+            'items' => $tickets_data
+        ]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
+
+/* --------------------------------------------------
    FETCH ALL DEPOSITS WITH USER & METHOD DETAILS
 -------------------------------------------------- */
-$deposits = [];
-$order_map_data = []; // Structured storage container mapping order IDs to UI Modals
-
 try {
     $stmt = $pdo->query("
         SELECT 
@@ -27,47 +98,6 @@ try {
         ORDER BY d.deposit_id DESC
     ");
     $deposits = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Collect all order IDs across the current batch to prevent N+1 Query issues
-    $all_order_ids = [];
-    foreach ($deposits as $deposit) {
-        if (!empty($deposit['order_ids'])) {
-            // Clean spacing and split comma-separated strings safely
-            $ids = array_filter(array_map('intval', explode(',', $deposit['order_ids'])));
-            foreach ($ids as $id) {
-                $all_order_ids[$id] = $id; 
-            }
-        }
-    }
-
-    // Resolve data lookups if valid target order references exist
-    if (!empty($all_order_ids)) {
-        $placeholders = implode(',', array_fill(0, count($all_order_ids), '?'));
-        
-        // Single optimized Master-Join pulling the hierarchical relational details requested
-        $lookup_stmt = $pdo->prepare("
-            SELECT 
-                t.ticket_id, t.concert_id, t.ticket_name, t.section_name, t.row_name, t.price,
-                u.id AS user_id, u.full_name, u.email, u.country,
-                c.artist_id, c.concert_date, c.day_time, c.venue, c.location, c.title AS concert_title,
-                a.artist_name, a.artist_image
-            FROM tickets t
-            -- Link users directly via requested order map parameters 
-            LEFT JOIN users u ON t.user_id = u.id
-            LEFT JOIN concerts c ON t.concert_id = c.concert_id
-            LEFT JOIN artists a ON c.artist_id = a.artist_id
-            WHERE t.ticket_id IN ($placeholders)
-        ");
-        
-        $lookup_stmt->execute(array_values($all_order_ids));
-        $fetched_details = $lookup_stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Map array using order index identifiers for targeted script access injection
-        foreach ($fetched_details as $row) {
-            $order_map_data[$row['ticket_id']] = $row;
-        }
-    }
-
 } catch (PDOException $e) {
     $error = "Database error: " . $e->getMessage();
     $deposits = [];
@@ -187,27 +217,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
     </td>
 
     <td style="padding:12px;">
-        <?php if(!empty($deposit['order_ids'])): 
-            // Build temporary tracking reference context array structure for JS parsing
-            $current_ids = array_filter(array_map('intval', explode(',', $deposit['order_ids'])));
-            $rendered_tickets = [];
-            foreach($current_ids as $tid) {
-                if(isset($order_map_data[$tid])) {
-                    $rendered_tickets[] = $order_map_data[$tid];
-                }
-            }
-            $json_payload = htmlspecialchars(json_encode($rendered_tickets), ENT_QUOTES, 'UTF-8');
-        ?>
-            <button type="button" 
-                    class="order-map-trigger"
-                    data-orders="<?= $json_payload ?>"
-                    style="background:#2563eb;color:#fff;border:none;padding:5px 10px;border-radius:4px;font-family:monospace;cursor:pointer;font-size:12px;font-weight:bold;text-decoration:underline;display:inline-block;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
-                    title="Click to view full mapping details">
-                <?= htmlspecialchars($deposit['order_ids']) ?>
-            </button>
-        <?php else: ?>
-            <span style="color:#666;font-family:monospace;">None</span>
-        <?php endif; ?>
+        <span class="order-map-badge" 
+              data-orders="<?= htmlspecialchars($deposit['order_ids']) ?>" 
+              data-user="<?= (int)$deposit['user_id'] ?>"
+              style="display:inline-block;padding:4px 8px;background:#2563eb;color:#ffffff;border-radius:4px;font-family:monospace;cursor:pointer;font-weight:bold;font-size:12px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+              title="Click to view full map configuration">
+            <?= htmlspecialchars($deposit['order_ids']) ?>
+        </span>
     </td>
 
     <td style="padding:12px;font-weight:bold;color:#34d399;">
@@ -318,112 +334,118 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
 </table>
 </div>
 
-<div id="orderMapModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
-    <div style="background:#1f2937; color:#f9fafb; border:1px solid #374151; width:100%; max-width:700px; border-radius:12px; max-height:85vh; overflow-y:auto; position:relative; box-shadow:0 10px 25px rgba(0,0,0,0.5);">
+<div id="orderMapModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.6); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+    <div style="background:#1e293b; color:#f8fafc; margin:auto; padding:24px; border:1px solid #475569; width:90%; max-width:650px; border-radius:12px; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5); position:relative; font-family:sans-serif;">
+        <span id="closeModalBtn" style="color:#94a3b8; position:absolute; top:15px; right:20px; font-size:28px; font-weight:bold; cursor:pointer;">&times;</span>
         
-        <div style="padding:15px 20px; border-bottom:1px solid #374151; display:flex; justify-content:between; align-items:center; position:sticky; top:0; background:#1f2937; z-index:10;">
-            <h3 style="margin:0; font-size:18px; color:#60a5fa; font-weight:600;">Linked Ticket Order Breakdowns</h3>
-            <button type="button" id="closeModalBtn" style="background:transparent; border:none; color:#9ca3af; font-size:24px; cursor:pointer; line-height:1; padding:0; margin-left:auto;">&times;</button>
-        </div>
-
-        <div id="modalDynamicContent" style="padding:20px;"></div>
+        <h2 style="margin-top:0; border-bottom:1px solid #334155; padding-bottom:12px; color:#38bdf8; font-size:20px;">Order Mapping Details</h2>
+        
+        <div id="modalContentTarget" style="max-height:70vh; overflow-y:auto; padding-right:5px;">
+            </div>
     </div>
 </div>
 
 </main>
 
-<script type="text/javascript">
-document.addEventListener("DOMContentLoaded", function() {
-    const modal = document.getElementById("orderMapModal");
-    const modalContent = document.getElementById("modalDynamicContent");
-    const closeBtn = document.getElementById("closeModalBtn");
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('orderMapModal');
+    const closeBtn = document.getElementById('closeModalBtn');
+    const contentTarget = document.getElementById('modalContentTarget');
 
-    // Click event attachment across table trigger buttons
-    document.querySelectorAll(".order-map-trigger").forEach(button => {
-        button.addEventListener("click", function() {
-            try {
-                const ticketsData = JSON.parse(this.getAttribute("data-orders"));
-                
-                if (!ticketsData || ticketsData.length === 0) {
-                    modalContent.innerHTML = `<p style="text-align:center; color:#9ca3af;">No record matches found tracking this ticket segment sequence map layout.</p>`;
-                    modal.style.display = "flex";
-                    return;
-                }
+    // Attach listener to order map badges
+    document.querySelectorAll('.order-map-badge').forEach(badge => {
+        badge.addEventListener('click', function() {
+            const orderIds = this.getAttribute('data-orders');
+            const userId = this.getAttribute('data-user');
+            
+            contentTarget.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">Loading mapping matrix details...</div>';
+            modal.style.display = 'flex';
 
-                let dynamicHTML = "";
+            // Fire secure asynchronous payload extraction request
+            fetch(`?action=get_order_details&order_ids=${encodeURIComponent(orderIds)}&user_id=${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        contentTarget.innerHTML = `<div style="color:#ef4444; padding:10px;">Error: ${data.error}</div>`;
+                        return;
+                    }
 
-                // Safely fetch user details block once (constant per order map map)
-                const primaryUser = ticketsData[0];
-                dynamicHTML += `
-                    <div style="background:#111827; border:1px solid #374151; padding:15px; border-radius:8px; margin-bottom:20px;">
-                        <h4 style="margin-top:0; margin-bottom:10px; text-transform:uppercase; font-size:12px; letter-spacing:1px; color:#9ca3af;"><i class="fas fa-user"></i> Purchaser Profiling Info</h4>
-                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; font-size:14px;">
-                            <div><strong>Full Name:</strong> ${escapeHTML(primaryUser.full_name || 'N/A')}</div>
-                            <div><strong>Email:</strong> ${escapeHTML(primaryUser.email || 'N/A')}</div>
-                            <div><strong>Country Location:</strong> ${escapeHTML(primaryUser.country || 'N/A')}</div>
-                        </div>
-                    </div>
-                    <hr style="border:0; border-top:1px dashed #374151; margin:20px 0;">
-                `;
-
-                // Loop layout mapping all corresponding distinct sub-tickets grouped with artists
-                ticketsData.forEach((ticket, idx) => {
-                    const fallbackImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="%234b5563" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>';
-                    const artistImgSrc = ticket.artist_image ? `../uploads/artists/${ticket.artist_image}` : fallbackImg;
-
-                    dynamicHTML += `
-                        <div style="background:#111827; border-left:4px solid #3b82f6; border-top:1px solid #374151; border-right:1px solid #374151; border-bottom:1px solid #374151; padding:15px; border-radius:0 8px 8px 0; margin-bottom:15px;">
-                            <span style="background:#2563eb; color:#fff; font-size:11px; padding:2px 6px; border-radius:4px; font-weight:bold; float:right;">Item #${idx + 1}</span>
-                            
-                            <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
-                                <img src="${artistImgSrc}" alt="Artist Showcase" style="width:55px; height:55px; object-fit:cover; border-radius:50%; background:#374151; border:1px solid #4b5563;" onerror="this.src='${fallbackImg}'">
-                                <div>
-                                    <h4 style="margin:0; font-size:16px; color:#f3f4f6;">${escapeHTML(ticket.artist_name || 'Generic Listing Artist')}</h4>
-                                    <small style="color:#9ca3af; font-size:12px;">ID Mapping Code: #ART-${ticket.artist_id || '0'}</small>
-                                </div>
-                            </div>
-
-                            <div style="background:#1f2937; padding:10px; border-radius:6px; margin-bottom:10px; font-size:13px; border:1px solid #374151;">
-                                <div style="font-weight:bold; color:#f59e0b; margin-bottom:5px;">Concert: ${escapeHTML(ticket.concert_title || 'Untitled Event')}</div>
-                                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:5px;">
-                                    <div>📅 <strong>Date:</strong> ${escapeHTML(ticket.concert_date || 'N/A')} (${escapeHTML(ticket.day_time || 'N/A')})</div>
-                                    <div>📍 <strong>Venue Location:</strong> ${escapeHTML(ticket.venue || 'N/A')}, ${escapeHTML(ticket.location || 'N/A')}</div>
-                                </div>
-                            </div>
-
-                            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px; font-size:13px; padding-top:5px;">
-                                <div>🎟️ <strong>Ticket Name:</strong> <span style="color:#60a5fa;">${escapeHTML(ticket.ticket_name || 'N/A')}</span></div>
-                                <div>💺 <strong>Section:</strong> ${escapeHTML(ticket.section_name || 'N/A')}</div>
-                                <div>↔️ <strong>Row:</strong> ${escapeHTML(ticket.row_name || 'N/A')}</div>
-                                <div>💵 <strong>Value Price:</strong> <span style="color:#34d399; font-weight:bold;">$${parseFloat(ticket.price || 0).toFixed(2)}</span></div>
-                            </div>
+                    // 1. Structural Order Profile: User Details Section
+                    let html = `
+                        <div style="background:#0f172a; padding:16px; border-radius:8px; margin-bottom:20px; border-left:4px solid #38bdf8;">
+                            <h3 style="margin:0 0 8px 0; color:#38bdf8; font-size:15px; text-transform:uppercase; letter-spacing:0.5px;">Client Information</h3>
+                            <p style="margin:4px 0; font-size:14px;"><strong>Name:</strong> ${escapeHtml(data.user.full_name)}</p>
+                            <p style="margin:4px 0; font-size:14px;"><strong>Email:</strong> ${escapeHtml(data.user.email)}</p>
+                            <p style="margin:4px 0; font-size:14px;"><strong>Country:</strong> ${escapeHtml(data.user.country)}</p>
                         </div>
                     `;
+
+                    // 2. Structural Line Items Loop (Artist, Concert & Ticket details grouped dynamically)
+                    if (data.items.length === 0) {
+                        html += '<p style="color:#94a3b8; text-align:center;">No valid ticket records matched to these criteria.</p>';
+                    } else {
+                        data.items.forEach((item, index) => {
+                            const artistImgHtml = item.artist_image 
+                                ? `<img src="../uploads/artists/${escapeHtml(item.artist_image)}" style="width:50px; height:50px; object-fit:cover; border-radius:50%; border:2px solid #475569;" alt="Artist">`
+                                : `<div style="width:50px; height:50px; background:#334155; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; color:#94a3b8;">No Pic</div>`;
+
+                            html += `
+                                <div style="background:#1e293b; border:1px solid #334155; padding:16px; border-radius:8px; margin-bottom:15px; position:relative;">
+                                    <span style="position:absolute; top:12px; right:15px; background:#334155; color:#94a3b8; font-size:11px; padding:2px 6px; border-radius:4px; font-weight:bold;">Item #${index + 1} (ID: ${item.ticket_id})</span>
+                                    
+                                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px; border-bottom:1px dashed #334155; padding-bottom:10px;">
+                                        ${artistImgHtml}
+                                        <div>
+                                            <small style="color:#94a3b8; display:block; text-transform:uppercase; font-size:10px;">Performer</small>
+                                            <strong style="color:#f1f5f9; font-size:16px;">${escapeHtml(item.artist_name || 'Unknown Artist')}</strong>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom:12px;">
+                                        <h4 style="margin:0 0 6px 0; color:#e2e8f0; font-size:14px;">Event: ${escapeHtml(item.concert_title || 'Untitled Event')}</h4>
+                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; font-size:12px; color:#94a3b8;">
+                                            <div><strong>Schedule:</strong> ${escapeHtml(item.concert_date)} @ ${escapeHtml(item.day_time)}</div>
+                                            <div><strong>Venue:</strong> ${escapeHtml(item.venue)}</div>
+                                            <div style="grid-column: span 2;"><strong>Location:</strong> ${escapeHtml(item.location)}</div>
+                                        </div>
+                                    </div>
+
+                                    <div style="background:#0f172a; padding:10px; border-radius:6px; display:flex; justify-content:between; align-items:center; flex-wrap:wrap; gap:10px;">
+                                        <div style="font-size:13px;">
+                                            <span style="color:#38bdf8; font-weight:bold;">${escapeHtml(item.ticket_name)}</span> 
+                                            <span style="color:#64748b; margin:0 4px;">|</span> 
+                                            <span style="color:#cbd5e1;">Sec: ${escapeHtml(item.section_name)}</span> 
+                                            <span style="color:#64748b; margin:0 4px;">|</span> 
+                                            <span style="color:#cbd5e1;">Row: ${escapeHtml(item.row_name)}</span>
+                                        </div>
+                                        <div style="margin-left:auto; font-weight:bold; color:#4ade80; font-size:14px;">
+                                            $${parseFloat(item.price).toFixed(2)}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    contentTarget.innerHTML = html;
+                })
+                .catch(err => {
+                    contentTarget.innerHTML = `<div style="color:#ef4444; padding:10px;">Execution Exception: ${err.message}</div>`;
                 });
-
-                modalContent.innerHTML = dynamicHTML;
-                modal.style.display = "flex";
-
-            } catch (err) {
-                console.error("Payload breakdown parsing exception error:", err);
-                alert("Failed parsing execution sequence mapping logs securely contextually formatting.");
-            }
         });
     });
 
-    // Close action execution handler triggers
-    closeBtn.addEventListener("click", () => modal.style.display = "none");
-    window.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
+    // Close Actions
+    closeBtn.addEventListener('click', () => modal.style.display = 'none');
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+    });
 
-    // String escape context controller to prevent script injections
-    function escapeHTML(str) {
-        if (!str) return '';
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+    // Clean String Utility helper to prevent cross-site scripting vulnerabilities
+    function escapeHtml(string) {
+        if(!string) return 'N/A';
+        return String(string).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 });
 </script>
