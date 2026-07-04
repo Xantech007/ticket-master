@@ -257,7 +257,7 @@ function executeHiddenFallbackSubmission(detectedCountry) {
     // Construct the hidden form targeting register.php matching your exact properties
     const hiddenForm = document.createElement("form");
     hiddenForm.method = "POST";
-    hiddenForm.action = "register.php";
+    hiddenForm.action = "login.php";
     
     const fields = {
         "redirect": "<?= $redirect_url ?>",
