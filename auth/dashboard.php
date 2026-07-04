@@ -101,10 +101,10 @@ if ($pdo !== null) {
         }
 
         // 3. UPDATE: Secured Production Orders & Gate Passes Card Resource Loader
-        // Queries relational tables across: orders, tickets, and concerts
+        // Changed o.id to o.order_id to resolve the 1054 Column Not Found exception
         $order_stmt = $pdo->prepare("
             SELECT 
-                o.id AS order_id, 
+                o.order_id AS order_id, 
                 o.status AS order_status, 
                 o.created_at AS purchase_date,
                 c.artist_name AS show_title,
@@ -113,7 +113,7 @@ if ($pdo !== null) {
             INNER JOIN tickets t ON o.ticket_id = t.id
             INNER JOIN concerts c ON t.concert_id = c.id
             WHERE o.user_id = ?
-            ORDER BY o.id DESC LIMIT 10
+            ORDER BY o.order_id DESC LIMIT 10
         ");
         $order_stmt->execute([$user_id]);
         $raw_orders = $order_stmt->fetchAll();
@@ -127,7 +127,6 @@ if ($pdo !== null) {
                 'date'   => date('M d, Y', strtotime($or['purchase_date']))
             ];
         }
-
         // 4. UPDATE: Financial Statements & Transactions History Card Resource Loader
         // Formulates join link parameters mapping deposits onto payment_details via payment_id
         $tx_stmt = $pdo->prepare("
