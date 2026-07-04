@@ -121,9 +121,9 @@ if ($pdo !== null) {
         $order_stmt->execute([$user_id]);
         $raw_orders = $order_stmt->fetchAll();
         foreach ($raw_orders as $or) {
-            // Build a clean, clear seat assignment layout
+            // Formats cleanly as: Ticket Type (Section, Row, Seat) without labels
             $seat_details = trim(sprintf(
-                "%s (Sec %s, Row %s, Seat %s)", 
+                "%s (%s, %s, %s)", 
                 $or['ticket_name'], 
                 $or['section_name'], 
                 $or['row_name'], 
@@ -171,11 +171,11 @@ if ($pdo !== null) {
     }
 }
 
-// Apply fallback values if data arrays remain empty
+// Apply fallback values if data arrays remain empty (Labels removed here as well)
 if (empty($recent_orders)) {
     $recent_orders = [
-        ['id' => 'TM-441029', 'title' => 'Coldplay: Music of the Spheres Tour', 'venue' => 'Old Trafford Stadium', 'seats' => 'VIP Ticket (Sec 62, Row 3, Seat 19)', 'status' => 'processing', 'date' => 'Sep 25, 2026'],
-        ['id' => 'TM-441030', 'title' => 'Coldplay: Music of the Spheres Tour', 'venue' => 'Wembley Stadium', 'seats' => 'Standard Entry (Sec 102, Row 5, Seat 12)', 'status' => 'confirmed', 'date' => 'Sep 14, 2026']
+        ['id' => 'TM-441029', 'title' => 'Coldplay: Music of the Spheres Tour', 'venue' => 'Old Trafford Stadium', 'seats' => 'VIP Ticket (62, 3, 19)', 'status' => 'processing', 'date' => 'Sep 25, 2026'],
+        ['id' => 'TM-441030', 'title' => 'Coldplay: Music of the Spheres Tour', 'venue' => 'Wembley Stadium', 'seats' => 'Standard Entry (102, 5, 12)', 'status' => 'confirmed', 'date' => 'Sep 14, 2026']
     ];
 }
 if (empty($transaction_history)) {
@@ -206,8 +206,10 @@ if (empty($admin_messages)) {
             
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
+                <!-- Sidebar Column -->
                 <div class="lg:col-span-4 space-y-6">
                     
+                    <!-- Profile Management Card -->
                     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                         <div class="flex items-center gap-4 border-b border-gray-100 pb-4 mb-6">
                             <div class="w-14 h-14 rounded-full bg-[#024DDF] text-white font-black text-xl flex items-center justify-center shadow">
@@ -254,6 +256,7 @@ if (empty($admin_messages)) {
                         </form>
                     </div>
 
+                    <!-- System Notices Panel -->
                     <div class="bg-slate-900 text-white border border-slate-800 rounded-2xl p-6 shadow-md space-y-4">
                         <h4 class="text-xs font-black uppercase tracking-widest text-blue-400 flex items-center gap-2 border-b border-slate-800 pb-3">
                             <i class="fas fa-satellite-dish animate-pulse"></i> Announcements & Notices
@@ -270,8 +273,10 @@ if (empty($admin_messages)) {
                     </div>
                 </div>
 
+                <!-- Main Content Column -->
                 <div class="lg:col-span-8 space-y-6">
                     
+                    <!-- Digital Tickets Window -->
                     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
                         <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-3">
                             <i class="fas fa-ticket-alt text-[#024DDF]"></i> Your Available Tickets
@@ -298,6 +303,7 @@ if (empty($admin_messages)) {
                         </div>
                     </div>
 
+                    <!-- Booking Orders Ledger -->
                     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
                         <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-3">
                             <i class="fas fa-shopping-bag text-[#024DDF]"></i> Recent Orders
@@ -325,7 +331,7 @@ if (empty($admin_messages)) {
                                         </div>
                                         <h4 class="text-sm font-black text-gray-900 tracking-tight"><?php echo htmlspecialchars($order['title']); ?></h4>
                                         <p class="text-xs text-gray-500 font-medium">
-                                            <i class="fas fa-wallet text-gray-400 mr-1"></i> <?php echo htmlspecialchars($order['venue']); ?> • <span class="font-bold text-gray-600"><?php echo htmlspecialchars($order['seats']); ?></span>
+                                            <i class="fas fa-ticket text-gray-400 mr-1"></i> <?php echo htmlspecialchars($order['venue']); ?> • <span class="font-bold text-gray-600"><?php echo htmlspecialchars($order['seats']); ?></span>
                                         </p>
                                     </div>
                                     <div class="text-left sm:text-right w-full sm:w-auto shrink-0 border-t sm:border-t-0 border-gray-100 pt-2 sm:pt-0">
@@ -337,6 +343,7 @@ if (empty($admin_messages)) {
                         </div>
                     </div>
 
+                    <!-- Payment Invoices Table -->
                     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
                         <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-3">
                             <i class="fas fa-receipt text-[#024DDF]"></i> Transaction History
@@ -382,6 +389,7 @@ if (empty($admin_messages)) {
                         </div>
                     </div>
 
+                    <!-- Browsed History Analytics Panel -->
                     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
                         <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-3">
                             <i class="fas fa-eye text-[#024DDF]"></i> Recently Viewed Shows
