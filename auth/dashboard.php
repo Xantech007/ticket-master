@@ -101,14 +101,18 @@ if ($pdo !== null) {
         }
 
         // 3. FIX: Secured Production Orders & Gate Passes Card Resource Loader
-        // Corrected columns based on exact schema mappings
+        // Updated to select concert title and comprehensive ticket positioning records
         $order_stmt = $pdo->prepare("
             SELECT 
                 o.order_id, 
                 o.status AS order_status, 
                 o.created_at AS purchase_date,
                 a.artist_name AS show_title,
-                a.genre AS venue_tag
+                c.title AS concert_title,
+                t.ticket_name,
+                t.section_name,
+                t.row_name,
+                t.seat_name
             FROM orders o
             INNER JOIN tickets t ON o.ticket_id = t.ticket_id
             INNER JOIN concerts c ON t.concert_id = c.concert_id
@@ -119,17 +123,26 @@ if ($pdo !== null) {
         $order_stmt->execute([$user_id]);
         $raw_orders = $order_stmt->fetchAll();
         foreach ($raw_orders as $or) {
+            // Formulate clean seats metrics string matching requested layout rules
+            $seat_details = trim(sprintf(
+                "%s (Sec %s, Row %s, Seat %s)", 
+                $or['ticket_name'], 
+                $or['section_name'], 
+                $or['row_name'], 
+                $or['seat_name']
+            ));
+
             $recent_orders[] = [
                 'id'     => 'TM-' . $or['order_id'],
                 'title'  => $or['show_title'],
-                'venue'  => $or['venue_tag'] . ' Arena Hub',
-                'seats'  => 'Verified Internal Access Token Allocation Base',
+                'venue'  => $or['concert_title'],
+                'seats'  => !empty($seat_details) ? $seat_details : 'General Allocation Entry',
                 'status' => $or['order_status'], 
                 'date'   => date('M d, Y', strtotime($or['purchase_date']))
             ];
         }
+        
         // 4. UPDATE: Financial Statements & Transactions History Card Resource Loader
-        // Formulates join link parameters mapping deposits onto payment_methods via payment_id
         $tx_stmt = $pdo->prepare("
             SELECT 
                 d.deposit_id, 
@@ -163,8 +176,8 @@ if ($pdo !== null) {
 // Secure UI Fallback Hydrators (Executes if relational schema sets are empty)
 if (empty($recent_orders)) {
     $recent_orders = [
-        ['id' => 'TM-441029', 'title' => 'Coldplay: Music of the Spheres Tour', 'venue' => 'Old Trafford Stadium', 'seats' => 'Sec 62, Row 3, Seat 19', 'status' => 'processing', 'date' => 'Sep 25, 2026'],
-        ['id' => 'TM-441030', 'title' => 'Coldplay: Music of the Spheres Tour', 'venue' => 'Wembley Stadium', 'seats' => 'Sec 102, Row 5, Seat 12', 'status' => 'confirmed', 'date' => 'Sep 14, 2026']
+        ['id' => 'TM-441029', 'title' => 'Coldplay: Music of the Spheres Tour', 'venue' => 'Old Trafford Stadium', 'seats' => 'VIP Ticket (Sec 62, Row 3, Seat 19)', 'status' => 'processing', 'date' => 'Sep 25, 2026'],
+        ['id' => 'TM-441030', 'title' => 'Coldplay: Music of the Spheres Tour', 'venue' => 'Wembley Stadium', 'seats' => 'Standard Entry (Sec 102, Row 5, Seat 12)', 'status' => 'confirmed', 'date' => 'Sep 14, 2026']
     ];
 }
 if (empty($transaction_history)) {
