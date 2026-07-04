@@ -9,7 +9,7 @@ $message = '';
 $error   = '';
 
 /* --------------------------------------------------
-    FETCH ALL DEPOSITS WITH USER & METHOD DETAILS
+   FETCH ALL DEPOSITS WITH USER & METHOD DETAILS
 -------------------------------------------------- */
 try {
     $stmt = $pdo->query("
@@ -30,7 +30,7 @@ try {
 }
 
 /* --------------------------------------------------
-    HANDLE ACTIONS
+   HANDLE ACTIONS
 -------------------------------------------------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
 
@@ -91,37 +91,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
     color: #93c5fd;
 }
 
+/* Modal UI Window styling overlay configurations */
 .details-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.8);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.25s ease;
+    padding: 20px;
 }
 .details-modal-overlay.active {
     opacity: 1;
     pointer-events: auto;
 }
 .details-modal-card {
-    background: #1f2937;
-    border: 1px solid #374151;
+    background: #0d1117;
+    border: 1px solid #30363d;
     border-radius: 12px;
     width: 100%;
-    max-width: 550px;
-    padding: 1.5rem;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-    color: #f3f4f6;
+    max-width: 680px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 2rem;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+    color: #c9d1d9;
     position: relative;
-    transform: translateY(-20px);
-    transition: transform 0.3s ease;
+    transform: translateY(-15px);
+    transition: transform 0.25s ease;
 }
 .details-modal-overlay.active .details-modal-card {
     transform: translateY(0);
@@ -129,11 +133,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
 .modal-close-btn {
     position: absolute;
     top: 15px;
-    right: 15px;
+    right: 20px;
     background: transparent;
     border: none;
-    color: #9ca3af;
-    font-size: 20px;
+    color: #8b949e;
+    font-size: 26px;
     cursor: pointer;
 }
 .modal-close-btn:hover {
@@ -141,41 +145,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
 }
 .modal-title {
     margin-top: 0;
-    border-bottom: 1px solid #374151;
-    padding-bottom: 10px;
-    font-size: 1.25rem;
-    color: #ffffff;
+    border-bottom: 1px solid #30363d;
+    padding-bottom: 12px;
+    font-size: 1.4rem;
+    color: #f0f6fc;
 }
-.modal-section {
-    margin: 15px 0;
-}
-.modal-section h4 {
-    margin: 0 0 8px 0;
-    color: #9ca3af;
+.modal-section-header {
+    margin: 20px 0 10px 0;
+    color: #8b949e;
     text-transform: uppercase;
     font-size: 11px;
-    letter-spacing: 1px;
+    letter-spacing: 1.2px;
+    font-weight: bold;
+    border-left: 3px solid #58a6ff;
+    padding-left: 8px;
 }
 .info-grid {
-    background: #111827;
-    padding: 12px;
+    background: #161b22;
+    padding: 14px;
     border-radius: 8px;
     font-size: 14px;
     line-height: 1.6;
+    border: 1px solid #21262d;
+    margin-bottom: 15px;
 }
 .info-row {
     display: flex;
     justify-content: space-between;
     margin-bottom: 6px;
+    border-bottom: 1px dashed #21262d;
+    padding-bottom: 4px;
 }
 .info-row:last-child {
     margin-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 0;
 }
 .info-label {
-    color: #9ca3af;
+    color: #8b949e;
 }
 .info-value {
     font-weight: 600;
+    color: #c9d1d9;
+}
+.ticket-basket-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+.artist-flex {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #0d1117;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    border: 1px solid #21262d;
+}
+.artist-avatar {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 50%;
+    background: #21262d;
+    border: 1px solid #30363d;
 }
 </style>
 
@@ -243,9 +279,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
 
     <td style="padding:12px;font-family:monospace;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
         <?php if (!empty($deposit['order_ids'])): ?>
-            <span class="order-map-link class-trigger-modal" 
-                  data-deposit-id="<?= htmlspecialchars($deposit['deposit_id']) ?>" 
-                  data-order-id="<?= htmlspecialchars($deposit['order_ids']) ?>">
+            <span class="order-map-link trigger-map-lookup" data-ids="<?= htmlspecialchars($deposit['order_ids']) ?>">
                 <?= htmlspecialchars($deposit['order_ids']) ?>
             </span>
         <?php else: ?>
@@ -363,126 +397,113 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
 
 </main>
 
-<div id="orderMapModal" class="details-modal-overlay">
+<div id="mappingDetailsModal" class="details-modal-overlay">
     <div class="details-modal-card">
-        <button type="button" class="modal-close-btn" id="closeModalBtn">&times;</button>
-        <h3 class="modal-title">Order Mappings Reference</h3>
+        <button type="button" class="modal-close-btn" id="closeMappingModalBtn">&times;</button>
+        <h3 class="modal-title">Deposit Mappings Ledger</h3>
         
-        <div class="modal-section">
-            <h4>Client Base Information</h4>
-            <div class="info-grid">
-                <div class="info-row">
-                    <span class="info-label">Full Name:</span>
-                    <span class="info-value" id="modalUserFullName">Loading...</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Email Address:</span>
-                    <span class="info-value" id="modalUserEmail">Loading...</span>
-                </div>
+        <div class="modal-section-header">Client Identity Details</div>
+        <div class="info-grid">
+            <div class="info-row">
+                <span class="info-label">Full Name:</span>
+                <span class="info-value" id="userFullNameField">Loading data...</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Email Address:</span>
+                <span class="info-value" id="userEmailField">Loading data...</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Country Jurisdiction:</span>
+                <span class="info-value" id="userCountryField">Loading data...</span>
             </div>
         </div>
 
-        <div class="modal-section">
-            <h4>Purchased Ticket Details</h4>
-            <div class="info-grid">
-                <div class="info-row">
-                    <span class="info-label">Order Link ID:</span>
-                    <span class="info-value" id="modalTicketId">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Event Target:</span>
-                    <span class="info-value" id="modalEventTitle">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Tier Type:</span>
-                    <span class="info-value" id="modalTicketType">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Quantity:</span>
-                    <span class="info-value" id="modalTicketQty">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Total Volume Cost:</span>
-                    <span class="info-value" style="color:#34d399;" id="modalTicketPrice">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Workflow Status:</span>
-                    <span class="info-value" id="modalTicketStatus">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Logged Timestamp:</span>
-                    <span class="info-value" id="modalTicketDate">-</span>
-                </div>
+        <div class="modal-section-header">Associated Order Package Basket</div>
+        <div id="modalItemsDynamicContainer">
             </div>
-        </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('orderMapModal');
-    const closeBtn = document.getElementById('closeModalBtn');
+    const modal = document.getElementById('mappingDetailsModal');
+    const closeBtn = document.getElementById('closeMappingModalBtn');
     
-    const nameEl = document.getElementById('modalUserFullName');
-    const emailEl = document.getElementById('modalUserEmail');
-    const idEl = document.getElementById('modalTicketId');
-    const eventEl = document.getElementById('modalEventTitle');
-    const typeEl = document.getElementById('modalTicketType');
-    const qtyEl = document.getElementById('modalTicketQty');
-    const priceEl = document.getElementById('modalTicketPrice');
-    const statusEl = document.getElementById('modalTicketStatus');
-    const dateEl = document.getElementById('modalTicketDate');
+    const uName = document.getElementById('userFullNameField');
+    const uEmail = document.getElementById('userEmailField');
+    const uCountry = document.getElementById('userCountryField');
+    const itemsContainer = document.getElementById('modalItemsDynamicContainer');
 
-    document.querySelectorAll('.class-trigger-modal').forEach(link => {
-        link.addEventListener('click', function() {
-            const depositId = this.getAttribute('data-deposit-id');
-            const orderId = this.getAttribute('data-order-id');
+    document.querySelectorAll('.trigger-map-lookup').forEach(element => {
+        element.addEventListener('click', function() {
+            const rawOrderIds = this.getAttribute('data-ids');
             
-            nameEl.textContent = 'Searching records...';
-            emailEl.textContent = 'Searching records...';
-            idEl.textContent = '#' + orderId;
-            eventEl.textContent = '-';
-            typeEl.textContent = '-';
-            qtyEl.textContent = '-';
-            priceEl.textContent = '-';
-            statusEl.textContent = '-';
-            dateEl.textContent = '-';
+            // Set loading indicators
+            uName.textContent = 'Fetching connection nodes...';
+            uEmail.textContent = 'Fetching connection nodes...';
+            uCountry.textContent = 'Fetching connection nodes...';
+            itemsContainer.innerHTML = '<div style="padding:15px;color:#8b949e;text-align:center;">Loading basket contents...</div>';
             
             modal.classList.add('active');
             
-            // Query by explicitly passing the deposit reference context to resolve IDs safely
-            fetch(`get_order_details.php?deposit_id=${depositId}&order_id=${encodeURIComponent(orderId)}`)
-                .then(response => response.json())
-                .then(res => {
-                    if(res.success) {
-                        const d = res.data;
-                        nameEl.textContent = d.full_name;
-                        emailEl.textContent = d.email;
-                        idEl.textContent = '# ' + d.ticket_id;
-                        eventEl.textContent = d.event_title;
-                        typeEl.textContent = d.ticket_type ? d.ticket_type.toUpperCase() : 'N/A';
-                        qtyEl.textContent = d.quantity;
-                        priceEl.textContent = '$' + parseFloat(d.total_price).toFixed(2);
-                        statusEl.textContent = d.ticket_status ? d.ticket_status.toUpperCase() : 'PENDING';
-                        dateEl.textContent = d.purchase_date;
+            // Execute fetching operations to endpoint passing absolute grouped IDs
+            fetch(`get_order_details.php?order_ids=${encodeURIComponent(rawOrderIds)}`)
+                .then(res => res.json())
+                .then(response => {
+                    if (response.success) {
+                        // 1. Render user card metadata details at top
+                        uName.textContent = response.user.full_name;
+                        uEmail.textContent = response.user.email;
+                        uCountry.textContent = response.user.country.toUpperCase();
+                        
+                        // 2. Loop through and render structural blocks containing Artist, Concert, and Ticket details below
+                        itemsContainer.innerHTML = '';
+                        response.items.forEach(item => {
+                            let imgTag = item.artist.image 
+                                ? `<img src="../uploads/artists/${item.artist.image}" class="artist-avatar" alt="">` 
+                                : `<div class="artist-avatar" style="display:flex;align-items:center;justify-content:center;font-size:10px;color:#8b949e;background:#21262d;">NO IMG</div>`;
+
+                            let cardHTML = `
+                                <div class="ticket-basket-card">
+                                    <div class="artist-flex">
+                                        ${imgTag}
+                                        <div>
+                                            <div style="font-size:11px;color:#8b949e;text-transform:uppercase;">Performing Artist</div>
+                                            <div style="font-size:16px;font-weight:bold;color:#f0f6fc;">${item.artist.name}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="info-row"><span class="info-label">Concert Title:</span><span class="info-value">${item.concert.title}</span></div>
+                                    <div class="info-row"><span class="info-label">Event Schedule:</span><span class="info-value">${item.concert.date} @ ${item.concert.time}</span></div>
+                                    <div class="info-row"><span class="info-label">Venue / Arena:</span><span class="info-value">${item.concert.venue} (${item.concert.location})</span></div>
+                                    
+                                    <div style="margin-top:10px; padding-top:10px; border-top:1px solid #21262d;">
+                                        <div class="info-row"><span class="info-label">Ticket Reference:</span><span class="info-value" style="font-family:monospace;color:#58a6ff;">#TKT-${item.ticket_id}</span></div>
+                                        <div class="info-row"><span class="info-label">Tier Designation:</span><span class="info-value">${item.ticket_name}</span></div>
+                                        <div class="info-row"><span class="info-label">Section Map Location:</span><span class="info-value">Sec ${item.section_name}, Row ${item.row_name}</span></div>
+                                        <div class="info-row"><span class="info-label">Cost Value:</span><span class="info-value" style="color:#58a6ff;font-weight:bold;">$${parseFloat(item.price).toFixed(2)}</span></div>
+                                    </div>
+                                </div>
+                            `;
+                            itemsContainer.innerHTML += cardHTML;
+                        });
                     } else {
-                        nameEl.textContent = 'Data Not Setup';
-                        emailEl.textContent = res.message;
+                        uName.textContent = 'Error occurred';
+                        uEmail.textContent = response.message;
+                        uCountry.textContent = 'N/A';
+                        itemsContainer.innerHTML = `<div style="padding:15px;color:#f85149;text-align:center;">${response.message}</div>`;
                     }
                 })
                 .catch(err => {
-                    nameEl.textContent = 'Execution Failure';
-                    emailEl.textContent = err.message;
+                    uName.textContent = 'Network communication error';
+                    uEmail.textContent = err.message;
+                    itemsContainer.innerHTML = `<div style="padding:15px;color:#f85149;text-align:center;">Request failed. Check connections.</div>`;
                 });
         });
     });
 
     closeBtn.addEventListener('click', () => modal.classList.remove('active'));
-    window.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            modal.classList.remove('active');
-        }
-    });
+    window.addEventListener('click', (e) => { if(e.target === modal) modal.classList.remove('active'); });
 });
 </script>
 
