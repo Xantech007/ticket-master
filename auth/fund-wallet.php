@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'config/db.php';
+require_once '../config/db.php';
 
 // ---------------------------------------------
 // AUTH CHECK
@@ -163,10 +163,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
-<?php include "inc/head.php"; ?>
-<?php include "inc/navbar.php"; ?>
+<?php include "../inc/head.php"; ?>
+<?php include "../inc/navbar.php"; ?>
 <body class="bg-gradient-to-br from-slate-100 via-white to-slate-200 min-h-screen" onload="toggleGatewayInputs()">
-<?php include "inc/header.php"; ?>
+<?php include "../inc/header.php"; ?>
 
 <div class="max-w-4xl mx-auto px-5 py-10">
     <?php if (isset($_SESSION['flash_error'])): ?>
@@ -313,6 +313,6 @@ function toggleGatewayInputs() {
 }
 </script>
 
-<?php include "inc/footer.php"; ?>
+<?php include "../inc/footer.php"; ?>
 </body>
 </html>
