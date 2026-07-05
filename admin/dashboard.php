@@ -149,7 +149,7 @@ border:1px solid #30363d;
         type="text"
         name="telegram"
         value="<?= htmlspecialchars($currentTelegram) ?>"
-        placeholder="@telegram_username"
+        placeholder="telegram_username"
         style="
             width:100%;
             padding:14px;
