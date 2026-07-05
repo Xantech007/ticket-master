@@ -251,7 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             unset($_SESSION['checkout_order_ids']);
 
             // Set the success message to show on the dashboard
-            $_SESSION['flash_success'] = "Your payment validation data was sent successfully! Our administrative panel will verify your proof shorty.";
+            $_SESSION['flash_success'] = "Your order was sent successfully! Check back shortly.";
             
             header("Location: dashboard");
             exit;
