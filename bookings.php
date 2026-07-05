@@ -602,7 +602,7 @@ try {
                 return;
             }
         
-            fetch("save_order.php",{
+            fetch("save_order",{
                 method:"POST",
                 headers:{
                     "Content-Type":"application/json"
@@ -619,7 +619,7 @@ try {
                     if (response.auth_required) {
                         // Redirect user to login portal with the error and return parameters
                         const returnUrl = encodeURIComponent(window.location.href);
-                        window.location = "auth.php?error=auth_required&redirect=" + returnUrl;
+                        window.location = "auth?error=auth_required&redirect=" + returnUrl;
                         return;
                     }
         
@@ -628,7 +628,7 @@ try {
                 }
         
                 // Proceed to checkout if order generation succeeded 
-                window.location = "auth/checkout.php";
+                window.location = "auth/checkout";
         
             })
             .catch(err => {
