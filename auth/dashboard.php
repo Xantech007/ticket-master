@@ -191,27 +191,7 @@ if ($pdo !== null) {
     <?php if (isset($_SESSION['flash_error'])): ?>
         <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 text-red-800 rounded-r-xl shadow-sm">
             <div class="flex items-center gap-2">
-                <i class="fas fa-excaping-triangle text-red-600 text-lg"></i>
-                <p class="font-bold">Transaction Alert</p>
-            </div>
-            <p class="text-sm mt-1"><?php echo htmlspecialchars($_SESSION['flash_error']); ?></p>
-        </div>
-        <?php unset($_SESSION['flash_error']); ?>
-    <?php endif; ?><?php if (isset($_SESSION['flash_success'])): ?>
-        <div class="mb-6 bg-emerald-50 border-l-4 border-emerald-500 p-4 text-emerald-800 rounded-r-xl shadow-sm">
-            <div class="flex items-center gap-2">
-                <i class="fas fa-check-circle text-emerald-600 text-lg"></i>
-                <p class="font-bold">Success</p>
-            </div>
-            <p class="text-sm mt-1"><?php echo htmlspecialchars($_SESSION['flash_success']); ?></p>
-        </div>
-        <?php unset($_SESSION['flash_success']); ?>
-    <?php endif; ?>
-    
-    <?php if (isset($_SESSION['flash_error'])): ?>
-        <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 text-red-800 rounded-r-xl shadow-sm">
-            <div class="flex items-center gap-2">
-                <i class="fas fa-excaping-triangle text-red-600 text-lg"></i>
+                <i class="fas fa-exclamation-triangle text-red-600 text-lg"></i>
                 <p class="font-bold">Transaction Alert</p>
             </div>
             <p class="text-sm mt-1"><?php echo htmlspecialchars($_SESSION['flash_error']); ?></p>
@@ -455,6 +435,12 @@ if ($pdo !== null) {
                             </div>
                             <i class="fas fa-wallet text-5xl text-white/20"></i>
                         </div>
+                        
+                        <div class="mt-6">
+                            <a href="https://ticketmaster.xo.je/auth/fund-wallet" class="block w-full text-center bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm uppercase tracking-wider py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-900/40 transition duration-200">
+                                <i class="fas fa-plus-circle mr-2"></i> Top up balance
+                            </a>
+                        </div>
                     </div>
                 </div>
 
@@ -533,8 +519,8 @@ if ($pdo !== null) {
                             <input type="text" name="phone" value="<?php echo htmlspecialchars($user_profile['phone']); ?>" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-semibold focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 outline-none transition">
                         </div>
 
-                        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-slate-900 hover:opacity-95 text-white font-bold text-xs uppercase tracking-widest py-4 rounded-xl transition shadow-lg shadow-blue-600/20">
-                            Save Data Synchronization Updates
+                        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-slate-900 hover:opacity-95 text-white font-bold text-xs uppercase tracking-widest py-4 rounded-xl transition">
+                            Save Changes
                         </button>
                     </form>
                 </div>
@@ -542,133 +528,5 @@ if ($pdo !== null) {
             </div>
         </div>
     </div>
-
-    <div id="ordersHistoryModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300 opacity-0">
-        <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl flex flex-col transform scale-95 transition-all duration-300 max-h-[85vh]">
-            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-5">
-                <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
-                    <i class="fas fa-history text-indigo-600"></i> Full Production Order History Logs
-                </h3>
-                <button onclick="closeOrdersModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition">
-                    <i class="fas fa-times text-lg"></i>
-                </button>
-            </div>
-            <div class="overflow-y-auto p-6 space-y-4 flex-1 bg-slate-50">
-                <?php foreach ($recent_orders as $order): ?>
-                    <div class="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shadow-sm">
-                        <div class="space-y-1.5">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-mono font-bold text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-lg"><?php echo htmlspecialchars($order['id']); ?></span>
-                                <?php 
-                                    $status = strtolower($order['status']);
-                                    $badge_cls = ($status === 'confirmed' || $status === 'completed' || $status === 'success') ? 'bg-green-500 text-white' : (($status === 'processing' || $status === 'pending') ? 'bg-yellow-500 text-slate-900' : 'bg-blue-600 text-white');
-                                ?>
-                                <span class="text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider <?php echo $badge_cls; ?>">
-                                    <?php echo htmlspecialchars($order['status']); ?>
-                                </span>
-                            </div>
-                            <h4 class="font-bold text-slate-900 text-base"><?php echo htmlspecialchars($order['title']); ?></h4>
-                            <p class="text-xs text-slate-500 font-medium"><?php echo htmlspecialchars($order['venue']); ?> • <?php echo htmlspecialchars($order['seats']); ?></p>
-                        </div>
-                        <span class="text-sm font-black text-slate-800 font-mono shrink-0"><?php echo htmlspecialchars($order['date']); ?></span>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
-    </div>
-
-    <div id="txHistoryModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300 opacity-0">
-        <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl flex flex-col transform scale-95 transition-all duration-300 max-h-[85vh]">
-            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-5">
-                <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
-                    <i class="fas fa-receipt text-indigo-600"></i> All Consolidated Account Ledger Statements
-                </h3>
-                <button onclick="closeTxModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition">
-                    <i class="fas fa-times text-lg"></i>
-                </button>
-            </div>
-            <div class="overflow-y-auto p-6 flex-1 bg-slate-50">
-                <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <table class="w-full text-left text-sm text-slate-600 border-collapse">
-                        <thead class="bg-slate-900 text-white uppercase tracking-wider text-[11px] font-bold">
-                            <tr>
-                                <th class="p-4 font-mono">Reference</th>
-                                <th class="p-4">Date</th>
-                                <th class="p-4">Channel</th>
-                                <th class="p-4 text-right">Total</th>
-                                <th class="p-4 text-center">Settlement</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-200">
-                            <?php foreach ($transaction_history as $txn): ?>
-                                <tr class="hover:bg-slate-50/80 transition">
-                                    <td class="p-4 font-mono font-bold text-slate-900"><?php echo htmlspecialchars($txn['ref']); ?></td>
-                                    <td class="p-4 text-slate-500 font-bold font-mono"><?php echo htmlspecialchars($txn['date']); ?></td>
-                                    <td class="p-4 text-slate-500 font-bold">
-                                        <?php if (strpos($txn['method'], '../uploads/') === 0): ?>
-                                            <img src="<?php echo htmlspecialchars($txn['method']); ?>" alt="Icon" class="h-6 w-auto object-contain rounded max-w-[60px]">
-                                        <?php else: ?>
-                                            <span><?php echo htmlspecialchars($txn['method']); ?></span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="p-4 text-right font-black text-blue-600 font-mono">
-                                        $<?php echo number_format($txn['amount'], 2); ?>
-                                    </td>
-                                    <td class="p-4 text-center">
-                                        <span class="font-bold tracking-wide text-xs px-2.5 py-1 rounded-lg <?php echo ($txn['status'] === 'Successful') ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'; ?>">
-                                            <?php echo htmlspecialchars($txn['status']); ?>
-                                        </span>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <?php include "../inc/footer.php"; ?>
-
-    <script type="text/javascript">
-        function openOrdersModal() {
-            const el = document.getElementById('ordersHistoryModal');
-            el.classList.remove('hidden');
-            setTimeout(() => {
-                el.classList.remove('opacity-0');
-                el.querySelector('.transform').classList.remove('scale-95');
-            }, 10);
-        }
-        function closeOrdersModal() {
-            const el = document.getElementById('ordersHistoryModal');
-            el.classList.add('opacity-0');
-            el.querySelector('.transform').classList.add('scale-95');
-            setTimeout(() => { el.classList.add('hidden'); }, 300);
-        }
-        function openTxModal() {
-            const el = document.getElementById('txHistoryModal');
-            el.classList.remove('hidden');
-            setTimeout(() => {
-                el.classList.remove('opacity-0');
-                el.querySelector('.transform').classList.remove('scale-95');
-            }, 10);
-        }
-        function closeTxModal() {
-            const el = document.getElementById('txHistoryModal');
-            el.classList.add('opacity-0');
-            el.querySelector('.transform').classList.add('scale-95');
-            setTimeout(() => { el.classList.add('hidden'); }, 300);
-        }
-    </script>
-
-    <style>
-        body { overflow-x: hidden; }
-        .scrollbar-none::-webkit-scrollbar { display: none; }
-        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    </style>
 </body>
 </html>
