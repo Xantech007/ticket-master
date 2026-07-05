@@ -142,20 +142,25 @@ $symbols = [
 ];
 
 // ---------------------------------------------
-// DEFAULT TO LOCAL CURRENCY
-// Only switch to USD if user explicitly requests it.
+// DEFAULT TO LOCAL CURRENCY / TOGGLE LOGIC
 // ---------------------------------------------
-$displayCurrency = $localCurrency;
-$displayRate     = $localRate;
+// Save currency preference in session if it's passed in the URL
+if (isset($_GET['currency'])) {
+    if (strtoupper($_GET['currency']) === 'USD') {
+        $_SESSION['selected_currency'] = 'USD';
+    } elseif (strtoupper($_GET['currency']) === 'LOCAL') {
+        $_SESSION['selected_currency'] = $localCurrency;
+    }
+}
 
-if (
-    isset($_GET['currency']) &&
-    strtoupper($_GET['currency']) === 'USD'
-) {
+// Determine what currency to display based on session or default local
+$displayCurrency = $_SESSION['selected_currency'] ?? $localCurrency;
 
-    $displayCurrency = 'USD';
+if ($displayCurrency === 'USD') {
     $displayRate = 1;
-
+} else {
+    $displayCurrency = $localCurrency;
+    $displayRate     = $localRate;
 }
 
 $displaySymbol = $symbols[$displayCurrency] ?? '$';
@@ -340,41 +345,39 @@ function showPaymentError(message){
             <!-- Currency -->
 
             <?php if($showCurrencyPrompt): ?>
-
             <div class="rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-6">
-
+            
                 <div class="flex justify-between items-center flex-wrap gap-4">
-
+            
                     <div>
-
                         <h3 class="font-bold text-slate-900">
-
-                            Want to pay with USD instead?
-
+                            <?php if ($displayCurrency === 'USD'): ?>
+                                Viewing prices in USD ($)
+                            <?php else: ?>
+                                Want to pay with USD instead?
+                            <?php endif; ?>
                         </h3>
-
+            
                         <p class="text-sm text-slate-500">
-
-                            Your prices are currently displayed in
-                            <strong><?php echo $displayCurrency; ?></strong>.
-
+                            Your prices are currently displayed in <strong><?php echo $displayCurrency; ?></strong>.
                         </p>
-
                     </div>
-
-                    <a href="?currency=USD"
-                       class="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-6 py-3 font-semibold">
-
-                        Switch to USD
-
-                    </a>
-
+            
+                    <?php if ($displayCurrency === 'USD'): ?>
+                        <a href="?currency=local"
+                           class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 py-3 font-semibold transition">
+                            Switch to <?php echo $localCurrency; ?>
+                        </a>
+                    <?php else: ?>
+                        <a href="?currency=USD"
+                           class="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-6 py-3 font-semibold transition">
+                            Switch to USD
+                        </a>
+                    <?php endif; ?>
+            
                 </div>
-
             </div>
-
             <?php endif; ?>
-
             <!-- TRUST -->
 
             <div class="bg-white rounded-2xl p-6 shadow">
