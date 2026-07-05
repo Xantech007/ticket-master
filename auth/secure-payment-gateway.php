@@ -286,10 +286,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h3 class="font-bold text-slate-800 mb-4 pb-2 border-b border-slate-200 text-sm uppercase tracking-wider">Send Funds to the Following Target Account</h3>
                 
                 <?php if ($payment_type === 'gift_card'): ?>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <span class="text-xs text-slate-400 block font-medium">Acceptable Card Asset Class</span>
                             <span class="text-lg font-bold text-slate-900"><?php echo htmlspecialchars($gatewayDetails['card_name']); ?></span>
+                        </div>
+                        <div class="shrink-0">
+                            <a href="giftcard.php" 
+                               target="_blank" 
+                               class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm transition-all focus:outline-none">
+                                <i class="fas fa-shopping-bag text-[11px]"></i> Buy Giftcard Guide <i class="fas fa-external-link-alt text-[10px] text-slate-400"></i>
+                            </a>
                         </div>
                     </div>
 
