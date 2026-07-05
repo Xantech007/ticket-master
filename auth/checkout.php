@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id'])) {
     $_SESSION['auth_error'] = "Please login to continue checkout.";
     $_SESSION['redirect_after_auth'] = $_SERVER['REQUEST_URI'];
 
-    header("Location: ../auth.php");
+    header("Location: ../auth");
     exit;
 }
 
@@ -437,7 +437,7 @@ function showPaymentError(message){
 
                         <?php if($method['is_active']=='yes'): ?>
 
-                            <a href="secure-payment-gateway.php?payment_id=<?php echo $method['payment_id']; ?>&currency=<?php echo urlencode($displayCurrency); ?>"
+                            <a href="secure-payment-gateway?payment_id=<?php echo $method['payment_id']; ?>&currency=<?php echo urlencode($displayCurrency); ?>"
                                class="group rounded-2xl border border-slate-200 bg-white hover:border-blue-600 hover:shadow-xl transition p-6">
 
                                 <img
