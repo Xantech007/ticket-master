@@ -216,20 +216,27 @@ if ($pdo !== null) {
                     </div>
                 </div>
 
-                <div class="flex gap-4 items-start shrink-0 relative group">
-                    <button class="bg-white text-slate-900 font-bold px-6 py-3 rounded-xl shadow hover:shadow-lg transition flex items-center gap-2">
-                        <i class="fas fa-headset text-blue-600"></i> Contact Support
-                    </button>
-                    <div class="hidden group-hover:block absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-xl w-60 overflow-hidden z-50 text-slate-950">
-                        <a href="https://wa.me/<?php echo urlencode($support['whatsapp']); ?>" target="_blank" class="flex items-center gap-3 px-5 py-4 hover:bg-green-50 transition border-b border-slate-100">
-                            <i class="fab fa-whatsapp text-green-600 text-lg"></i> WhatsApp
-                        </a>
-                        <a href="https://t.me/<?php echo urlencode($support['telegram']); ?>" target="_blank" class="flex items-center gap-3 px-5 py-4 hover:bg-sky-50 transition border-b border-slate-100">
-                            <i class="fab fa-telegram-plane text-sky-600 text-lg"></i> Telegram
-                        </a>
-                        <a href="mailto:<?php echo htmlspecialchars($support['email']); ?>" class="flex items-center gap-3 px-5 py-4 hover:bg-blue-50 transition">
-                            <i class="fas fa-envelope text-blue-600 text-lg"></i> Email Helpdesk
-                        </a>
+                <div class="flex flex-wrap gap-4 items-center shrink-0 relative z-10">
+                    <!-- Global Top Up Action Button -->
+                    <a href="../auth/fund-wallet.php" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-3 rounded-xl shadow hover:shadow-lg transition flex items-center gap-2">
+                        <i class="fas fa-plus-circle"></i> Top Up Wallet
+                    </a>
+                    
+                    <div class="relative group">
+                        <button class="bg-white text-slate-900 font-bold px-6 py-3 rounded-xl shadow hover:shadow-lg transition flex items-center gap-2">
+                            <i class="fas fa-headset text-blue-600"></i> Contact Support
+                        </button>
+                        <div class="hidden group-hover:block absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-xl w-60 overflow-hidden z-50 text-slate-950">
+                            <a href="https://wa.me/<?php echo urlencode($support['whatsapp']); ?>" target="_blank" class="flex items-center gap-3 px-5 py-4 hover:bg-green-50 transition border-b border-slate-100">
+                                <i class="fab fa-whatsapp text-green-600 text-lg"></i> WhatsApp
+                            </a>
+                            <a href="https://t.me/<?php echo urlencode($support['telegram']); ?>" target="_blank" class="flex items-center gap-3 px-5 py-4 hover:bg-sky-50 transition border-b border-slate-100">
+                                <i class="fab fa-telegram-plane text-sky-600 text-lg"></i> Telegram
+                            </a>
+                            <a href="mailto:<?php echo htmlspecialchars($support['email']); ?>" class="flex items-center gap-3 px-5 py-4 hover:bg-blue-50 transition">
+                                <i class="fas fa-envelope text-blue-600 text-lg"></i> Email Helpdesk
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -422,14 +429,18 @@ if ($pdo !== null) {
                     </div>
 
                     <div class="border-t border-white/20 mt-8 pt-6">
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-center flex-wrap gap-4">
                             <div>
                                 <div class="text-white/70 font-semibold">Available Funds Profile</div>
                                 <div class="text-4xl font-black mt-2 font-mono tracking-tight text-emerald-400">
                                     $<?php echo number_format($user_profile['balance'], 2); ?>
                                 </div>
                             </div>
-                            <i class="fas fa-wallet text-5xl text-white/20"></i>
+                            
+                            <!-- Contextual Top Up Action Button -->
+                            <a href="../auth/fund-wallet.php" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-3 rounded-xl shadow transition text-xs uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fas fa-plus-circle text-sm"></i> Top Up
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -519,6 +530,9 @@ if ($pdo !== null) {
         </div>
     </div>
 
+    <!-- ================= MODALS TERMINAL SYSTEM ================= -->
+
+    <!-- Secured Gate Passes History Modal -->
     <div id="ordersModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 shadow-2xl">
         <div class="bg-white rounded-3xl max-w-2xl w-full flex flex-col max-h-[85vh] overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
@@ -558,6 +572,7 @@ if ($pdo !== null) {
         </div>
     </div>
 
+    <!-- Financial Statements Ledger Modal -->
     <div id="txModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 shadow-2xl">
         <div class="bg-white rounded-3xl max-w-4xl w-full flex flex-col max-h-[85vh] overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
@@ -610,6 +625,7 @@ if ($pdo !== null) {
         </div>
     </div>
 
+    <!-- Script Terminal Functions -->
     <script>
         function openOrdersModal() {
             document.getElementById('ordersModal').classList.remove('hidden');
