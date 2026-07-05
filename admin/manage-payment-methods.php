@@ -31,17 +31,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
         /* ---------------- ADD PAYMENT METHOD ---------------- */
         if ($action === 'add') {
 
-            $type        = $_POST['type'] ?? '';
-            $error_msg   = trim($_POST['error_msg'] ?? '');
-            $is_active   = $_POST['is_active'] ?? 'yes';
-            $instruction = trim($_POST['instruction'] ?? '');
+            $type          = $_POST['type'] ?? '';
+            $error_msg     = trim($_POST['error_msg'] ?? '');
+            $is_active     = $_POST['is_active'] ?? 'yes';
+            $instruction   = trim($_POST['instruction'] ?? '');
+            
+            // New redirect configuration fields
+            $redirect      = $_POST['redirect'] ?? 'no';
+            $redirect_link = trim($_POST['redirect_link'] ?? '');
 
             if (!in_array($type, ['bank', 'gift_card', 'crypto', 'e_pay'])) {
                 throw new Exception("Invalid payment type.");
             }
-           
+            
             if (!in_array($is_active, ['yes', 'no'])) {
                 $is_active = 'yes';
+            }
+
+            if (!in_array($redirect, ['yes', 'no'])) {
+                $redirect = 'no';
+            }
+
+            if ($redirect === 'yes' && empty($redirect_link)) {
+                throw new Exception("Please provide a valid redirect link if redirect status is enabled.");
             }
 
             if (empty($_FILES['image']['name'])) {
@@ -62,18 +74,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
 
             move_uploaded_file($_FILES['image']['tmp_name'], $target);
 
-            // 1. Insert into core table
+            // 1. Insert into core table (including new redirect and redirect_link parameters)
             $stmt = $pdo->prepare("
                 INSERT INTO payment_methods
-                (image_path, error_msg, is_active, type)
-                VALUES (?, ?, ?, ?)
+                (image_path, error_msg, is_active, type, redirect, redirect_link)
+                VALUES (?, ?, ?, ?, ?, ?)
             ");
 
             $stmt->execute([
                 $imageName,
                 $error_msg,
                 $is_active,
-                $type
+                $type,
+                $redirect,
+                !empty($redirect_link) ? $redirect_link : null
             ]);
 
             $new_payment_id = (int)$pdo->lastInsertId();
@@ -202,6 +216,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
 <tr style="background:#111827;text-align:left;">
     <th style="padding:12px;">Image</th>
     <th style="padding:12px;">Type</th>
+    <th style="padding:12px;">Behavior / Link</th>
     <th style="padding:12px;">Error Message</th>
     <th style="padding:12px;">Status</th>
     <th style="padding:12px;">Actions</th>
@@ -227,9 +242,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
        'crypto' => 'Crypto',
        default => ucfirst(htmlspecialchars($payment['type']))
    } ?>
-   </td>
+</td>
 
-<td style="padding:12px;max-width:300px;">
+<td style="padding:12px; font-size: 14px;">
+    <?php if(($payment['redirect'] ?? 'no') === 'yes'): ?>
+        <span style="color:#e3b341; font-weight:bold; display:block; margin-bottom:2px;">↳ External Redirect</span>
+        <span style="color:var(--text-muted); font-family:monospace; display:block; max-width:200px; overflow:hidden; text-overflow:ellipsis;" title="<?= htmlspecialchars($payment['redirect_link'] ?? '') ?>">
+            <?= htmlspecialchars($payment['redirect_link'] ?? 'No URL saved') ?>
+        </span>
+    <?php else: ?>
+        <span style="color:#58a6ff;">Native Gateway</span>
+    <?php endif; ?>
+</td>
+
+<td style="padding:12px;max-width:250px;">
     <?= htmlspecialchars(mb_strimwidth($payment['error_msg'],0,60,'...')) ?>
 </td>
 
@@ -352,6 +378,21 @@ style="width:100%;padding:.7rem;margin-bottom:1rem;background:#161b22;color:#fff
     </div>
 </div>
 
+<div style="background:#161b22; padding:15px; border-radius:8px; margin-bottom:1rem; border:1px solid #30363d;">
+    <label style="display:block;margin-bottom:0.3rem;font-weight:bold;">Gateway Action Routing</label>
+    <select name="redirect" id="redirect_selector" onchange="toggleRedirectLinkField()"
+    style="width:100%;padding:.7rem;margin-bottom:1rem;background:#0d1117;color:#fff;border:1px solid #30363d;border-radius:6px;">
+        <option value="no">Open Internal Checkout Flow (Native)</option>
+        <option value="yes">Redirect User to External URL</option>
+    </select>
+
+    <div id="redirect_url_wrapper" style="display:none;">
+        <label style="display:block;margin-bottom:0.3rem;">Target Destination Link Url</label>
+        <input type="url" name="redirect_link" placeholder="https://external-payment-processor.com/pay" 
+        style="width:100%;padding:.5rem;background:#0d1117;color:#fff;border:1px solid #30363d;border-radius:4px;">
+    </div>
+</div>
+
 <label style="display:block;margin-bottom:0.3rem;font-weight:bold;">Gateway User Payment Instructions</label>
 <textarea name="instruction" style="width:100%;padding:.7rem;margin-bottom:1rem;background:#161b22;color:#fff;border:1px solid #30363d;border-radius:6px;" rows="3" placeholder="Provide instructions on how to make payments..."></textarea>
 
@@ -390,7 +431,8 @@ style="width:100%;padding:.7rem;margin-bottom:1rem;background:#161b22;color:#fff
 
 function openModal(){
     document.getElementById('paymentModal').style.display='block';
-    toggleFormFields(); // Establish proper field view state upon display
+    toggleFormFields(); 
+    toggleRedirectLinkField(); // Establish redirect configuration visibility
 }
 
 function closeModal(){
@@ -410,6 +452,21 @@ function toggleFormFields(){
     const targetedElement = document.getElementById('fields_' + selectedType);
     if(targetedElement) {
         targetedElement.style.display = 'block';
+    }
+}
+
+function toggleRedirectLinkField() {
+    const redirectSelector = document.getElementById('redirect_selector');
+    const redirectWrapper = document.getElementById('redirect_url_wrapper');
+    
+    if (redirectSelector && redirectWrapper) {
+        if (redirectSelector.value === 'yes') {
+            redirectWrapper.style.display = 'block';
+            redirectWrapper.querySelector('input').setAttribute('required', 'required');
+        } else {
+            redirectWrapper.style.display = 'none';
+            redirectWrapper.querySelector('input').removeAttribute('required');
+        }
     }
 }
 
