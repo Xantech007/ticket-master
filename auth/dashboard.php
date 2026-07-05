@@ -118,7 +118,7 @@ if ($pdo !== null) {
             INNER JOIN concerts c ON t.concert_id = c.concert_id
             INNER JOIN artists a ON c.artist_id = a.artist_id
             WHERE o.user_id = ?
-            ORDER BY o.order_id DESC LIMIT 10
+            ORDER BY o.order_id DESC LIMIT 40
         ");
         $order_stmt->execute([$user_id]);
         $raw_orders = $order_stmt->fetchAll();
@@ -182,6 +182,7 @@ if ($pdo !== null) {
 
     <?php include "../inc/header.php"; ?>
 
+    <!-- Horizontal Quick Navigation Anchors Section -->
     <div class="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 md:px-8">
             <div class="flex items-center space-x-6 overflow-x-auto py-3.5 scrollbar-none scroll-smooth snap-x">
@@ -213,8 +214,10 @@ if ($pdo !== null) {
             
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
+                <!-- Left Control Column -->
                 <div class="lg:col-span-4 space-y-6">
                     
+                    <!-- Section 1: Profile Settings -->
                     <div id="profile-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                         <div class="flex items-center gap-4 border-b border-gray-100 pb-4 mb-4">
                             <div class="w-14 h-14 rounded-full bg-[#024DDF] text-white font-black text-xl flex items-center justify-center shadow">
@@ -271,6 +274,7 @@ if ($pdo !== null) {
                         </form>
                     </div>
 
+                    <!-- Section 2: Alerts Message Terminal -->
                     <div id="alerts-section" class="scroll-mt-24 bg-slate-900 text-white border border-slate-800 rounded-2xl p-6 shadow-md space-y-4">
                         <h4 class="text-xs font-black uppercase tracking-widest text-blue-400 flex items-center gap-2 border-b border-slate-800 pb-3">
                             <i class="fas fa-satellite-dish animate-pulse"></i> Administrative Alerts Message Terminal
@@ -291,8 +295,10 @@ if ($pdo !== null) {
                     </div>
                 </div>
 
+                <!-- Right Data Dynamic Grid Display -->
                 <div class="lg:col-span-8 space-y-6">
                     
+                    <!-- Section 3: Uploaded Manifests -->
                     <div id="manifests-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
                         <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-3">
                             <i class="fas fa-ticket-alt text-[#024DDF]"></i> Admin-Uploaded Ticket Allocation Manifests
@@ -319,13 +325,26 @@ if ($pdo !== null) {
                         </div>
                     </div>
 
+                    <!-- Section 4: Orders & Passes (UPDATE: Modified to slice display to exactly 3 items with Modal integration) -->
                     <div id="orders-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
-                        <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-3">
-                            <i class="fas fa-shopping-bag text-[#024DDF]"></i> Secured Production Orders & Gate Passes
-                        </h3>
+                        <div class="flex flex-row justify-between items-center border-b border-gray-100 pb-3 gap-2">
+                            <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
+                                <i class="fas fa-shopping-bag text-[#024DDF]"></i> Secured Production Orders & Gate Passes
+                            </h3>
+                            <?php if (count($recent_orders) > 3): ?>
+                                <button type="button" onclick="openOrdersModal()" class="text-[10px] font-black text-[#024DDF] hover:text-blue-800 uppercase tracking-widest bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-all">
+                                    View More <i class="fas fa-arrow-right ml-0.5"></i>
+                                </button>
+                            <?php endif; ?>
+                        </div>
+                        
                         <div class="space-y-3">
                             <?php if (!empty($recent_orders)): ?>
-                                <?php foreach ($recent_orders as $order): ?>
+                                <?php 
+                                // Limit display list structure loop exactly to 3 dashboard block positions
+                                $limited_orders = array_slice($recent_orders, 0, 3);
+                                foreach ($limited_orders as $order): 
+                                ?>
                                     <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:border-gray-300 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                         <div class="space-y-1">
                                             <div class="flex items-center gap-2">
@@ -362,6 +381,7 @@ if ($pdo !== null) {
                         </div>
                     </div>
 
+                    <!-- Section 5: Financial Statement Ledger Block -->
                     <div id="transactions-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
                         <div class="flex flex-row justify-between items-center border-b border-gray-100 pb-3 gap-2">
                             <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
@@ -388,7 +408,6 @@ if ($pdo !== null) {
                                     </thead>
                                     <tbody class="divide-y divide-gray-100">
                                         <?php 
-                                        // Display initial array subset containing exactly 3 execution rows
                                         $limited_tx = array_slice($transaction_history, 0, 3);
                                         foreach ($limited_tx as $txn): 
                                         ?>
@@ -420,6 +439,7 @@ if ($pdo !== null) {
                         </div>
                     </div>
 
+                    <!-- Section 6: Viewed Shows -->
                     <div id="shows-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
                         <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-3">
                             <i class="fas fa-eye text-[#024DDF]"></i> Recently Viewed & Tracked Shows
@@ -452,6 +472,46 @@ if ($pdo !== null) {
         <?php include "../inc/footer.php"; ?>
     </div>
 
+    <!-- Complete Production Orders / Pass Manifest Full History Modal -->
+    <div id="ordersHistoryModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300 opacity-0">
+        <div class="bg-white border border-gray-200 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col transform scale-95 transition-all duration-300 max-h-[85vh]">
+            <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+                <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-history text-[#024DDF]"></i> Complete Order History & Platform Gate Passes
+                </h3>
+                <button onclick="closeOrdersModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg transition-colors">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <div class="overflow-y-auto p-6 space-y-3 flex-1 bg-gray-50/50">
+                <?php foreach ($recent_orders as $order): ?>
+                    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-mono font-black text-gray-400 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded"><?php echo htmlspecialchars($order['id']); ?></span>
+                                <?php 
+                                    $status = strtolower($order['status']);
+                                    $badge_cls = ($status === 'confirmed' || $status === 'completed' || $status === 'success') ? 'text-emerald-600 bg-emerald-50' : (($status === 'processing' || $status === 'pending') ? 'text-amber-600 bg-amber-50' : 'text-blue-600 bg-blue-50');
+                                ?>
+                                <span class="text-xs font-black px-2 py-0.5 rounded uppercase tracking-wide <?php echo $badge_cls; ?>">
+                                    <?php echo htmlspecialchars($order['status']); ?>
+                                </span>
+                            </div>
+                            <h4 class="text-sm font-black text-gray-900 tracking-tight"><?php echo htmlspecialchars($order['title']); ?></h4>
+                            <p class="text-xs text-gray-500 font-medium">
+                                <i class="fas fa-wallet text-gray-400 mr-1"></i> <?php echo htmlspecialchars($order['venue']); ?> • <span class="font-bold text-gray-600"><?php echo htmlspecialchars($order['seats']); ?></span>
+                            </p>
+                        </div>
+                        <div class="text-left sm:text-right w-full sm:w-auto shrink-0 border-t sm:border-t-0 border-gray-100 pt-2 sm:pt-0">
+                            <span class="text-xs font-black text-gray-800 block"><?php echo htmlspecialchars($order['date']); ?></span>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete Transaction Ledger Modal Engine Container Layout -->
     <div id="txHistoryModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300 opacity-0">
         <div class="bg-white border border-gray-200 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col transform scale-95 transition-all duration-300 max-h-[85vh]">
             <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
@@ -502,6 +562,24 @@ if ($pdo !== null) {
     </div>
 
     <script type="text/javascript">
+        function openOrdersModal() {
+            const el = document.getElementById('ordersHistoryModal');
+            el.classList.remove('hidden');
+            setTimeout(() => {
+                el.classList.remove('opacity-0');
+                el.querySelector('.transform').classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeOrdersModal() {
+            const el = document.getElementById('ordersHistoryModal');
+            el.classList.add('opacity-0');
+            el.querySelector('.transform').classList.add('scale-95');
+            setTimeout(() => {
+                el.classList.add('hidden');
+            }, 300);
+        }
+
         function openTxModal() {
             const el = document.getElementById('txHistoryModal');
             el.classList.remove('hidden');
