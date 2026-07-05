@@ -14,7 +14,6 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// Extract authenticated profile reference parameter context
 $user_id = (int) $_SESSION['user_id'];
 
 $pdo = null;
@@ -23,15 +22,11 @@ try {
         $dbInstance = new Database();
         $pdo = $dbInstance->connect(); 
     }
-} catch (Exception $e) {
-    // Silence error to preserve UI initialization framework layers
-}
+} catch (Exception $e) {}
 
-// Profile Update Message Status Holders
 $success_message = "";
 $error_message = "";
 
-// Handle User Profile Context Updates
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     $full_name = trim($_POST['full_name']);
     $email_address = trim($_POST['email']);
@@ -43,16 +38,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
                 $update_stmt = $pdo->prepare("UPDATE users SET full_name = ?, email = ?, phone = ? WHERE id = ?");
                 $update_stmt->execute([$full_name, $email_address, $phone_number, $user_id]);
             }
-            $success_message = "Account information configurations updated successfully.";
+            $success_message = "Profile configuration layers synced successfully.";
         } catch (Exception $e) {
-            $error_message = "Database synchronization error: " . $e->getMessage();
+            $error_message = "Synchronization error: " . $e->getMessage();
         }
     } else {
-        $error_message = "Required verification entry fields cannot be saved blank.";
+        $error_message = "Required fields cannot be left empty.";
     }
 }
 
-// Initializing Dynamic UI Arrays with empty/default baselines
 $user_profile = [
     'name'    => 'Jane Doe',
     'email'   => 'janedoe@infinityfreeapp.com',
@@ -64,19 +58,12 @@ $admin_messages = [];
 $recent_orders = [];
 $transaction_history = [];
 
-// Static Presentation Layer Fallback
-$recently_viewed_shows = [
-    ['id' => 3, 'artist' => 'Taylor Swift', 'title' => 'The Eras Tour Presentation', 'location' => 'Los Angeles, CA'],
-    ['id' => 7, 'artist' => 'Blackpink', 'title' => 'Born Pink Finale Concert', 'location' => 'Seoul, South Korea']
-];
 $admin_tickets = [
     ['file_path' => 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=600&q=80', 'description' => 'VIP Golden Circle Early Entry Pass Package Allocation File Vector. Valid across all standard stadium layout properties. Please save to phone pass wallet storage.']
 ];
 
-// Execute Live Resource Retrieval
 if ($pdo !== null) {
     try {
-        // 1. Account Portfolio Member Card Resource Loader
         $user_stmt = $pdo->prepare("SELECT full_name, email, phone, balance FROM users WHERE id = ? LIMIT 1");
         $user_stmt->execute([$user_id]);
         $fetched_user = $user_stmt->fetch();
@@ -89,87 +76,54 @@ if ($pdo !== null) {
             ];
         }
 
-        // 2. Administrative Alerts Message Terminal Card Resource Loader
         $msg_stmt = $pdo->prepare("SELECT message, created_at FROM users WHERE id = ? AND message IS NOT NULL AND message != '' ORDER BY id DESC");
         $msg_stmt->execute([$user_id]);
         $raw_messages = $msg_stmt->fetchAll();
         foreach ($raw_messages as $m_row) {
             $admin_messages[] = [
-                'title'      => 'Personal Security Update Notice',
+                'title'      => 'Security Clearance Notice',
                 'content'    => $m_row['message'],
                 'created_at' => $m_row['created_at'] ?? date('Y-m-d H:i:s')
             ];
         }
 
-        // 3. Secured Production Orders & Gate Passes Card Resource Loader
         $order_stmt = $pdo->prepare("
-            SELECT 
-                o.order_id, 
-                o.status AS order_status, 
-                o.created_at AS purchase_date,
-                a.artist_name AS show_title,
-                c.title AS concert_title,
-                t.ticket_name,
-                t.section_name,
-                t.row_name,
-                t.seat_name
+            SELECT o.order_id, o.status, o.created_at, a.artist_name, c.title, t.ticket_name, t.section_name, t.row_name, t.seat_name
             FROM orders o
             INNER JOIN tickets t ON o.ticket_id = t.ticket_id
             INNER JOIN concerts c ON t.concert_id = c.concert_id
             INNER JOIN artists a ON c.artist_id = a.artist_id
-            WHERE o.user_id = ?
-            ORDER BY o.order_id DESC LIMIT 40
+            WHERE o.user_id = ? ORDER BY o.order_id DESC LIMIT 40
         ");
         $order_stmt->execute([$user_id]);
-        $raw_orders = $order_stmt->fetchAll();
-        foreach ($raw_orders as $or) {
-            $seat_details = trim(sprintf(
-                "%s (Sec %s, Row %s, Seat %s)", 
-                $or['ticket_name'], 
-                $or['section_name'], 
-                $or['row_name'], 
-                $or['seat_name']
-            ));
-
+        foreach ($order_stmt->fetchAll() as $or) {
+            $seats = trim(sprintf("%s (Sec %s, Row %s, Seat %s)", $or['ticket_name'], $or['section_name'], $or['row_name'], $or['seat_name']));
             $recent_orders[] = [
                 'id'     => 'TM-' . $or['order_id'],
-                'title'  => $or['show_title'],
-                'venue'  => $or['concert_title'],
-                'seats'  => !empty($seat_details) ? $seat_details : 'General Allocation Entry',
-                'status' => $or['order_status'], 
-                'date'   => date('M d, Y', strtotime($or['purchase_date']))
+                'title'  => $or['artist_name'],
+                'venue'  => $or['title'],
+                'seats'  => !empty($seats) ? $seats : 'General Allocation',
+                'status' => $or['status'], 
+                'date'   => date('M d, Y', strtotime($or['created_at']))
             ];
         }
         
-        // 4. Financial Statements & Transactions History Card Resource Loader
         $tx_stmt = $pdo->prepare("
-            SELECT 
-                d.deposit_id, 
-                d.created_at, 
-                d.amount, 
-                d.status,
-                p.image_path
-            FROM deposits d
-            LEFT JOIN payment_methods p ON d.payment_id = p.payment_id
-            WHERE d.user_id = ?
-            ORDER BY d.deposit_id DESC LIMIT 30
+            SELECT d.deposit_id, d.created_at, d.amount, d.status, p.image_path
+            FROM deposits d LEFT JOIN payment_methods p ON d.payment_id = p.payment_id
+            WHERE d.user_id = ? ORDER BY d.deposit_id DESC LIMIT 30
         ");
         $tx_stmt->execute([$user_id]);
-        $raw_txs = $tx_stmt->fetchAll();
-        foreach ($raw_txs as $tx) {
+        foreach ($tx_stmt->fetchAll() as $tx) {
             $transaction_history[] = [
-                'ref'      => 'DEP-' . $tx['deposit_id'],
-                'date'     => date('Y-m-d', strtotime($tx['created_at'])),
-                'method'   => !empty($tx['image_path']) ? '../uploads/payment-methods/' . $tx['image_path'] : 'Standard Gateway Channel',
-                'amount'   => $tx['amount'],
-                'currency' => 'USD',
-                'status'   => ($tx['status'] === 'confirmed' || $tx['status'] === 'completed' || $tx['status'] === 'Successful') ? 'Successful' : 'Processing'
+                'ref'    => 'DEP-' . $tx['deposit_id'],
+                'date'   => date('Y-m-d', strtotime($tx['created_at'])),
+                'method' => !empty($tx['image_path']) ? '../uploads/payment-methods/' . $tx['image_path'] : 'Gateway standard Network',
+                'amount' => $tx['amount'],
+                'status' => ($tx['status'] === 'confirmed' || $tx['status'] === 'completed' || $tx['status'] === 'Successful') ? 'Successful' : 'Processing'
             ];
         }
-
-    } catch (Exception $e) {
-        $error_message = "Data population runtime failure exception triggered: " . $e->getMessage();
-    }
+    } catch (Exception $e) {}
 }
 ?>
 <!DOCTYPE html>
@@ -178,123 +132,127 @@ if ($pdo !== null) {
 <?php include "../inc/head.php"; ?>
 <?php include "../inc/navbar.php"; ?>
 
-<body class="bg-gray-100 text-gray-900 font-sans antialiased">
+<body class="bg-zinc-950 text-zinc-100 font-sans antialiased selection:bg-blue-500 selection:text-white">
 
     <?php include "../inc/header.php"; ?>
 
-    <!-- Horizontal Quick Navigation Anchors Section -->
-    <div class="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 md:px-8">
-            <div class="flex items-center space-x-6 overflow-x-auto py-3.5 scrollbar-none scroll-smooth snap-x">
-                <a href="#manifests-section" class="snap-start shrink-0 text-xs font-black uppercase tracking-wider text-gray-500 hover:text-[#024DDF] transition-colors border-b-2 border-transparent hover:border-[#024DDF] pb-1">
-                    <i class="fas fa-ticket-alt mr-1"></i> Ticket Manifests
+    <div class="sticky top-0 z-40 bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center space-x-8 overflow-x-auto py-4 scrollbar-none snap-x">
+                <a href="#manifests-section" class="snap-start shrink-0 text-xs font-semibold tracking-wider text-zinc-400 hover:text-blue-400 transition-colors flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> TICKET MANIFESTS
                 </a>
-                <a href="#alerts-section" class="snap-start shrink-0 text-xs font-black uppercase tracking-wider text-gray-500 hover:text-[#024DDF] transition-colors border-b-2 border-transparent hover:border-[#024DDF] pb-1">
-                    <i class="fas fa-bell mr-1"></i> System Alerts
+                <a href="#alerts-section" class="snap-start shrink-0 text-xs font-semibold tracking-wider text-zinc-400 hover:text-blue-400 transition-colors flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> ALERTS TERMINAL
                 </a>
-                <a href="#profile-section" class="snap-start shrink-0 text-xs font-black uppercase tracking-wider text-gray-500 hover:text-[#024DDF] transition-colors border-b-2 border-transparent hover:border-[#024DDF] pb-1">
-                    <i class="fas fa-user-cog mr-1"></i> Profile Controls
+                <a href="#profile-section" class="snap-start shrink-0 text-xs font-semibold tracking-wider text-zinc-400 hover:text-blue-400 transition-colors flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> SECURITY ACCESS
                 </a>
-                <a href="#orders-section" class="snap-start shrink-0 text-xs font-black uppercase tracking-wider text-gray-500 hover:text-[#024DDF] transition-colors border-b-2 border-transparent hover:border-[#024DDF] pb-1">
-                    <i class="fas fa-shopping-bag mr-1"></i> Active Passes
+                <a href="#orders-section" class="snap-start shrink-0 text-xs font-semibold tracking-wider text-zinc-400 hover:text-blue-400 transition-colors flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> PRODUCTION ORDERS
                 </a>
-                <a href="#transactions-section" class="snap-start shrink-0 text-xs font-black uppercase tracking-wider text-gray-500 hover:text-[#024DDF] transition-colors border-b-2 border-transparent hover:border-[#024DDF] pb-1">
-                    <i class="fas fa-receipt mr-1"></i> Financial Ledger
-                </a>
-                <a href="#shows-section" class="snap-start shrink-0 text-xs font-black uppercase tracking-wider text-gray-500 hover:text-[#024DDF] transition-colors border-b-2 border-transparent hover:border-[#024DDF] pb-1">
-                    <i class="fas fa-eye mr-1"></i> Analyzed Shows
+                <a href="#transactions-section" class="snap-start shrink-0 text-xs font-semibold tracking-wider text-zinc-400 hover:text-blue-400 transition-colors flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> LEDGER BALANCE
                 </a>
             </div>
         </div>
     </div>
 
-    <div id="__next" class="min-h-screen flex flex-col justify-between">
-
-        <main class="max-w-7xl mx-auto w-full px-4 md:px-8 py-10 flex-1 space-y-8">
+    <div class="min-h-screen flex flex-col justify-between">
+        <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10 flex-1 space-y-10">
             
-            <!-- FIRST SECTION: Admin-Uploaded Ticket Allocation Manifests (Full Width) -->
-            <div id="manifests-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
-                <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-3">
-                    <i class="fas fa-ticket-alt text-[#024DDF]"></i> Admin-Uploaded Ticket Allocation Manifests
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <section id="manifests-section" class="scroll-mt-24 bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl relative overflow-hidden shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+                <div class="flex items-center justify-between mb-6 border-b border-zinc-800 pb-4">
+                    <div class="space-y-0.5">
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-200 flex items-center gap-2">
+                            <i class="fas fa-ticket-alt text-blue-500 text-base"></i> Ticket Allocation Manifests
+                        </h2>
+                        <p class="text-xs text-zinc-500">Active cryptographic vector files uploaded by administrative node root authority.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <?php foreach ($admin_tickets as $ticket): ?>
-                        <div class="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col">
-                            <div class="w-full h-40 bg-black overflow-hidden relative">
-                                <img src="<?php echo htmlspecialchars($ticket['file_path']); ?>" onerror="this.src='https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=600&q=80';" alt="Admin Ticket Output Graphic" class="w-full h-full object-cover">
-                                <div class="absolute top-2 right-2 bg-[#024DDF] text-white font-mono text-[10px] font-black px-2 py-0.5 rounded shadow">
-                                    PASS VECTOR
+                        <div class="bg-zinc-950/60 border border-zinc-800 rounded-xl overflow-hidden group hover:border-zinc-700 transition-all flex flex-col shadow-inner">
+                            <div class="w-full h-44 bg-zinc-900 overflow-hidden relative">
+                                <img src="<?php echo htmlspecialchars($ticket['file_path']); ?>" onerror="this.src='https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=600&q=80';" alt="Allocation Resource Mapping Graph" class="w-full h-full object-cover opacity-80 group-hover:scale-105 group-hover:opacity-100 transition-all duration-500">
+                                <div class="absolute top-3 right-3 bg-blue-500/10 border border-blue-500/30 backdrop-blur-md text-blue-400 font-mono text-[10px] font-bold px-2.5 py-1 rounded-md tracking-wider">
+                                    VERIFIED PASS
                                 </div>
                             </div>
-                            <div class="p-4 flex-1 flex flex-col justify-between items-start space-y-2">
-                                <p class="text-xs text-gray-600 leading-relaxed font-medium">
+                            <div class="p-5 flex-1 flex flex-col justify-between items-start space-y-4">
+                                <p class="text-xs text-zinc-400 leading-relaxed font-medium">
                                     <?php echo htmlspecialchars($ticket['description']); ?>
                                 </p>
-                                <a href="<?php echo htmlspecialchars($ticket['file_path']); ?>" target="_blank" class="text-[10px] font-black bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-100 uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
-                                    <i class="fas fa-download text-blue-600"></i> Download Clean Resource File
-                                        </a>
-                                    </div>
-                                </div>
+                                <a href="<?php echo htmlspecialchars($ticket['file_path']); ?>" target="_blank" class="text-[11px] font-bold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-4 py-2.5 rounded-lg border border-zinc-700 transition-all uppercase tracking-wider flex items-center gap-2 shadow-sm w-full sm:w-auto justify-center">
+                                    <i class="fas fa-download text-blue-400"></i> Fetch Asset Target File
+                                </a>
+                            </div>
+                        </div>
                     <?php endforeach; ?>
                 </div>
-            </div>
+            </section>
 
-            <!-- Dashboard Split Body Row Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
-                <!-- Left Column Structure Stack -->
-                <div class="lg:col-span-4 space-y-6">
+                <div class="lg:col-span-4 space-y-8">
                     
-                    <!-- SECOND SECTION: Administrative Alerts Message Terminal -->
-                    <div id="alerts-section" class="scroll-mt-24 bg-slate-900 text-white border border-slate-800 rounded-2xl p-6 shadow-md space-y-4">
-                        <h4 class="text-xs font-black uppercase tracking-widest text-blue-400 flex items-center gap-2 border-b border-slate-800 pb-3">
-                            <i class="fas fa-satellite-dish animate-pulse"></i> Administrative Alerts Message Terminal
-                        </h4>
-                        <div class="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+                    <div id="alerts-section" class="scroll-mt-24 bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] space-y-4">
+                        <div class="border-b border-zinc-800 pb-3 flex justify-between items-center">
+                            <h4 class="text-xs font-bold uppercase tracking-widest text-amber-400 flex items-center gap-2">
+                                <i class="fas fa-terminal animate-pulse text-amber-500"></i> Signal Alerts Engine
+                            </h4>
+                            <span class="text-[10px] bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-mono">Live Node</span>
+                        </div>
+                        <div class="space-y-4 max-h-[280px] overflow-y-auto pr-1">
                             <?php if (!empty($admin_messages)): ?>
                                 <?php foreach ($admin_messages as $msg): ?>
-                                    <div class="bg-slate-950 border border-slate-800 p-3.5 rounded-xl space-y-1.5">
-                                        <span class="text-[10px] text-gray-500 font-mono block"><?php echo htmlspecialchars($msg['created_at']); ?></span>
-                                        <h5 class="text-xs font-black tracking-tight text-gray-200"><?php echo htmlspecialchars($msg['title']); ?></h5>
-                                        <p class="text-[11px] font-medium text-gray-400 leading-relaxed"><?php echo htmlspecialchars($msg['content']); ?></p>
+                                    <div class="bg-zinc-950/80 border border-zinc-800/80 p-4 rounded-xl space-y-2 hover:border-zinc-700/60 transition-colors">
+                                        <span class="text-[9px] text-zinc-500 font-mono block tracking-wider"><i class="far fa-clock mr-1"></i><?php echo htmlspecialchars($msg['created_at']); ?></span>
+                                        <h5 class="text-xs font-bold tracking-tight text-zinc-300"><?php echo htmlspecialchars($msg['title']); ?></h5>
+                                        <p class="text-[11px] font-medium text-zinc-400 leading-relaxed"><?php echo htmlspecialchars($msg['content']); ?></p>
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <p class="text-xs text-slate-500 italic text-center py-4">No security messages logged.</p>
+                                <div class="text-center py-6 border border-dashed border-zinc-800 rounded-xl">
+                                    <i class="fas fa-shield-alt text-zinc-700 text-lg mb-2 block"></i>
+                                    <p class="text-xs text-zinc-600 italic">No system alerts queued.</p>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
                     
-                    <!-- THIRD SECTION: Profile Settings Matrix -->
-                    <div id="profile-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                        <div class="flex items-center gap-4 border-b border-gray-100 pb-4 mb-4">
-                            <div class="w-14 h-14 rounded-full bg-[#024DDF] text-white font-black text-xl flex items-center justify-center shadow">
+                    <div id="profile-section" class="scroll-mt-24 bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+                        <div class="flex items-center gap-4 border-b border-zinc-800 pb-5 mb-5">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-black text-sm flex items-center justify-center shadow-lg tracking-wider">
                                 <?php echo strtoupper(substr($user_profile['name'], 0, 2)); ?>
                             </div>
-                            <div>
-                                <h3 class="text-base font-black text-gray-900 tracking-tight"><?php echo htmlspecialchars($user_profile['name']); ?></h3>
-                                <p class="text-xs font-bold text-gray-400 uppercase tracking-wide">Account Portfolio Member</p>
+                            <div class="space-y-0.5">
+                                <h3 class="text-sm font-bold text-zinc-200 tracking-tight"><?php echo htmlspecialchars($user_profile['name']); ?></h3>
+                                <p class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Operator Identity Layer</p>
                             </div>
                         </div>
 
-                        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 flex justify-between items-center shadow-inner">
-                            <div>
-                                <span class="text-[10px] font-black uppercase text-blue-500 tracking-wider block">Available Balance</span>
-                                <span class="text-xl font-black text-[#024DDF] tracking-tight">
+                        <div class="bg-zinc-950 border border-zinc-800 rounded-xl p-4 mb-6 flex justify-between items-center shadow-inner relative overflow-hidden group">
+                            <div class="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                            <div class="space-y-1">
+                                <span class="text-[10px] font-bold uppercase text-zinc-500 tracking-widest block">Liquidity Node Balance</span>
+                                <span class="text-2xl font-black text-zinc-100 tracking-tight font-mono">
                                     $<?php echo number_format($user_profile['balance'], 2); ?>
                                 </span>
                             </div>
-                            <i class="fas fa-wallet text-blue-300 text-xl"></i>
+                            <div class="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-sm">
+                                <i class="fas fa-wallet text-blue-400 text-sm"></i>
+                            </div>
                         </div>
 
                         <?php if (!empty($success_message)): ?>
-                            <div class="bg-green-50 border border-green-200 text-green-700 font-bold text-xs p-3.5 rounded-xl mb-4">
-                                <i class="fas fa-check-circle mr-1"></i> <?php echo $success_message; ?>
+                            <div class="bg-emerald-950/80 border border-emerald-800 text-emerald-400 font-medium text-xs p-3.5 rounded-xl mb-4 flex items-center gap-2">
+                                <i class="fas fa-check-circle text-emerald-500"></i> <?php echo $success_message; ?>
                             </div>
                         <?php endif; ?>
                         <?php if (!empty($error_message)): ?>
-                            <div class="bg-rose-50 border border-rose-200 text-rose-700 font-bold text-xs p-3.5 rounded-xl mb-4">
-                                <i class="fas fa-exclamation-triangle mr-1"></i> <?php echo $error_message; ?>
+                            <div class="bg-rose-950/80 border border-rose-800 text-rose-400 font-medium text-xs p-3.5 rounded-xl mb-4 flex items-center gap-2">
+                                <i class="fas fa-exclamation-triangle text-rose-500"></i> <?php echo $error_message; ?>
                             </div>
                         <?php endif; ?>
 
@@ -302,40 +260,40 @@ if ($pdo !== null) {
                             <input type="hidden" name="update_profile" value="1">
                             
                             <div>
-                                <label class="block text-xs font-black uppercase text-gray-400 tracking-wider mb-1.5">Full Name Identity String</label>
-                                <input type="text" name="full_name" value="<?php echo htmlspecialchars($user_profile['name']); ?>" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold focus:bg-white focus:border-[#024DDF] outline-none transition-all">
+                                <label class="block text-[10px] font-bold uppercase text-zinc-500 tracking-widest mb-2">Signature Identity Token Name</label>
+                                <input type="text" name="full_name" value="<?php echo htmlspecialchars($user_profile['name']); ?>" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-xs font-medium text-zinc-300 focus:bg-zinc-950 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
                             </div>
 
                             <div>
-                                <label class="block text-xs font-black uppercase text-gray-400 tracking-wider mb-1.5">Primary Email Endpoint Address</label>
-                                <input type="email" name="email" value="<?php echo htmlspecialchars($user_profile['email']); ?>" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold focus:bg-white focus:border-[#024DDF] outline-none transition-all">
+                                <label class="block text-[10px] font-bold uppercase text-zinc-500 tracking-widest mb-2">Network Endpoint Routing Email</label>
+                                <input type="email" name="email" value="<?php echo htmlspecialchars($user_profile['email']); ?>" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-xs font-medium text-zinc-300 focus:bg-zinc-950 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
                             </div>
 
                             <div>
-                                <label class="block text-xs font-black uppercase text-gray-400 tracking-wider mb-1.5">Phone Communications Ledger Channel</label>
-                                <input type="text" name="phone" value="<?php echo htmlspecialchars($user_profile['phone']); ?>" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold focus:bg-white focus:border-[#024DDF] outline-none transition-all">
+                                <label class="block text-[10px] font-bold uppercase text-zinc-500 tracking-widest mb-2">Comms Gateway Access Channel</label>
+                                <input type="text" name="phone" value="<?php echo htmlspecialchars($user_profile['phone']); ?>" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-xs font-medium text-zinc-300 focus:bg-zinc-950 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
                             </div>
 
-                            <button type="submit" class="w-full bg-[#024DDF] hover:bg-blue-800 text-white font-black text-xs uppercase tracking-widest py-3 rounded-xl transition-all shadow-sm">
-                                Save Account Settings Updates
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest py-3.5 rounded-xl transition-all shadow-md shadow-blue-600/10 active:scale-[0.99]">
+                                Update Security Metadata
                             </button>
                         </form>
                     </div>
-
                 </div>
 
-                <!-- Right Column Structure Stack -->
-                <div class="lg:col-span-8 space-y-6">
+                <div class="lg:col-span-8 space-y-8">
                     
-                    <!-- FOURTH SECTION: Orders & Passes -->
-                    <div id="orders-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
-                        <div class="flex flex-row justify-between items-center border-b border-gray-100 pb-3 gap-2">
-                            <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
-                                <i class="fas fa-shopping-bag text-[#024DDF]"></i> Secured Production Orders & Gate Passes
-                            </h3>
+                    <div id="orders-section" class="scroll-mt-24 bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] space-y-6">
+                        <div class="flex flex-row justify-between items-center border-b border-zinc-800 pb-4 gap-2">
+                            <div class="space-y-0.5">
+                                <h3 class="text-sm font-bold uppercase tracking-wider text-zinc-200 flex items-center gap-2">
+                                    <i class="fas fa-layer-group text-blue-500"></i> Secured Production Orders & Gate Passes
+                                </h3>
+                                <p class="text-xs text-zinc-500">Real-time status tracking for active concert access nodes.</p>
+                            </div>
                             <?php if (count($recent_orders) > 3): ?>
-                                <button type="button" onclick="openOrdersModal()" class="text-[10px] font-black text-[#024DDF] hover:text-blue-800 uppercase tracking-widest bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-all">
-                                    View More <i class="fas fa-arrow-right ml-0.5"></i>
+                                <button type="button" onclick="openOrdersModal()" class="text-[10px] font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest bg-zinc-950 border border-zinc-800 hover:border-zinc-700 px-4 py-2 rounded-xl transition-all shadow-sm shrink-0">
+                                    Manifest Log <i class="fas fa-chevron-right text-[8px] ml-1"></i>
                                 </button>
                             <?php endif; ?>
                         </div>
@@ -346,87 +304,92 @@ if ($pdo !== null) {
                                 $limited_orders = array_slice($recent_orders, 0, 3);
                                 foreach ($limited_orders as $order): 
                                 ?>
-                                    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:border-gray-300 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                        <div class="space-y-1">
+                                    <div class="bg-zinc-950/50 border border-zinc-800/80 rounded-xl p-4 hover:border-zinc-700 hover:-translate-y-0.5 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 group">
+                                        <div class="space-y-2">
                                             <div class="flex items-center gap-2">
-                                                <span class="text-[10px] font-mono font-black text-gray-400 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded"><?php echo htmlspecialchars($order['id']); ?></span>
+                                                <span class="text-[9px] font-mono font-bold text-zinc-400 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded"><?php echo htmlspecialchars($order['id']); ?></span>
                                                 
                                                 <?php 
                                                     $status = strtolower($order['status']);
                                                     if ($status === 'confirmed' || $status === 'completed' || $status === 'success') {
-                                                        $badge_cls = 'text-emerald-600 bg-emerald-50';
+                                                        $badge_cls = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
                                                     } elseif ($status === 'processing' || $status === 'pending') {
-                                                        $badge_cls = 'text-amber-600 bg-amber-50 animate-pulse';
+                                                        $badge_cls = 'text-amber-400 bg-amber-500/10 border-amber-500/20 animate-pulse';
                                                     } else {
-                                                        $badge_cls = 'text-blue-600 bg-blue-50';
+                                                        $badge_cls = 'text-blue-400 bg-blue-500/10 border-blue-500/20';
                                                     }
                                                 ?>
-                                                <span class="text-xs font-black px-2 py-0.5 rounded uppercase tracking-wide <?php echo $badge_cls; ?>">
+                                                <span class="text-[10px] font-bold px-2 py-0.5 border rounded uppercase tracking-wider <?php echo $badge_cls; ?>">
                                                     <?php echo htmlspecialchars($order['status']); ?>
                                                 </span>
                                             </div>
-                                            <h4 class="text-sm font-black text-gray-900 tracking-tight"><?php echo htmlspecialchars($order['title']); ?></h4>
-                                            <p class="text-xs text-gray-500 font-medium">
-                                                <i class="fas fa-wallet text-gray-400 mr-1"></i> <?php echo htmlspecialchars($order['venue']); ?> • <span class="font-bold text-gray-600"><?php echo htmlspecialchars($order['seats']); ?></span>
+                                            <h4 class="text-sm font-bold text-zinc-200 tracking-tight group-hover:text-blue-400 transition-colors"><?php echo htmlspecialchars($order['title']); ?></h4>
+                                            <p class="text-xs text-zinc-500 font-medium flex items-center gap-1.5 flex-wrap">
+                                                <i class="fas fa-cube text-zinc-600"></i> <?php echo htmlspecialchars($order['venue']); ?> <span class="text-zinc-700">•</span> <span class="text-zinc-400 font-mono"><?php echo htmlspecialchars($order['seats']); ?></span>
                                             </p>
                                         </div>
-                                        <div class="text-left sm:text-right w-full sm:w-auto shrink-0 border-t sm:border-t-0 border-gray-100 pt-2 sm:pt-0">
-                                            <span class="text-xs font-black text-gray-800 block"><?php echo htmlspecialchars($order['date']); ?></span>
-                                            <span class="text-[10px] text-gray-400 block font-medium">Platform Transaction Tracking Node</span>
+                                        <div class="text-left sm:text-right w-full sm:w-auto shrink-0 border-t sm:border-t-0 border-zinc-800/80 pt-3 sm:pt-0 flex sm:flex-col justify-between items-center sm:items-end gap-1">
+                                            <span class="text-xs font-bold text-zinc-400 font-mono"><?php echo htmlspecialchars($order['date']); ?></span>
+                                            <span class="text-[9px] text-zinc-600 font-mono tracking-widest uppercase hidden sm:inline block">Sync Node</span>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <p class="text-xs text-gray-400 italic text-center py-6 border border-dashed border-gray-200 rounded-xl">No active gate passes found.</p>
+                                <div class="text-center py-10 border border-dashed border-zinc-800 rounded-xl">
+                                    <i class="fas fa-box-open text-zinc-700 text-xl mb-2 block"></i>
+                                    <p class="text-xs text-zinc-500 italic">No dynamic production access routes found.</p>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
 
-                    <!-- FIFTH SECTION: Financial Statement Ledger Block -->
-                    <div id="transactions-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
-                        <div class="flex flex-row justify-between items-center border-b border-gray-100 pb-3 gap-2">
-                            <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
-                                <i class="fas fa-receipt text-[#024DDF]"></i> Financial Statements & Transactions History
-                            </h3>
+                    <div id="transactions-section" class="scroll-mt-24 bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] space-y-6">
+                        <div class="flex flex-row justify-between items-center border-b border-zinc-800 pb-4 gap-2">
+                            <div class="space-y-0.5">
+                                <h3 class="text-sm font-bold uppercase tracking-wider text-zinc-200 flex items-center gap-2">
+                                    <i class="fas fa-receipt text-blue-500"></i> Financial Balance Statements Ledger
+                                </h3>
+                                <p class="text-xs text-zinc-500">Historical transaction database execution checkpoints.</p>
+                            </div>
                             <?php if (count($transaction_history) > 3): ?>
-                                <button type="button" onclick="openTxModal()" class="text-[10px] font-black text-[#024DDF] hover:text-blue-800 uppercase tracking-widest bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-all">
-                                    View More <i class="fas fa-arrow-right ml-0.5"></i>
+                                <button type="button" onclick="openTxModal()" class="text-[10px] font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest bg-zinc-950 border border-zinc-800 hover:border-zinc-700 px-4 py-2 rounded-xl transition-all shadow-sm shrink-0">
+                                    Full Statements <i class="fas fa-chevron-right text-[8px] ml-1"></i>
                                 </button>
                             <?php endif; ?>
                         </div>
                         
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950/30">
                             <?php if (!empty($transaction_history)): ?>
-                                <table class="w-full text-left text-xs font-medium text-gray-600">
-                                    <thead class="bg-gray-50 text-gray-400 uppercase tracking-wider text-[10px] font-black border border-gray-200 rounded-lg">
-                                        <tr>
-                                            <th class="p-3">Reference Block</th>
-                                            <th class="p-3">Execution Date</th>
-                                            <th class="p-3">Channel Method</th>
-                                            <th class="p-3 text-right">Cumulative Total</th>
-                                            <th class="p-3 text-center">Settlement</th>
+                                <table class="w-full text-left text-xs font-medium text-zinc-400 border-collapse">
+                                    <thead>
+                                        <tr class="bg-zinc-950 border-b border-zinc-800 text-zinc-500 text-[10px] font-bold tracking-widest uppercase">
+                                            <th class="p-4">Reference Registry</th>
+                                            <th class="p-4">Execution Timestamp</th>
+                                            <th class="p-4">Access Method Channel</th>
+                                            <th class="p-4 text-right">Cumulative Net</th>
+                                            <th class="p-4 text-center">Settlement</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="divide-y divide-gray-100">
+                                    <tbody class="divide-y divide-zinc-900 font-mono">
                                         <?php 
                                         $limited_tx = array_slice($transaction_history, 0, 3);
                                         foreach ($limited_tx as $txn): 
                                         ?>
-                                            <tr class="hover:bg-gray-50/60 transition-colors">
-                                                <td class="p-3 font-mono font-bold text-gray-900"><?php echo htmlspecialchars($txn['ref']); ?></td>
-                                                <td class="p-3 text-gray-500 font-bold"><?php echo htmlspecialchars($txn['date']); ?></td>
-                                                <td class="p-3 text-gray-500 font-bold flex items-center gap-2">
+                                            <tr class="hover:bg-zinc-900/40 transition-colors">
+                                                <td class="p-4 font-bold text-zinc-300"><?php echo htmlspecialchars($txn['ref']); ?></td>
+                                                <td class="p-4 text-zinc-500"><?php echo htmlspecialchars($txn['date']); ?></td>
+                                                <td class="p-4 text-zinc-400 flex items-center gap-3">
                                                     <?php if (strpos($txn['method'], '../uploads/') === 0): ?>
-                                                        <img src="<?php echo htmlspecialchars($txn['method']); ?>" alt="Method Icon" class="h-4 w-auto object-contain rounded border border-gray-200 max-w-[60px]">
+                                                        <img src="<?php echo htmlspecialchars($txn['method']); ?>" alt="Gateway Protocol Graphic" class="h-4 w-auto object-contain rounded opacity-80 border border-zinc-800 max-w-[55px] filter brightness-90">
                                                     <?php else: ?>
-                                                        <span><?php echo htmlspecialchars($txn['method']); ?></span>
+                                                        <span class="text-zinc-500 tracking-tight font-sans text-xs font-medium"><?php echo htmlspecialchars($txn['method']); ?></span>
                                                     <?php endif; ?>
                                                 </td>
-                                                <td class="p-3 text-right font-black text-[#024DDF]">
+                                                <td class="p-4 text-right font-bold text-blue-400">
                                                     $<?php echo number_format($txn['amount'], 2); ?>
                                                 </td>
-                                                <td class="p-3 text-center">
-                                                    <span class="font-black tracking-wide uppercase px-2 py-0.5 rounded text-[10px] <?php echo ($txn['status'] === 'Successful') ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'; ?>">
+                                                <td class="p-4 text-center">
+                                                    <span class="font-bold tracking-wider uppercase px-2.5 py-1 border rounded text-[9px] <?php echo ($txn['status'] === 'Successful') ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400' : 'border-amber-500/20 bg-amber-500/10 text-amber-400'; ?>">
                                                         <?php echo htmlspecialchars($txn['status']); ?>
                                                     </span>
                                                 </td>
@@ -435,33 +398,11 @@ if ($pdo !== null) {
                                     </tbody>
                                 </table>
                             <?php else: ?>
-                                <p class="text-xs text-gray-400 italic text-center py-6 border border-dashed border-gray-200 rounded-xl">No statements logged to this ledger.</p>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
-                    <!-- SIXTH SECTION: Viewed Shows -->
-                    <div id="shows-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
-                        <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-3">
-                            <i class="fas fa-eye text-[#024DDF]"></i> Recently Viewed & Tracked Shows
-                        </h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <?php foreach ($recently_viewed_shows as $show): ?>
-                                <div class="border border-gray-200 rounded-xl p-4 hover:border-blue-200 hover:shadow-sm transition-all flex justify-between items-center bg-white">
-                                    <div class="min-w-0">
-                                        <span class="text-[10px] font-black uppercase tracking-wider text-[#024DDF] block"><?php echo htmlspecialchars($show['artist']); ?></span>
-                                        <h4 class="text-xs font-extrabold text-gray-900 truncate mt-0.5" title="<?php echo htmlspecialchars($show['title']); ?>">
-                                            <?php echo htmlspecialchars($show['title']); ?>
-                                        </h4>
-                                        <p class="text-[11px] font-medium text-gray-400 mt-0.5 truncate">
-                                            <i class="fas fa-map-pin text-gray-300 mr-1"></i> <?php echo htmlspecialchars($show['location']); ?>
-                                        </p>
-                                    </div>
-                                    <a href="search.php?q=<?php echo urlencode($show['artist']); ?>" class="shrink-0 text-[10px] font-black text-[#024DDF] bg-blue-50 hover:bg-[#024DDF] hover:text-white px-3 py-2 rounded-md transition-all uppercase tracking-wide ml-2">
-                                        Inspect
-                                    </a>
+                                <div class="text-center py-10">
+                                    <i class="fas fa-file-invoice-dollar text-zinc-700 text-xl mb-2 block"></i>
+                                    <p class="text-xs text-zinc-500 italic">No balance shifts synced to current portfolio address.</p>
                                 </div>
-                            <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -473,38 +414,40 @@ if ($pdo !== null) {
         <?php include "../inc/footer.php"; ?>
     </div>
 
-    <!-- Complete Production Orders Full History Modal -->
-    <div id="ordersHistoryModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300 opacity-0">
-        <div class="bg-white border border-gray-200 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col transform scale-95 transition-all duration-300 max-h-[85vh]">
-            <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-                <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-history text-[#024DDF]"></i> Complete Order History & Platform Gate Passes
-                </h3>
-                <button onclick="closeOrdersModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg transition-colors">
-                    <i class="fas fa-times text-lg"></i>
+    <div id="ordersHistoryModal" class="hidden fixed inset-0 z-50 bg-zinc-950/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 opacity-0">
+        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col transform scale-95 transition-all duration-300 max-h-[80vh] overflow-hidden shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+            <div class="flex items-center justify-between border-b border-zinc-800 px-6 py-4 bg-zinc-950/30">
+                <div class="space-y-0.5">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-zinc-200 flex items-center gap-2">
+                        <i class="fas fa-history text-blue-500"></i> Archival Dynamic Production Manifest Ledger
+                    </h3>
+                    <p class="text-xs text-zinc-500">Comprehensive node arrays allocated to authenticated signature context.</p>
+                </div>
+                <button onclick="closeOrdersModal()" class="text-zinc-500 hover:text-zinc-300 w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 hover:border-zinc-700 transition-colors flex items-center justify-center">
+                    <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
-            <div class="overflow-y-auto p-6 space-y-3 flex-1 bg-gray-50/50">
+            <div class="overflow-y-auto p-6 space-y-3 flex-1 bg-zinc-950/10 border-b border-zinc-800">
                 <?php foreach ($recent_orders as $order): ?>
-                    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div class="space-y-1">
+                    <div class="bg-zinc-950/60 border border-zinc-800/80 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 group hover:border-zinc-700 transition-colors">
+                        <div class="space-y-2">
                             <div class="flex items-center gap-2">
-                                <span class="text-[10px] font-mono font-black text-gray-400 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded"><?php echo htmlspecialchars($order['id']); ?></span>
+                                <span class="text-[9px] font-mono font-bold text-zinc-400 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded"><?php echo htmlspecialchars($order['id']); ?></span>
                                 <?php 
                                     $status = strtolower($order['status']);
-                                    $badge_cls = ($status === 'confirmed' || $status === 'completed' || $status === 'success') ? 'text-emerald-600 bg-emerald-50' : (($status === 'processing' || $status === 'pending') ? 'text-amber-600 bg-amber-50' : 'text-blue-600 bg-blue-50');
+                                    $badge_cls = ($status === 'confirmed' || $status === 'completed' || $status === 'success') ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : (($status === 'processing' || $status === 'pending') ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' : 'text-blue-400 bg-blue-500/10 border-blue-500/20');
                                 ?>
-                                <span class="text-xs font-black px-2 py-0.5 rounded uppercase tracking-wide <?php echo $badge_cls; ?>">
+                                <span class="text-[10px] font-bold px-2 py-0.5 border rounded uppercase tracking-wider <?php echo $badge_cls; ?>">
                                     <?php echo htmlspecialchars($order['status']); ?>
                                 </span>
                             </div>
-                            <h4 class="text-sm font-black text-gray-900 tracking-tight"><?php echo htmlspecialchars($order['title']); ?></h4>
-                            <p class="text-xs text-gray-500 font-medium">
-                                <i class="fas fa-wallet text-gray-400 mr-1"></i> <?php echo htmlspecialchars($order['venue']); ?> • <span class="font-bold text-gray-600"><?php echo htmlspecialchars($order['seats']); ?></span>
+                            <h4 class="text-sm font-bold text-zinc-200 tracking-tight group-hover:text-blue-400 transition-colors"><?php echo htmlspecialchars($order['title']); ?></h4>
+                            <p class="text-xs text-zinc-500 font-medium">
+                                <i class="fas fa-cube text-zinc-600 mr-1"></i> <?php echo htmlspecialchars($order['venue']); ?> • <span class="font-mono text-zinc-400"><?php echo htmlspecialchars($order['seats']); ?></span>
                             </p>
                         </div>
-                        <div class="text-left sm:text-right w-full sm:w-auto shrink-0 border-t sm:border-t-0 border-gray-100 pt-2 sm:pt-0">
-                            <span class="text-xs font-black text-gray-800 block"><?php echo htmlspecialchars($order['date']); ?></span>
+                        <div class="text-left sm:text-right w-full sm:w-auto shrink-0 border-t sm:border-t-0 border-zinc-800 pt-3 sm:pt-0">
+                            <span class="text-xs font-bold text-zinc-400 font-mono"><?php echo htmlspecialchars($order['date']); ?></span>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -512,68 +455,70 @@ if ($pdo !== null) {
         </div>
     </div>
 
-    <!-- Complete Transaction Ledger Modal Container Layout -->
-    <div id="txHistoryModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300 opacity-0">
-        <div class="bg-white border border-gray-200 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col transform scale-95 transition-all duration-300 max-h-[85vh]">
-            <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-                <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
-                    <i class="fas fa-history text-[#024DDF]"></i> Complete Activity Log Ledger Statements
-                </h3>
-                <button onclick="closeTxModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg transition-colors">
-                    <i class="fas fa-times text-lg"></i>
+    <div id="txHistoryModal" class="hidden fixed inset-0 z-50 bg-zinc-950/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 opacity-0">
+        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col transform scale-95 transition-all duration-300 max-h-[80vh] overflow-hidden shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+            <div class="flex items-center justify-between border-b border-zinc-800 px-6 py-4 bg-zinc-950/30">
+                <div class="space-y-0.5">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-zinc-200 flex items-center gap-2">
+                        <i class="fas fa-history text-blue-500"></i> Vault Registry Statements Ledger Log
+                    </h3>
+                    <p class="text-xs text-zinc-500">Cryptographic audit pipeline mapping database records.</p>
+                </div>
+                <button onclick="closeTxModal()" class="text-zinc-500 hover:text-zinc-300 w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 hover:border-zinc-700 transition-colors flex items-center justify-center">
+                    <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
-            <div class="overflow-y-auto p-6 space-y-4 flex-1">
-                <table class="w-full text-left text-xs font-medium text-gray-600">
-                    <thead class="bg-gray-50 text-gray-400 uppercase tracking-wider text-[10px] font-black border border-gray-200 rounded-lg">
-                        <tr>
-                            <th class="p-3">Reference Block</th>
-                            <th class="p-3">Execution Date</th>
-                            <th class="p-3">Channel Method</th>
-                            <th class="p-3 text-right">Cumulative Total</th>
-                            <th class="p-3 text-center">Settlement</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <?php foreach ($transaction_history as $txn): ?>
-                            <tr class="hover:bg-gray-50/60 transition-colors">
-                                <td class="p-3 font-mono font-bold text-gray-900"><?php echo htmlspecialchars($txn['ref']); ?></td>
-                                <td class="p-3 text-gray-500 font-bold"><?php echo htmlspecialchars($txn['date']); ?></td>
-                                <td class="p-3 text-gray-500 font-bold flex items-center gap-2">
-                                    <?php if (strpos($txn['method'], '../uploads/') === 0): ?>
-                                        <img src="<?php echo htmlspecialchars($txn['method']); ?>" alt="Method Icon" class="h-4 w-auto object-contain rounded border border-gray-200 max-w-[60px]">
-                                    <?php else: ?>
-                                        <span><?php echo htmlspecialchars($txn['method']); ?></span>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="p-3 text-right font-black text-[#024DDF]">
-                                    $<?php echo number_format($txn['amount'], 2); ?>
-                                </td>
-                                <td class="p-3 text-center">
-                                    <span class="font-black tracking-wide uppercase px-2 py-0.5 rounded text-[10px] <?php echo ($txn['status'] === 'Successful') ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'; ?>">
-                                        <?php echo htmlspecialchars($txn['status']); ?>
-                                    </span>
-                                </td>
+            <div class="overflow-y-auto p-6 flex-1 bg-zinc-950/10">
+                <div class="rounded-xl border border-zinc-800 bg-zinc-950/50 overflow-hidden">
+                    <table class="w-full text-left text-xs font-medium text-zinc-400 border-collapse">
+                        <thead>
+                            <tr class="bg-zinc-950 border-b border-zinc-800 text-zinc-500 text-[10px] font-bold tracking-widest uppercase">
+                                <th class="p-4">Reference Registry</th>
+                                <th class="p-4">Execution Timestamp</th>
+                                <th class="p-4">Access Method Channel</th>
+                                <th class="p-4 text-right">Cumulative Net</th>
+                                <th class="p-4 text-center">Settlement</th>
                             </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-900 font-mono">
+                            <?php foreach ($transaction_history as $txn): ?>
+                                <tr class="hover:bg-zinc-900/40 transition-colors">
+                                    <td class="p-4 font-bold text-zinc-300"><?php echo htmlspecialchars($txn['ref']); ?></td>
+                                    <td class="p-4 text-zinc-500"><?php echo htmlspecialchars($txn['date']); ?></td>
+                                    <td class="p-4 text-zinc-400 flex items-center gap-3">
+                                        <?php if (strpos($txn['method'], '../uploads/') === 0): ?>
+                                            <img src="<?php echo htmlspecialchars($txn['method']); ?>" alt="Method Protocol Graphic" class="h-4 w-auto object-contain rounded opacity-80 border border-zinc-800 max-w-[55px]">
+                                        <?php else: ?>
+                                            <span class="text-zinc-500 font-sans text-xs font-medium"><?php echo htmlspecialchars($txn['method']); ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="p-4 text-right font-bold text-blue-400">
+                                        $<?php echo number_format($txn['amount'], 2); ?>
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        <span class="font-bold tracking-wider uppercase px-2.5 py-1 border rounded text-[9px] <?php echo ($txn['status'] === 'Successful') ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400' : 'border-amber-500/20 bg-amber-500/10 text-amber-400'; ?>">
+                                            <?php echo htmlspecialchars($txn['status']); ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <script type="text/javascript">
-        function openOrdersModal() {
-            const el = document.getElementById('ordersHistoryModal');
+        function animateModalIn(el) {
             el.classList.remove('hidden');
             setTimeout(() => {
                 el.classList.remove('opacity-0');
                 el.querySelector('.transform').classList.remove('scale-95');
-            }, 10);
+            }, 20);
         }
 
-        function closeOrdersModal() {
-            const el = document.getElementById('ordersHistoryModal');
+        function animateModalOut(el) {
             el.classList.add('opacity-0');
             el.querySelector('.transform').classList.add('scale-95');
             setTimeout(() => {
@@ -581,33 +526,20 @@ if ($pdo !== null) {
             }, 300);
         }
 
-        function openTxModal() {
-            const el = document.getElementById('txHistoryModal');
-            el.classList.remove('hidden');
-            setTimeout(() => {
-                el.classList.remove('opacity-0');
-                el.querySelector('.transform').classList.remove('scale-95');
-            }, 10);
-        }
-
-        function closeTxModal() {
-            const el = document.getElementById('txHistoryModal');
-            el.classList.add('opacity-0');
-            el.querySelector('.transform').classList.add('scale-95');
-            setTimeout(() => {
-                el.classList.add('hidden');
-            }, 300);
-        }
+        function openOrdersModal() { animateModalIn(document.getElementById('ordersHistoryModal')); }
+        function closeOrdersModal() { animateModalOut(document.getElementById('ordersHistoryModal')); }
+        function openTxModal() { animateModalIn(document.getElementById('txHistoryModal')); }
+        function closeTxModal() { animateModalOut(document.getElementById('txHistoryModal')); }
     </script>
 
     <style>
         body { overflow-x: hidden; }
         .scrollbar-none::-webkit-scrollbar { display: none; }
         .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #09090b; }
+        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
     </style>
 </body>
 </html>
