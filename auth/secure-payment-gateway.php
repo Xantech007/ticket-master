@@ -330,7 +330,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$isBalancePayment) {
                 unset($_SESSION['checkout_order_ids']);
                 $_SESSION['flash_success'] = "Your order payment proof was sent successfully! Check back shortly.";
             } else {
-                $_SESSION['flash_success'] = "Wallet deposit request uploaded completely. Balance update will execute post review!";
+                $_SESSION['flash_success'] = "Wallet deposit request submitted. Payment Under Review";
             }
 
             $pdo->commit();
