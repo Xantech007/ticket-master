@@ -17,7 +17,9 @@ $user_id = (int) $_SESSION['user_id'];
 // GET ORDER & PARAMETERS
 // ---------------------------------------------
 if (!isset($_SESSION['checkout_order_ids']) || !is_array($_SESSION['checkout_order_ids']) || empty($_SESSION['checkout_order_ids'])) {
-    die("Invalid order reference.");
+    $_SESSION['flash_error'] = "Invalid checkout session or missing order references.";
+    header("Location: dashboard");
+    exit;
 }
 $order_ids = array_map('intval', $_SESSION['checkout_order_ids']);
 
@@ -25,7 +27,9 @@ $payment_id = isset($_GET['payment_id']) ? (int)$_GET['payment_id'] : 0;
 $displayCurrency = isset($_GET['currency']) ? trim(strtoupper($_GET['currency'])) : 'USD';
 
 if ($payment_id <= 0) {
-    die("Invalid payment method selected.");
+    $_SESSION['flash_error'] = "Invalid payment gateway allocation specified.";
+    header("Location: dashboard");
+    exit;
 }
 
 // ---------------------------------------------
@@ -45,7 +49,9 @@ $stmt->execute([$payment_id]);
 $methodCore = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$methodCore || $methodCore['is_active'] !== 'yes') {
-    die("Payment method is currently unavailable.");
+    $_SESSION['flash_error'] = "The selected payment method is currently deactivated or unavailable.";
+    header("Location: dashboard");
+    exit;
 }
 
 $payment_type = $methodCore['type']; // Context variations: 'gift_card', 'bank', 'crypto', 'e_pay'
@@ -87,11 +93,15 @@ switch ($payment_type) {
         break;
 
     default:
-        die("Unsupported gateway gateway execution variant.");
+        $_SESSION['flash_error'] = "Unsupported gateway execution variant encountered.";
+        header("Location: dashboard");
+        exit;
 }
 
 if (!$gatewayDetails) {
-    die("Gateway setup configuration records are missing for this method.");
+    $_SESSION['flash_error'] = "Gateway setup configuration records are missing for this option.";
+    header("Location: dashboard");
+    exit;
 }
 
 // ---------------------------------------------
@@ -109,13 +119,17 @@ $stmt->execute($order_ids);
 $all_orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if (!$all_orders) {
-    die("Linked data orders not found.");
+    $_SESSION['flash_error'] = "Linked record references for this checkout window were not found.";
+    header("Location: dashboard");
+    exit;
 }
 
 $total_amount = 0;
 foreach ($all_orders as $order) {
     if ((int)$order['user_id'] !== $user_id) {
-        die("Unauthorized order mapping.");
+        $_SESSION['flash_error'] = "Unauthorized system order access context assignment mapping.";
+        header("Location: dashboard");
+        exit;
     }
     $total_amount += (float)$order['price'];
 }
@@ -235,7 +249,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Unset checkout context session to protect data pipeline duplication loops
             unset($_SESSION['checkout_order_ids']);
-            header("Location: dashboard?payment_status=pending");
+
+            // Set the success message to show on the dashboard
+            $_SESSION['flash_success'] = "Your payment validation data was sent successfully! Our administrative panel will verify your proof shorty.";
+            
+            header("Location: dashboard");
             exit;
 
         } catch (Exception $e) {
