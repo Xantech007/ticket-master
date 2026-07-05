@@ -191,8 +191,28 @@ if ($pdo !== null) {
     <?php if (isset($_SESSION['flash_error'])): ?>
         <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 text-red-800 rounded-r-xl shadow-sm">
             <div class="flex items-center gap-2">
-                <i class="fas fa-exclamation-triangle text-red-600 text-lg"></i>
-                <p class="font-bold">Notice</p>
+                <i class="fas fa-excaping-triangle text-red-600 text-lg"></i>
+                <p class="font-bold">Transaction Alert</p>
+            </div>
+            <p class="text-sm mt-1"><?php echo htmlspecialchars($_SESSION['flash_error']); ?></p>
+        </div>
+        <?php unset($_SESSION['flash_error']); ?>
+    <?php endif; ?><?php if (isset($_SESSION['flash_success'])): ?>
+        <div class="mb-6 bg-emerald-50 border-l-4 border-emerald-500 p-4 text-emerald-800 rounded-r-xl shadow-sm">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-check-circle text-emerald-600 text-lg"></i>
+                <p class="font-bold">Success</p>
+            </div>
+            <p class="text-sm mt-1"><?php echo htmlspecialchars($_SESSION['flash_success']); ?></p>
+        </div>
+        <?php unset($_SESSION['flash_success']); ?>
+    <?php endif; ?>
+    
+    <?php if (isset($_SESSION['flash_error'])): ?>
+        <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 text-red-800 rounded-r-xl shadow-sm">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-excaping-triangle text-red-600 text-lg"></i>
+                <p class="font-bold">Transaction Alert</p>
             </div>
             <p class="text-sm mt-1"><?php echo htmlspecialchars($_SESSION['flash_error']); ?></p>
         </div>
@@ -230,7 +250,7 @@ if ($pdo !== null) {
                             <i class="fab fa-telegram-plane text-sky-600 text-lg"></i> Telegram
                         </a>
                         <a href="mailto:<?php echo htmlspecialchars($support['email']); ?>" class="flex items-center gap-3 px-5 py-4 hover:bg-blue-50 transition">
-                            <i class="fas fa-envelope text-blue-600 text-lg"></i> Email Support
+                            <i class="fas fa-envelope text-blue-600 text-lg"></i> Email Helpdesk
                         </a>
                     </div>
                 </div>
@@ -296,7 +316,7 @@ if ($pdo !== null) {
                         </div>
                         <?php if (count($recent_orders) > 3): ?>
                             <button onclick="openOrdersModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold px-4 py-2 rounded-xl text-xs transition uppercase tracking-wide">
-                                View All
+                                View History
                             </button>
                         <?php endif; ?>
                     </div>
@@ -344,7 +364,7 @@ if ($pdo !== null) {
                         </div>
                         <?php if (count($transaction_history) > 3): ?>
                             <button onclick="openTxModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold px-4 py-2 rounded-xl text-xs transition uppercase tracking-wide">
-                                All History
+                                All Statements
                             </button>
                         <?php endif; ?>
                     </div>
@@ -389,7 +409,7 @@ if ($pdo !== null) {
                                 </tbody>
                             </table>
                         <?php else: ?>
-                            <p class="text-sm text-slate-400 italic text-center py-6">No previous updates found.</p>
+                            <p class="text-sm text-slate-400 italic text-center py-6">No localized statements logged.</p>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -442,7 +462,7 @@ if ($pdo !== null) {
 
                 <div id="alerts-section" class="bg-white rounded-3xl shadow-xl p-8">
                     <h3 class="text-xl font-black text-slate-900 mb-2 flex items-center gap-2">
-                        <i class="fas fa-bell text-amber-500 animate-pulse"></i> Message Center
+                        <i class="fas fa-satellite-dish text-amber-500 animate-pulse"></i> Message Center
                     </h3>
                     <p class="text-slate-500 text-xs mb-6">Direct notices and friendly updates broadcasted by the administration team.</p>
                     
@@ -475,7 +495,7 @@ if ($pdo !== null) {
                         </div>
                         <div class="flex flex-col items-center">
                             <i class="fas fa-bolt text-2xl text-yellow-500 mb-2"></i>
-                            <div class="font-bold text-xs text-slate-800">Fast Updates</div>
+                            <div class="font-bold text-xs text-slate-800">Instant Sync</div>
                         </div>
                     </div>
                 </div>
@@ -512,5 +532,4 @@ if ($pdo !== null) {
 
                         <div>
                             <label class="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1.5">Mobile Phone Number</label>
-                            <input type="text" name="phone" value="<?php echo htmlspecialchars($user_profile['phone']); ?>" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-semibold focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 outline-none transition">
-                        </div>
+                            <input type="text" name="phone" value="<?php echo htmlspecialchars($user_profile['phone']); ?>" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-semibold focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 outline-none trans```
