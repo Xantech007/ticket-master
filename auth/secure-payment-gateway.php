@@ -197,29 +197,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $order_ids_string = implode(',', $order_ids);
         $json_details = json_encode($submittedData);
         
-        $insertStmt = $pdo->prepare("
-            INSERT INTO deposits (user_id, payment_id, order_ids, amount, currency, payment_type, submitted_details, proof_file, status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
-        ");
-        
-        $executed = $insertStmt->execute([
-            $user_id, 
-            $payment_id, 
-            $order_ids_string, 
-            $final_payable_amount, 
-            $displayCurrency, 
-            $payment_type, 
-            $json_details, 
-            $uploadedFilePath
-        ]);
-        
-        if ($executed) {
+        try {
+            // Start transaction to secure both records
+            $pdo->beginTransaction();
+
+            // 1. Insert the deposit record
+            $insertStmt = $pdo->prepare("
+                INSERT INTO deposits (user_id, payment_id, order_ids, amount, currency, payment_type, submitted_details, proof_file, status) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+            ");
+            
+            $insertStmt->execute([
+                $user_id, 
+                $payment_id, 
+                $order_ids_string, 
+                $final_payable_amount, 
+                $displayCurrency, 
+                $payment_type, 
+                $json_details, 
+                $uploadedFilePath
+            ]);
+
+            // 2. Update status to 'processing' for all orders in this checkout sequence
+            $updatePlaceholders = implode(',', array_fill(0, count($order_ids), '?'));
+            $updateStmt = $pdo->prepare("
+                UPDATE orders 
+                SET status = 'processing' 
+                WHERE order_id IN ($updatePlaceholders) AND user_id = ?
+            ");
+            
+            // Merge order IDs with user_id for safe parameterized execution
+            $updateParams = array_merge($order_ids, [$user_id]);
+            $updateStmt->execute($updateParams);
+
+            // Commit transaction if both succeeded
+            $pdo->commit();
+
             // Unset checkout context session to protect data pipeline duplication loops
             unset($_SESSION['checkout_order_ids']);
             header("Location: dashboard.php?payment_status=pending");
             exit;
-        } else {
-            $errors[] = "Failed saving parameters to local database registry logs.";
+
+        } catch (Exception $e) {
+            // Rollback changes if anything breaks
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $errors[] = "Failed saving parameters to local database registry logs: " . $e->getMessage();
         }
     }
 }
