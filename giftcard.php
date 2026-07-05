@@ -126,7 +126,7 @@ if (file_exists("inc/head.php")) { include "inc/head.php"; } else {
                             ? "bg-slate-900 text-white shadow" 
                             : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200";
                     ?>
-                        <a href="giftcard.php?type=<?php echo $key; ?>" 
+                        <a href="giftcard?type=<?php echo $key; ?>" 
                            class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-200 shrink-0 <?php echo $btn_classes; ?>">
                             <i class="<?php echo $card['icon']; ?> text-sm <?php echo !$is_active ? $card['text_color'] : ''; ?>"></i>
                             <?php echo htmlspecialchars(explode(' ', $card['name'])[0]); ?> Card
