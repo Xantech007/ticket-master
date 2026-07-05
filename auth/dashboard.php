@@ -173,51 +173,51 @@ if ($pdo !== null) {
 
 <?php include "../inc/head.php"; ?>
 
-<?php if (isset($_SESSION['flash_success'])): ?>
-    <div class="mb-6 bg-emerald-50 border-l-4 border-emerald-500 p-4 text-emerald-800 rounded-r-xl shadow-sm">
-        <div class="flex items-center gap-2">
-            <i class="fas fa-check-circle text-emerald-600 text-lg"></i>
-            <p class="font-bold">Success</p>
-        </div>
-        <p class="text-sm mt-1"><?php echo htmlspecialchars($_SESSION['flash_success']); ?></p>
-    </div>
-    <?php unset($_SESSION['flash_success']); ?>
-<?php endif; ?>
-
-<?php if (isset($_SESSION['flash_error'])): ?>
-    <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 text-red-800 rounded-r-xl shadow-sm">
-        <div class="flex items-center gap-2">
-            <i class="fas fa-excaping-triangle text-red-600 text-lg"></i>
-            <p class="font-bold">Transaction Alert</p>
-        </div>
-        <p class="text-sm mt-1"><?php echo htmlspecialchars($_SESSION['flash_error']); ?></p>
-    </div>
-    <?php unset($_SESSION['flash_error']); ?>
-<?php endif; ?><?php if (isset($_SESSION['flash_success'])): ?>
-    <div class="mb-6 bg-emerald-50 border-l-4 border-emerald-500 p-4 text-emerald-800 rounded-r-xl shadow-sm">
-        <div class="flex items-center gap-2">
-            <i class="fas fa-check-circle text-emerald-600 text-lg"></i>
-            <p class="font-bold">Success</p>
-        </div>
-        <p class="text-sm mt-1"><?php echo htmlspecialchars($_SESSION['flash_success']); ?></p>
-    </div>
-    <?php unset($_SESSION['flash_success']); ?>
-<?php endif; ?>
-
-<?php if (isset($_SESSION['flash_error'])): ?>
-    <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 text-red-800 rounded-r-xl shadow-sm">
-        <div class="flex items-center gap-2">
-            <i class="fas fa-excaping-triangle text-red-600 text-lg"></i>
-            <p class="font-bold">Transaction Alert</p>
-        </div>
-        <p class="text-sm mt-1"><?php echo htmlspecialchars($_SESSION['flash_error']); ?></p>
-    </div>
-    <?php unset($_SESSION['flash_error']); ?>
-<?php endif; ?>
-
 <body class="bg-gradient-to-br from-slate-100 via-white to-slate-200 min-h-screen">
 
     <?php include "../inc/header.php"; ?>
+
+    <?php if (isset($_SESSION['flash_success'])): ?>
+        <div class="mb-6 bg-emerald-50 border-l-4 border-emerald-500 p-4 text-emerald-800 rounded-r-xl shadow-sm">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-check-circle text-emerald-600 text-lg"></i>
+                <p class="font-bold">Success</p>
+            </div>
+            <p class="text-sm mt-1"><?php echo htmlspecialchars($_SESSION['flash_success']); ?></p>
+        </div>
+        <?php unset($_SESSION['flash_success']); ?>
+    <?php endif; ?>
+    
+    <?php if (isset($_SESSION['flash_error'])): ?>
+        <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 text-red-800 rounded-r-xl shadow-sm">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-excaping-triangle text-red-600 text-lg"></i>
+                <p class="font-bold">Transaction Alert</p>
+            </div>
+            <p class="text-sm mt-1"><?php echo htmlspecialchars($_SESSION['flash_error']); ?></p>
+        </div>
+        <?php unset($_SESSION['flash_error']); ?>
+    <?php endif; ?><?php if (isset($_SESSION['flash_success'])): ?>
+        <div class="mb-6 bg-emerald-50 border-l-4 border-emerald-500 p-4 text-emerald-800 rounded-r-xl shadow-sm">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-check-circle text-emerald-600 text-lg"></i>
+                <p class="font-bold">Success</p>
+            </div>
+            <p class="text-sm mt-1"><?php echo htmlspecialchars($_SESSION['flash_success']); ?></p>
+        </div>
+        <?php unset($_SESSION['flash_success']); ?>
+    <?php endif; ?>
+    
+    <?php if (isset($_SESSION['flash_error'])): ?>
+        <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 text-red-800 rounded-r-xl shadow-sm">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-excaping-triangle text-red-600 text-lg"></i>
+                <p class="font-bold">Transaction Alert</p>
+            </div>
+            <p class="text-sm mt-1"><?php echo htmlspecialchars($_SESSION['flash_error']); ?></p>
+        </div>
+        <?php unset($_SESSION['flash_error']); ?>
+    <?php endif; ?>
 
     <div class="max-w-7xl mx-auto px-5 py-10">
 
