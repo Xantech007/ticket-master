@@ -8,7 +8,7 @@ require_once '../config/db.php';
 if (!isset($_SESSION['user_id'])) {
     $_SESSION['auth_error'] = "Please login to continue checkout.";
     $_SESSION['redirect_after_auth'] = $_SERVER['REQUEST_URI'];
-    header("Location: ../auth.php");
+    header("Location: ../auth");
     exit;
 }
 $user_id = (int) $_SESSION['user_id'];
@@ -235,7 +235,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Unset checkout context session to protect data pipeline duplication loops
             unset($_SESSION['checkout_order_ids']);
-            header("Location: dashboard.php?payment_status=pending");
+            header("Location: dashboard?payment_status=pending");
             exit;
 
         } catch (Exception $e) {
@@ -292,7 +292,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span class="text-lg font-bold text-slate-900"><?php echo htmlspecialchars($gatewayDetails['card_name']); ?></span>
                         </div>
                         <div class="shrink-0">
-                            <a href="giftcard.php" 
+                            <a href="giftcard" 
                                target="_blank" 
                                class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm transition-all focus:outline-none">
                                 <i class="fas fa-shopping-bag text-[11px]"></i> Buy Giftcard Guide <i class="fas fa-external-link-alt text-[10px] text-slate-400"></i>
@@ -412,7 +412,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="flex items-center justify-between gap-4 pt-4">
-                    <a href="checkout.php?currency=<?php echo urlencode($displayCurrency); ?>" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-6 py-3.5 rounded-xl text-center transition text-sm">
+                    <a href="checkout?currency=<?php echo urlencode($displayCurrency); ?>" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-6 py-3.5 rounded-xl text-center transition text-sm">
                         <i class="fas fa-chevron-left mr-1"></i> Go Back
                     </a>
                     <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black px-6 py-3.5 rounded-xl shadow-lg hover:shadow-xl transition text-center tracking-wide text-sm">
