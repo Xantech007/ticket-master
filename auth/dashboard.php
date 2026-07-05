@@ -186,14 +186,14 @@ if ($pdo !== null) {
     <div class="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 md:px-8">
             <div class="flex items-center space-x-6 overflow-x-auto py-3.5 scrollbar-none scroll-smooth snap-x">
-                <a href="#profile-section" class="snap-start shrink-0 text-xs font-black uppercase tracking-wider text-gray-500 hover:text-[#024DDF] transition-colors border-b-2 border-transparent hover:border-[#024DDF] pb-1">
-                    <i class="fas fa-user-cog mr-1"></i> Profile Controls
+                <a href="#manifests-section" class="snap-start shrink-0 text-xs font-black uppercase tracking-wider text-gray-500 hover:text-[#024DDF] transition-colors border-b-2 border-transparent hover:border-[#024DDF] pb-1">
+                    <i class="fas fa-ticket-alt mr-1"></i> Ticket Manifests
                 </a>
                 <a href="#alerts-section" class="snap-start shrink-0 text-xs font-black uppercase tracking-wider text-gray-500 hover:text-[#024DDF] transition-colors border-b-2 border-transparent hover:border-[#024DDF] pb-1">
                     <i class="fas fa-bell mr-1"></i> System Alerts
                 </a>
-                <a href="#manifests-section" class="snap-start shrink-0 text-xs font-black uppercase tracking-wider text-gray-500 hover:text-[#024DDF] transition-colors border-b-2 border-transparent hover:border-[#024DDF] pb-1">
-                    <i class="fas fa-ticket-alt mr-1"></i> Ticket Manifests
+                <a href="#profile-section" class="snap-start shrink-0 text-xs font-black uppercase tracking-wider text-gray-500 hover:text-[#024DDF] transition-colors border-b-2 border-transparent hover:border-[#024DDF] pb-1">
+                    <i class="fas fa-user-cog mr-1"></i> Profile Controls
                 </a>
                 <a href="#orders-section" class="snap-start shrink-0 text-xs font-black uppercase tracking-wider text-gray-500 hover:text-[#024DDF] transition-colors border-b-2 border-transparent hover:border-[#024DDF] pb-1">
                     <i class="fas fa-shopping-bag mr-1"></i> Active Passes
@@ -210,14 +210,62 @@ if ($pdo !== null) {
 
     <div id="__next" class="min-h-screen flex flex-col justify-between">
 
-        <main class="max-w-7xl mx-auto w-full px-4 md:px-8 py-10 flex-1">
+        <main class="max-w-7xl mx-auto w-full px-4 md:px-8 py-10 flex-1 space-y-8">
             
+            <!-- FIRST SECTION: Admin-Uploaded Ticket Allocation Manifests (Full Width) -->
+            <div id="manifests-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
+                <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-3">
+                    <i class="fas fa-ticket-alt text-[#024DDF]"></i> Admin-Uploaded Ticket Allocation Manifests
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <?php foreach ($admin_tickets as $ticket): ?>
+                        <div class="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col">
+                            <div class="w-full h-40 bg-black overflow-hidden relative">
+                                <img src="<?php echo htmlspecialchars($ticket['file_path']); ?>" onerror="this.src='https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=600&q=80';" alt="Admin Ticket Output Graphic" class="w-full h-full object-cover">
+                                <div class="absolute top-2 right-2 bg-[#024DDF] text-white font-mono text-[10px] font-black px-2 py-0.5 rounded shadow">
+                                    PASS VECTOR
+                                </div>
+                            </div>
+                            <div class="p-4 flex-1 flex flex-col justify-between items-start space-y-2">
+                                <p class="text-xs text-gray-600 leading-relaxed font-medium">
+                                    <?php echo htmlspecialchars($ticket['description']); ?>
+                                </p>
+                                <a href="<?php echo htmlspecialchars($ticket['file_path']); ?>" target="_blank" class="text-[10px] font-black bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-100 uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                                    <i class="fas fa-download text-blue-600"></i> Download Clean Resource File
+                                        </a>
+                                    </div>
+                                </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <!-- Dashboard Split Body Row Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
-                <!-- Left Control Column -->
+                <!-- Left Column Structure Stack -->
                 <div class="lg:col-span-4 space-y-6">
                     
-                    <!-- Section 1: Profile Settings -->
+                    <!-- SECOND SECTION: Administrative Alerts Message Terminal -->
+                    <div id="alerts-section" class="scroll-mt-24 bg-slate-900 text-white border border-slate-800 rounded-2xl p-6 shadow-md space-y-4">
+                        <h4 class="text-xs font-black uppercase tracking-widest text-blue-400 flex items-center gap-2 border-b border-slate-800 pb-3">
+                            <i class="fas fa-satellite-dish animate-pulse"></i> Administrative Alerts Message Terminal
+                        </h4>
+                        <div class="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+                            <?php if (!empty($admin_messages)): ?>
+                                <?php foreach ($admin_messages as $msg): ?>
+                                    <div class="bg-slate-950 border border-slate-800 p-3.5 rounded-xl space-y-1.5">
+                                        <span class="text-[10px] text-gray-500 font-mono block"><?php echo htmlspecialchars($msg['created_at']); ?></span>
+                                        <h5 class="text-xs font-black tracking-tight text-gray-200"><?php echo htmlspecialchars($msg['title']); ?></h5>
+                                        <p class="text-[11px] font-medium text-gray-400 leading-relaxed"><?php echo htmlspecialchars($msg['content']); ?></p>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <p class="text-xs text-slate-500 italic text-center py-4">No security messages logged.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    
+                    <!-- THIRD SECTION: Profile Settings Matrix -->
                     <div id="profile-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                         <div class="flex items-center gap-4 border-b border-gray-100 pb-4 mb-4">
                             <div class="w-14 h-14 rounded-full bg-[#024DDF] text-white font-black text-xl flex items-center justify-center shadow">
@@ -274,58 +322,12 @@ if ($pdo !== null) {
                         </form>
                     </div>
 
-                    <!-- Section 2: Alerts Message Terminal -->
-                    <div id="alerts-section" class="scroll-mt-24 bg-slate-900 text-white border border-slate-800 rounded-2xl p-6 shadow-md space-y-4">
-                        <h4 class="text-xs font-black uppercase tracking-widest text-blue-400 flex items-center gap-2 border-b border-slate-800 pb-3">
-                            <i class="fas fa-satellite-dish animate-pulse"></i> Administrative Alerts Message Terminal
-                        </h4>
-                        <div class="space-y-4 max-h-[300px] overflow-y-auto pr-1">
-                            <?php if (!empty($admin_messages)): ?>
-                                <?php foreach ($admin_messages as $msg): ?>
-                                    <div class="bg-slate-950 border border-slate-800 p-3.5 rounded-xl space-y-1.5">
-                                        <span class="text-[10px] text-gray-500 font-mono block"><?php echo htmlspecialchars($msg['created_at']); ?></span>
-                                        <h5 class="text-xs font-black tracking-tight text-gray-200"><?php echo htmlspecialchars($msg['title']); ?></h5>
-                                        <p class="text-[11px] font-medium text-gray-400 leading-relaxed"><?php echo htmlspecialchars($msg['content']); ?></p>
-                                    </div>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <p class="text-xs text-slate-500 italic text-center py-4">No security messages logged.</p>
-                            <?php endif; ?>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Right Data Dynamic Grid Display -->
+                <!-- Right Column Structure Stack -->
                 <div class="lg:col-span-8 space-y-6">
                     
-                    <!-- Section 3: Uploaded Manifests -->
-                    <div id="manifests-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
-                        <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-3">
-                            <i class="fas fa-ticket-alt text-[#024DDF]"></i> Admin-Uploaded Ticket Allocation Manifests
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <?php foreach ($admin_tickets as $ticket): ?>
-                                <div class="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden shadow-sm flex flex-col">
-                                    <div class="w-full h-40 bg-black overflow-hidden relative">
-                                        <img src="<?php echo htmlspecialchars($ticket['file_path']); ?>" onerror="this.src='https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=600&q=80';" alt="Admin Ticket Output Graphic" class="w-full h-full object-cover">
-                                        <div class="absolute top-2 right-2 bg-[#024DDF] text-white font-mono text-[10px] font-black px-2 py-0.5 rounded shadow">
-                                            PASS VECTOR
-                                        </div>
-                                    </div>
-                                    <div class="p-4 flex-1 flex flex-col justify-between items-start space-y-2">
-                                        <p class="text-xs text-gray-600 leading-relaxed font-medium">
-                                            <?php echo htmlspecialchars($ticket['description']); ?>
-                                        </p>
-                                        <a href="<?php echo htmlspecialchars($ticket['file_path']); ?>" target="_blank" class="text-[10px] font-black bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-100 uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
-                                            <i class="fas fa-download text-blue-600"></i> Download Clean Resource File
-                                        </a>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-
-                    <!-- Section 4: Orders & Passes (UPDATE: Modified to slice display to exactly 3 items with Modal integration) -->
+                    <!-- FOURTH SECTION: Orders & Passes -->
                     <div id="orders-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
                         <div class="flex flex-row justify-between items-center border-b border-gray-100 pb-3 gap-2">
                             <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
@@ -341,7 +343,6 @@ if ($pdo !== null) {
                         <div class="space-y-3">
                             <?php if (!empty($recent_orders)): ?>
                                 <?php 
-                                // Limit display list structure loop exactly to 3 dashboard block positions
                                 $limited_orders = array_slice($recent_orders, 0, 3);
                                 foreach ($limited_orders as $order): 
                                 ?>
@@ -381,7 +382,7 @@ if ($pdo !== null) {
                         </div>
                     </div>
 
-                    <!-- Section 5: Financial Statement Ledger Block -->
+                    <!-- FIFTH SECTION: Financial Statement Ledger Block -->
                     <div id="transactions-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
                         <div class="flex flex-row justify-between items-center border-b border-gray-100 pb-3 gap-2">
                             <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2">
@@ -439,7 +440,7 @@ if ($pdo !== null) {
                         </div>
                     </div>
 
-                    <!-- Section 6: Viewed Shows -->
+                    <!-- SIXTH SECTION: Viewed Shows -->
                     <div id="shows-section" class="scroll-mt-24 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
                         <h3 class="text-sm font-black uppercase tracking-wider text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-3">
                             <i class="fas fa-eye text-[#024DDF]"></i> Recently Viewed & Tracked Shows
@@ -472,7 +473,7 @@ if ($pdo !== null) {
         <?php include "../inc/footer.php"; ?>
     </div>
 
-    <!-- Complete Production Orders / Pass Manifest Full History Modal -->
+    <!-- Complete Production Orders Full History Modal -->
     <div id="ordersHistoryModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300 opacity-0">
         <div class="bg-white border border-gray-200 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col transform scale-95 transition-all duration-300 max-h-[85vh]">
             <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
@@ -511,7 +512,7 @@ if ($pdo !== null) {
         </div>
     </div>
 
-    <!-- Complete Transaction Ledger Modal Engine Container Layout -->
+    <!-- Complete Transaction Ledger Modal Container Layout -->
     <div id="txHistoryModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300 opacity-0">
         <div class="bg-white border border-gray-200 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col transform scale-95 transition-all duration-300 max-h-[85vh]">
             <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
