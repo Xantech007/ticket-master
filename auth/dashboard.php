@@ -122,7 +122,7 @@ if ($pdo !== null) {
         $raw_orders = $order_stmt->fetchAll();
         foreach ($raw_orders as $or) {
             $seat_details = trim(sprintf(
-                "%s (Sec %s, Row %s, Seat %s)", 
+                "%s (%s, %s, %s)", 
                 $or['ticket_name'], 
                 $or['section_name'], 
                 $or['row_name'], 
