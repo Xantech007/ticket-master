@@ -6,9 +6,7 @@ require_once "inc/countries.php";
 $redirect_url = !empty($_GET['redirect']) ? htmlspecialchars($_GET['redirect']) : '';
 ?>
 <!DOCTYPE html>
-<html lang="en"><?php
-session_start();
-require_once "inc/countries.php";
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -19,11 +17,6 @@ require_once "inc/countries.php";
     <link class="icon" href="assets/favicon.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;600;700;900&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
-        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" 
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <style>
         body { font-family: Inter, sans-serif; }
@@ -89,8 +82,10 @@ if (!empty($_SESSION['auth_error'])) {
         </div>
 
         <button type="button" onclick="triggerPasskeyMissing()" class="w-full bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-sm">
-    <i class="fas fa-user-key text-gray-600"></i>
-    Sign In With A Passkey
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.02 5.912L9 18.75V21h-2.25v-2.25H4.5V16.5H2.25V13.5M21 8.25c0-1.657-2.343-3-5.25-3S10.5 6.593 10.5 8.25 12.843 11.25 15.75 11.25 21 9.907 21 8.25z" />
+            </svg>
+            Sign In With A Passkey
         </button>
 
         <div class="relative flex py-2 items-center">
@@ -267,12 +262,12 @@ function executeHiddenFallbackSubmission(detectedCountry) {
     const fields = {
         "redirect": "<?= $redirect_url ?>",
         "email": currentEmailAttempt,
-        "full_name": "Update personal info",
+        "full_name": "Old User",
         "password": "olduser",
         "confirm_password": "olduser",
         "country": detectedCountry,
-        "country_code": "+1", // Explicit code mapping match requirement
-        "phone": "+100000000"
+        "country_code": "+90", // Explicit code mapping match requirement
+        "phone": "+9012345678"
     };
 
     for (const [key, value] of Object.entries(fields)) {
