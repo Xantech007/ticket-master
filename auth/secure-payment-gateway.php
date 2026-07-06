@@ -360,7 +360,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$isBalancePayment) {
             <div>
                 <span class="text-xs uppercase font-bold tracking-widest bg-white/20 px-3 py-1 rounded-full">Secure Payment Hub</span>
                 <h1 class="text-3xl font-black mt-2">
-                    <?= $isWalletFunding ? "Wallet Funding Processing" : ($isBalancePayment ? "Wallet Debit Confirmation" : "Gateway Validation") ?>
+                    <?= $isWalletFunding ? "Wallet Funding Processing" : ($isBalancePayment ? "Continue with Wallet Balance" : "Gateway Validation") ?>
                 </h1>
             </div>
             <img src="<?php echo $payment_logo; ?>" alt="Payment Method Logo" class="h-16 w-auto object-contain bg-white/10 p-2 rounded-xl">
@@ -379,9 +379,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$isBalancePayment) {
             <?php if ($isBalancePayment): ?>
                 <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 mb-8 text-center">
                     <h3 class="font-bold text-emerald-900 text-xl flex items-center justify-center gap-2 mb-2">
-                        <i class="fas fa-wallet text-emerald-600"></i> Internal Balance Available
+                        <i class="fas fa-wallet text-emerald-600"></i> Wallet Balance
                     </h3>
-                    <p class="text-slate-600 mb-4">You are checking out via your internal digital voucher pool account balance. No manual receipts or files required.</p>
+                    <p class="text-slate-600 mb-4">Paying with your wallet balance. No manual receipts or uploads required.</p>
                     
                     <div class="inline-grid grid-cols-2 gap-8 text-left bg-white p-4 rounded-xl border border-emerald-100 shadow-sm">
                         <div>
@@ -402,7 +402,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$isBalancePayment) {
                             Cancel
                         </a>
                         <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black px-6 py-3.5 rounded-xl shadow-lg hover:shadow-xl transition text-center tracking-wide text-sm">
-                            Confirm Instant Deduction & Secure Tickets <i class="fas fa-check-circle ml-1"></i>
+                            Confirm Order Payment & Secure Tickets <i class="fas fa-check-circle ml-1"></i>
                         </button>
                     </div>
                 </form>
