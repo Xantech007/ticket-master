@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id'])) {
     $_SESSION['auth_error'] = "Please login to continue checkout.";
     $_SESSION['redirect_after_auth'] = $_SERVER['REQUEST_URI'];
 
-    header("Location: ../auth");
+    header("Location: ../oauth");
     exit;
 }
 
