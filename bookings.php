@@ -628,7 +628,7 @@ try {
                 }
         
                 // Proceed to checkout if order generation succeeded 
-                window.location = "oauth/checkout.php";
+                window.location = "auth/checkout.php";
         
             })
             .catch(err => {
