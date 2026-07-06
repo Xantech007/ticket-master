@@ -619,7 +619,7 @@ try {
                     if (response.auth_required) {
                         // Redirect user to login portal with the error and return parameters
                         const returnUrl = encodeURIComponent(window.location.href);
-                        window.location = "auth?error=auth_required&redirect=" + returnUrl;
+                        window.location = "auth.php?error=auth_required&redirect=" + returnUrl;
                         return;
                     }
         
@@ -628,7 +628,7 @@ try {
                 }
         
                 // Proceed to checkout if order generation succeeded 
-                window.location = "auth/checkout";
+                window.location = "auth.php/checkout";
         
             })
             .catch(err => {
