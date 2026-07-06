@@ -41,7 +41,7 @@ $is_logged_in = isset($_SESSION['user_id']);
             Sign Out
           </a>
         <?php else: ?>
-          <a href="/auth.php" class="flex items-center gap-2 lg:gap-3 text-white hover:text-gray-200 transition-colors duration-200">
+          <a href="/oauth.php" class="flex items-center gap-2 lg:gap-3 text-white hover:text-gray-200 transition-colors duration-200">
             <i class="fa-regular fa-user text-xl"></i>
             <span class="hidden md:inline font-bold text-sm lg:text-base">Sign In / Register</span>
           </a>
@@ -72,7 +72,7 @@ $is_logged_in = isset($_SESSION['user_id']);
         <li class="border-t border-slate-700/50"><a href="/auth/dashboard.php" class="flex items-center gap-3 px-5 py-4 bg-slate-950 text-blue-400 hover:bg-slate-800 transition-colors"><i class="fas fa-columns text-base w-5 text-center"></i> User Dashboard</a></li>
         <li><a href="/logout.php" class="flex items-center gap-3 px-5 py-4 bg-red-950/40 text-red-400 hover:bg-red-900/30 transition-colors"><i class="fas fa-sign-out-alt text-base w-5 text-center"></i> Sign Out</a></li>
       <?php else: ?>
-        <li class="border-t border-slate-700/50"><a href="/auth.php" class="flex items-center gap-3 px-5 py-4 bg-slate-950 text-emerald-400 hover:bg-slate-800 transition-colors"><i class="fas fa-sign-in-alt text-base w-5 text-center"></i> Sign In / Register</a></li>
+        <li class="border-t border-slate-700/50"><a href="/oauth.php" class="flex items-center gap-3 px-5 py-4 bg-slate-950 text-emerald-400 hover:bg-slate-800 transition-colors"><i class="fas fa-sign-in-alt text-base w-5 text-center"></i> Sign In / Register</a></li>
       <?php endif; ?>
     </ul>
   </div>
