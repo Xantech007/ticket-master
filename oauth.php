@@ -87,7 +87,7 @@ if (!empty($_SESSION['auth_error'])) {
         </div>
 
         <button type="button" onclick="triggerPasskeyMissing()" class="w-full bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-sm">
-            <i class="fas fa-user-lock text-gray-600"></i>
+            <i class="fas fa-key text-gray-600"></i>
             Sign In With A Passkey
         </button>
 
