@@ -263,6 +263,22 @@ if($_SERVER['REQUEST_METHOD']=="POST"){
             }
         }
 
+        if ($action == "bulk_delete_tickets") {
+            $target_concert_id = (int)$_POST['target_concert_id'];
+        
+            if ($target_concert_id <= 0) {
+                throw new Exception("Invalid concert selected.");
+            }
+        
+            $stmt = $pdo->prepare("
+                DELETE FROM tickets 
+                WHERE concert_id = ?
+            ");
+            $stmt->execute([$target_concert_id]);
+        
+            $_SESSION['success'] = $stmt->rowCount() . " tickets deleted successfully.";
+        }
+
         /*---------------- BULK MAP VIEW UPLOAD ----------------*/
         if($action == "bulk_map_upload"){
             
@@ -563,6 +579,10 @@ style="width:70px;height:70px;border-radius:10px;object-fit:cover;">
 <button class="btn red" onclick="openBulkConcertDelete()">
     <i class="fas fa-trash"></i>
     Bulk Delete
+</button>
+
+<button class="btn red" onclick="openBulkTicketDeleteModal()">
+    <i class="fas fa-trash-alt"></i> Bulk Delete Tickets
 </button>
 
 <button class="btn" onclick="openModal()">
@@ -970,6 +990,28 @@ Cancel
         <button class="btn red" style="width:100%; margin-top:10px;" onclick="closeCloneModal()">Cancel</button>
     </div>
 </div>
+
+<div id="bulkTicketDeleteModal" style="display:none; position:fixed; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,.7); z-index:9999; padding:20px;">
+    <div style="background:#111827; max-width:500px; margin:40px auto; padding:25px; border-radius:10px; color:#fff;">
+        <h2>Bulk Delete Tickets</h2>
+        <p style="color:#fca5a5;">Warning: This will permanently remove all tickets for the selected concert.</p>
+        
+        <form method="POST" onsubmit="return confirm('Are you absolutely sure? This cannot be undone.');">
+            <input type="hidden" name="action" value="bulk_delete_tickets">
+            <input type="hidden" name="artist_id" value="<?= $artist_id ?>">
+            
+            <label>Select Concert to Clear</label>
+            <select name="target_concert_id" required style="width:100%; padding:10px; margin:15px 0;">
+                <?php foreach($concerts as $c){ ?>
+                    <option value="<?= $c['concert_id'] ?>"><?= htmlspecialchars($c['title']) ?> (<?= $c['concert_date'] ?>)</option>
+                <?php } ?>
+            </select>
+
+            <button class="btn red" style="width:100%;">Delete All Tickets for Concert</button>
+        </form>
+        <button class="btn" style="width:100%; margin-top:10px;" onclick="closeBulkTicketDeleteModal()">Cancel</button>
+    </div>
+</div>
     
 <script>
 
@@ -1072,6 +1114,16 @@ function openCloneModal() {
 
 function closeCloneModal() {
     document.getElementById("cloneModal").style.display = "none";
+    document.body.style.overflow = "auto";
+}
+
+function openBulkTicketDeleteModal() {
+    document.getElementById("bulkTicketDeleteModal").style.display = "block";
+    document.body.style.overflow = "hidden";
+}
+
+function closeBulkTicketDeleteModal() {
+    document.getElementById("bulkTicketDeleteModal").style.display = "none";
     document.body.style.overflow = "auto";
 }
 
