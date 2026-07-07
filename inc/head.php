@@ -16,14 +16,14 @@
     <meta property="og:description" content="Buy and sell tickets online for concerts, sports, theater, family and other events near you from Ticketmaster." />
     <meta property="og:url" content="https://www.ticketmaster.xo.je/" />
     <meta property="og:site_name" content="Ticketmaster US" />
-    <meta property="og:image" content="" />
+    <meta property="og:image" content="https://www.ticketmaster.xo.je/assets/favicon.png" />
     <meta property="og:image:width" content="720" />
     <meta property="og:image:height" content="405" />
-
+    
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Ticketmaster: Buy Verified Tickets for Concerts, Sports, Theater and Events" />
     <meta name="twitter:description" content="Buy and sell tickets online for concerts, sports, theater, family and other events near you from Ticketmaster." />
-    <meta name="twitter:image" content="" />
+    <meta name="twitter:image" content="https://www.ticketmaster.xo.je/assets/favicon.png" />
 
     <meta name="next-head-count" content="17" />
     <link rel="icon" href="//uk.tmconst.com/rc-b3c71b5a/images/favicon.ico" type="image/x-icon" />
