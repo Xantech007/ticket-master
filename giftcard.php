@@ -3,19 +3,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// 1. Define the Catalog of Major Gift Cards using digital delivery platforms (e.g., CardDelivery, Dundle)
+// 1. Define the Catalog of Major Gift Cards using digital delivery platforms
 $giftcards_catalog = [
-    'amazon' => [
-        'name' => 'Amazon Gift Card',
-        'icon' => 'fab fa-amazon',
-        'color' => 'from-amber-500 to-orange-600',
-        'text_color' => 'text-orange-500',
-        'bg_light' => 'bg-orange-50',
-        'border_color' => 'border-orange-200',
-        'url' => 'https://www.carddelivery.com/amazon-gift-card',
-        'youtube_id' => 'dQw4w9WgXcQ', // Replace with a CardDelivery Amazon tutorial video ID
-        'instructions' => 'Choose your desired Amazon card denomination on CardDelivery, proceed to the secure checkout, and receive your digital claim code instantly via email.'
-    ],
     'apple' => [
         'name' => 'Apple Gift Card',
         'icon' => 'fab fa-apple',
@@ -23,31 +12,9 @@ $giftcards_catalog = [
         'text_color' => 'text-slate-800',
         'bg_light' => 'bg-slate-50',
         'border_color' => 'border-slate-200',
-        'url' => 'https://www.carddelivery.com/itunes-gift-card',
+        'url' => 'https://www.carddelivery.com/apple-gift-card',
         'youtube_id' => 'dQw4w9WgXcQ', // Replace with a CardDelivery Apple tutorial video ID
         'instructions' => 'Select the Apple/iTunes card value, pay using secure methods like PayPal or credit card, and check your inbox for the immediate digital code delivery.'
-    ],
-    'googleplay' => [
-        'name' => 'Google Play Gift Card',
-        'icon' => 'fab fa-google-play',
-        'color' => 'from-emerald-500 to-teal-700',
-        'text_color' => 'text-emerald-600',
-        'bg_light' => 'bg-emerald-50',
-        'border_color' => 'border-emerald-200',
-        'url' => 'https://www.carddelivery.com/google-play-gift-card',
-        'youtube_id' => 'dQw4w9WgXcQ', // Replace with a CardDelivery Google Play tutorial video ID
-        'instructions' => 'Pick a Google Play balance increment, complete the quick checkout process, and instantly receive your redemption PIN via email for the Google Play Store.'
-    ],
-    'playstation' => [
-        'name' => 'PlayStation Network Card',
-        'icon' => 'fab fa-playstation',
-        'color' => 'from-blue-600 to-indigo-900',
-        'text_color' => 'text-blue-600',
-        'bg_light' => 'bg-blue-50',
-        'border_color' => 'border-blue-200',
-        'url' => 'https://www.carddelivery.com/playstation-network-card',
-        'youtube_id' => 'dQw4w9WgXcQ', // Replace with a CardDelivery PlayStation tutorial video ID
-        'instructions' => 'Select your PlayStation Network region and card value, finalize the purchase securely, and retrieve your PSN code directly from your email inbox.'
     ],
     'steam' => [
         'name' => 'Steam Wallet Code',
@@ -56,7 +23,7 @@ $giftcards_catalog = [
         'text_color' => 'text-indigo-950',
         'bg_light' => 'bg-slate-100',
         'border_color' => 'border-slate-300',
-        'url' => 'https://www.carddelivery.com/steam-gift-card',
+        'url' => 'https://www.carddelivery.com/steam',
         'youtube_id' => 'dQw4w9WgXcQ', // Replace with a CardDelivery Steam tutorial video ID
         'instructions' => 'Choose your Steam Wallet code amount, check out using your preferred payment gateway, and get your digital key emailed instantly to top up your Steam account.'
     ],
@@ -67,16 +34,16 @@ $giftcards_catalog = [
         'text_color' => 'text-green-600',
         'bg_light' => 'bg-green-50',
         'border_color' => 'border-green-200',
-        'url' => 'https://dundle.com/razer-gold/',
+        'url' => 'https://www.carddelivery.com/razer-gold',
         'youtube_id' => 'dQw4w9WgXcQ', // Replace with a Dundle Razer Gold tutorial video ID
         'instructions' => 'Select the Razer Gold PIN amount on Dundle, choose from over 70 payment methods, and your PIN will appear instantly on-screen and in your email.'
     ]
 ];
 
-// 2. Identify the active selected card or default to Amazon if empty/invalid
-$selected_key = isset($_GET['type']) ? trim($_GET['type']) : 'amazon';
+// 2. Identify the active selected card or default to Apple if empty/invalid
+$selected_key = isset($_GET['type']) ? trim($_GET['type']) : 'apple';
 if (!array_key_exists($selected_key, $giftcards_catalog)) {
-    $selected_key = 'amazon';
+    $selected_key = 'apple';
 }
 
 $active_card = $giftcards_catalog[$selected_key];
