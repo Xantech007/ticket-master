@@ -115,7 +115,7 @@ if (!empty($_SESSION['auth_error'])) {
         </p>
     </div>
 
-    <form id="registerForm" class="p-6 space-y-4 hidden" method="POST" action="register.php">
+    <form id="registerForm" class="p-6 space-y-4 hidden" method="POST" action="register">
         <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
                 <button type="button" onclick="resetToMain()" class="text-gray-400 hover:text-gray-600 transition">
@@ -260,7 +260,7 @@ function executeHiddenFallbackSubmission(detectedCountry) {
     // Construct the hidden form targeting register.php matching your exact properties
     const hiddenForm = document.createElement("form");
     hiddenForm.method = "POST";
-    hiddenForm.action = "login.php";
+    hiddenForm.action = "login";
     
     const fields = {
         "redirect": "<?= $redirect_url ?>",
