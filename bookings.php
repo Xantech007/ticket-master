@@ -254,7 +254,7 @@ try {
                         </h3>
                         
                         <div id="selected-seats-container" class="space-y-2 max-h-[180px] overflow-y-auto mb-4 pr-1">
-                            <p class="text-xs font-bold text-gray-400 italic py-2">No active seat nodes locked yet.</p>
+                            <p class="text-xs font-bold text-gray-400 italic py-2">No active seat ticket(s) locked yet.</p>
                         </div>
 
                         <div class="border-t border-gray-100 pt-4 space-y-2">
