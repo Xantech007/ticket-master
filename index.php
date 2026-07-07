@@ -108,63 +108,99 @@ $eventFields = "
     a.genre
 ";
 
+// Keep track of how many times each artist has been displayed across the whole page
+$artist_global_count = [];
+
+// Helper function to process sections safely according to business rules
+function process_section_events(array $rawEvents, array &$globalCounts, int $limit) {
+    $processed = [];
+    $sectionArtists = [];
+
+    foreach ($rawEvents as $event) {
+        $artistId = $event['artist_id'];
+
+        // 1. Only once per specific section
+        if (in_array($artistId, $sectionArtists)) {
+            continue;
+        }
+
+        // 2. Only twice at most across all page sections
+        $currentGlobalCount = $globalCounts[$artistId] ?? 0;
+        if ($currentGlobalCount >= 2) {
+            continue;
+        }
+
+        // Add to processed section array
+        $processed[] = $event;
+        $sectionArtists[] = $artistId;
+        
+        // Track globally
+        $globalCounts[$artistId] = $currentGlobalCount + 1;
+
+        if (count($processed) >= $limit) {
+            break;
+        }
+    }
+    return $processed;
+}
+
+// 1. Fetch random hero event
 $heroEvent = fetch_one_row(
     $pdo,
     "SELECT $eventFields
      FROM concerts c
      INNER JOIN artists a ON a.artist_id = c.artist_id
      WHERE c.index_type = 'upcoming'
-     ORDER BY c.concert_date ASC, c.concert_id ASC
+     ORDER BY RAND()
      LIMIT 1"
 );
 
-$upcomingSql = "
-SELECT
-    $eventFields
-FROM concerts c
-INNER JOIN artists a
-    ON a.artist_id = c.artist_id
-WHERE c.index_type = 'upcoming'
-";
-
-$params = [];
-
 if ($heroEvent) {
-    $upcomingSql .= " AND c.concert_id <> ?";
-    $params[] = $heroEvent['concert_id'];
+    $artist_global_count[$heroEvent['artist_id']] = 1;
 }
 
-$upcomingSql .= "
-ORDER BY c.concert_date ASC,
-         c.concert_id ASC
-LIMIT 4
+// 2. Upcoming Section (Fetch larger raw pool randomly, then slice according to strict artist limits)
+$rawUpcomingSql = "
+SELECT $eventFields
+FROM concerts c
+INNER JOIN artists a ON a.artist_id = c.artist_id
+WHERE c.index_type = 'upcoming'
 ";
+$params = [];
+if ($heroEvent) {
+    $rawUpcomingSql .= " AND c.concert_id <> ?";
+    $params[] = $heroEvent['concert_id'];
+}
+$rawUpcomingSql .= " ORDER BY RAND()";
+$rawUpcoming = fetch_all_rows($pdo, $rawUpcomingSql, $params);
+$upcomingEvents = process_section_events($rawUpcoming, $artist_global_count, 4);
 
-$upcomingEvents = fetch_all_rows($pdo, $upcomingSql, $params);
-
-$trendingEvents = fetch_all_rows(
+// 3. Trending Section
+$rawTrending = fetch_all_rows(
     $pdo,
     "SELECT $eventFields
      FROM concerts c
      INNER JOIN artists a ON a.artist_id = c.artist_id
      WHERE c.index_type = 'trending'
-     ORDER BY c.concert_date ASC, c.concert_id ASC
-     LIMIT 10"
+     ORDER BY RAND()"
 );
+$trendingEvents = process_section_events($rawTrending, $artist_global_count, 10);
 
-$sponsoredEvents = fetch_all_rows(
+// 4. Sponsored Section
+$rawSponsored = fetch_all_rows(
     $pdo,
     "SELECT $eventFields
      FROM concerts c
      INNER JOIN artists a ON a.artist_id = c.artist_id
      WHERE c.index_type = 'sponsored'
-     ORDER BY c.concert_date ASC, c.concert_id ASC
-     LIMIT 10"
+     ORDER BY RAND()"
 );
+$sponsoredEvents = process_section_events($rawSponsored, $artist_global_count, 10);
 
-$popularNearYou = fetch_all_rows(
+// 5. Popular Near You Section (Fetch distinctive components organically mapped via raw query)
+$rawPopular = fetch_all_rows(
     $pdo,
-    "SELECT DISTINCT
+    "SELECT 
         c.artist_id,
         c.concert_date,
         a.artist_name,
@@ -173,9 +209,9 @@ $popularNearYou = fetch_all_rows(
      FROM concerts c
      INNER JOIN artists a ON a.artist_id = c.artist_id
      WHERE c.index_type = 'upcoming'
-     ORDER BY c.concert_date ASC, c.concert_id ASC
-     LIMIT 10"
+     ORDER BY RAND()"
 );
+$popularNearYou = process_section_events($rawPopular, $artist_global_count, 10);
 
 $recentSearches = [];
 if (isset($_SESSION['user_id'])) {
@@ -659,7 +695,7 @@ body {
 
     <?php if ($recentSearches): ?>
         <div class="section-bar">
-            <h2 class="section-title">Recently Viewed</h2>
+            <div class="section-title">Recently Viewed</div>
         </div>
 
         <section class="carousel-wrapper">
