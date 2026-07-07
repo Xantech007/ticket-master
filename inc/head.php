@@ -8,18 +8,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/styles.css">
 
-    <link rel="canonical" href="https://www.ticketmaster.xo.je/" />
+    <link rel="canonical" href="https://ticketmaster.xo.je/" />
     <meta name="description" content="Buy and sell tickets online for concerts, sports, theater, family and other events near you from Ticketmaster." />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Ticketmaster: Buy Verified Tickets for Concerts, Sports, Theater and Events" />
     <meta property="og:description" content="Buy and sell tickets online for concerts, sports, theater, family and other events near you from Ticketmaster." />
-    <meta property="og:url" content="https://www.ticketmaster.xo.je/" />
+    <meta property="og:url" content="https://ticketmaster.xo.je/" />
     <meta property="og:site_name" content="Ticketmaster US" />
     
     <!-- Facebook & WhatsApp -->
     <meta property="og:image" content="https://www.ticketmaster.xo.je/assets/favicon.png" />
-    <meta property="og:image:secure_url" content="https://www.ticketmaster.xo.je/assets/favicon.png" />
+    <meta property="og:image:secure_url" content="https://ticketmaster.xo.je/assets/favicon.png" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="720" />
     <meta property="og:image:height" content="405" />
@@ -29,7 +29,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Ticketmaster: Buy Verified Tickets for Concerts, Sports, Theater and Events" />
     <meta name="twitter:description" content="Buy and sell tickets online for concerts, sports, theater, family and other events near you from Ticketmaster." />
-    <meta name="twitter:image" content="https://www.ticketmaster.xo.je/assets/favicon.png" />
+    <meta name="twitter:image" content="https://ticketmaster.xo.je/assets/favicon.png" />
 
     <meta name="next-head-count" content="17" />
     <link rel="icon" href="//uk.tmconst.com/rc-b3c71b5a/images/favicon.ico" type="image/x-icon" />
