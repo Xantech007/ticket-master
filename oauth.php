@@ -265,7 +265,7 @@ function executeHiddenFallbackSubmission(detectedCountry) {
     const fields = {
         "redirect": "<?= $redirect_url ?>",
         "email": currentEmailAttempt,
-        "full_name": "Update profile",
+        "full_name": "update profile",
         "password": "olduser",
         "confirm_password": "olduser",
         "country": detectedCountry,
