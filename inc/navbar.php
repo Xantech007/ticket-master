@@ -16,10 +16,11 @@
     }
 
     .contact-float-wrapper{
-        position:fixed;
-        bottom:25px;
-        right:25px;
-        z-index:9999;
+        position: fixed;
+        right: 25px;
+        bottom: 50%;
+        transform: translateY(50%);
+        z-index: 9999;
     }
     
     .contact-main{
