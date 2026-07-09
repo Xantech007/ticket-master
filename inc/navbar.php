@@ -14,6 +14,94 @@
     .nav-link:hover {
       color: #fff;
     }
+
+    .whatsapp-float-wrapper{
+        position: fixed;
+        top: 65%;
+        right: 20px;
+    
+        transform: translateY(-50%);
+    
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 9999;
+    }
+    
+    .whatsapp-float{
+        width: 55px;
+        height: 55px;
+        background: #25D366;
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        text-decoration: none;
+        position: relative;
+        
+        animation: floatUpDown 2.5s ease-in-out infinite;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    @keyframes floatUpDown{
+        0%   { transform: translateY(0); }
+        50%  { transform: translateY(-6px); }
+        100% { transform: translateY(0); }
+    }
+    
+    .whatsapp-float::after{
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: rgba(37, 211, 102, 0.4);
+        z-index: -1;
+        animation: pulseGlow 1.8s infinite;
+    }
+    
+    @keyframes pulseGlow{
+        0%{
+            transform: scale(1);
+            opacity: 0.7;
+        }
+        100%{
+            transform: scale(1.7);
+            opacity: 0;
+        }
+    }
+    
+    .whatsapp-label{
+        margin-top: 6px;
+        font-size: 11px;
+        font-weight: bold;
+        color: #fff;
+        background: rgba(0,0,0,0.35);
+        padding: 3px 8px;
+        border-radius: 8px;
+        letter-spacing: 0.3px;
+    
+        animation: fadeLabel 2.5s ease-in-out infinite;
+    }
+    
+    @keyframes fadeLabel{
+        0%, 100% { opacity: 0.7; transform: translateY(0); }
+        50% { opacity: 1; transform: translateY(-2px); }
+    }
+    
+    .whatsapp-label{
+        margin-top: 6px;
+        font-size: 11px;
+        font-weight: bold;
+        color: #333;
+        background: rgba(255,255,255,0.8);
+        padding: 3px 8px;
+        border-radius: 8px;
+        letter-spacing: 0.3px;
+    }
   </style>
 </head>
 <body class="bg-white text-gray-900">
