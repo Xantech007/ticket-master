@@ -142,12 +142,59 @@
   </div>
 </footer>
 
-<div class="whatsapp-float-wrapper">
-    <a href="https://wa.me/<?= $whatsapp ?>" target="_blank" class="whatsapp-float">
-        <i class="fab fa-headset"></i>
-    </a>
-    <div class="whatsapp-label">Instant help</div>
+<?php
+// Assuming these come from the admin table
+$whatsapp = $admin['whatsapp'];
+$telegram = $admin['telegram'];
+$email = $admin['email'];
+?>
+
+<div class="contact-float-wrapper">
+    <div class="contact-options">
+        <?php if(!empty($email)): ?>
+            <a href="mailto:<?= $email ?>" class="contact-btn email" title="Email">
+                <i class="fas fa-envelope"></i>
+            </a>
+        <?php endif; ?>
+
+        <?php if(!empty($telegram)): ?>
+            <a href="https://t.me/<?= ltrim($telegram, '@') ?>" target="_blank" class="contact-btn telegram" title="Telegram">
+                <i class="fab fa-telegram-plane"></i>
+            </a>
+        <?php endif; ?>
+
+        <?php if(!empty($whatsapp)): ?>
+            <a href="https://wa.me/<?= preg_replace('/\D/', '', $whatsapp) ?>" target="_blank" class="contact-btn whatsapp" title="WhatsApp">
+                <i class="fab fa-whatsapp"></i>
+            </a>
+        <?php endif; ?>
+    </div>
+
+    <button class="contact-main" id="contactToggle">
+        <i class="fas fa-headset"></i>
+    </button>
 </div>
 
 </body>
 </html>
+
+<script>
+const toggle = document.getElementById('contactToggle');
+const options = document.querySelector('.contact-options');
+
+toggle.addEventListener('click', function () {
+    options.classList.toggle('show');
+
+    this.innerHTML = options.classList.contains('show')
+        ? '<i class="fas fa-times"></i>'
+        : '<i class="fas fa-headset"></i>';
+});
+
+// Close when clicking outside
+document.addEventListener('click', function(e){
+    if(!e.target.closest('.contact-float-wrapper')){
+        options.classList.remove('show');
+        toggle.innerHTML = '<i class="fas fa-headset"></i>';
+    }
+});
+</script>
