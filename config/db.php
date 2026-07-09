@@ -23,4 +23,13 @@ class Database {
 
 $database = new Database();
 $pdo = $database->connect();
+
+/* Fetch admin details */
+$stmt = $pdo->query("SELECT whatsapp, telegram, email FROM admins LIMIT 1");
+$admin = $stmt->fetch();
+
+$whatsapp = $admin['whatsapp'] ?? '';
+$telegram = $admin['telegram'] ?? '';
+$email = $admin['email'] ?? '';
+
 ?>
